@@ -1,4 +1,7 @@
 export const IPC_CHANNEL = {
+  MAIL_STATUS: "mail:status",
+  MAIL_CONNECT: "mail:connect",
+  MAIL_FETCH: "mail:fetch",
   FLOWS_LIST: "flows:list",
   LEADS_LIST: "leads:list",
   LEADS_CREATE: "leads:create",

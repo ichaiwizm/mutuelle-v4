@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { createRequire } from "node:module";
 
 let cachedUserData: string | null = null;
 
@@ -14,8 +15,7 @@ export function getUserDataDir(): string {
 
   // Try to use Electron if available without making it a hard dependency for tests
   try {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const req: NodeRequire = eval('require');
+    const req = createRequire(import.meta.url);
     const electron = req('electron');
     const p = electron?.app?.getPath?.('userData');
     if (p) {
@@ -33,4 +33,3 @@ export function getUserDataDir(): string {
   cachedUserData = fallback;
   return cachedUserData;
 }
-

@@ -20,11 +20,14 @@ export async function setupTestCtx(): Promise<TestCtx> {
   const migrationsFolder = path.join(process.cwd(), 'drizzle');
   await migrate(db as any, { migrationsFolder });
 
-  // seed flows minimal
-  await (db as any).insert((schema as any).flows).values([
-    { key: 'alptis_sante_select', version: 'v1', title: 'Alptis Santé Select' },
-    { key: 'swisslife_one_slis', version: 'v1', title: 'SwissLife One SLIS' },
-  ]);
+  // seed flows minimal (idempotent)
+  const existing = await (db as any).select({ key: (schema as any).flows.key }).from((schema as any).flows).limit(1);
+  if (!existing[0]) {
+    await (db as any).insert((schema as any).flows).values([
+      { key: 'alptis_sante_select', version: 'v1', title: 'Alptis Santé Select' },
+      { key: 'swisslife_one_slis', version: 'v1', title: 'SwissLife One SLIS' },
+    ]);
+  }
 
   const cleanup = () => {
     try { rmSync(userData, { recursive: true, force: true }); } catch {}
@@ -34,4 +37,3 @@ export async function setupTestCtx(): Promise<TestCtx> {
 
   return { userData, cleanup, db, schema };
 }
-

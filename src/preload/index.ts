@@ -18,6 +18,11 @@ const api: Ipc = {
   flows: {
     list: () => ipcRenderer.invoke(IPC_CHANNEL.FLOWS_LIST),
   },
+  mail: {
+    status: () => ipcRenderer.invoke(IPC_CHANNEL.MAIL_STATUS),
+    connect: () => ipcRenderer.invoke(IPC_CHANNEL.MAIL_CONNECT),
+    fetch: (days: number) => ipcRenderer.invoke(IPC_CHANNEL.MAIL_FETCH, days),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

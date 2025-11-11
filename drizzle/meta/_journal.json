@@ -15,6 +15,13 @@
       "when": 1762871068945,
       "tag": "0001_nervous_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762873764546,
+      "tag": "0002_lovely_warbird",
+      "breakpoints": true
     }
   ]
 }

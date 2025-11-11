@@ -1,6 +1,6 @@
 {
 	"main": "out/main/index.js",
-	"dependencies": {
+  "dependencies": {
 		"@radix-ui/react-dialog": "^1.1.15",
 		"@radix-ui/react-label": "^2.1.8",
 		"@radix-ui/react-select": "^2.2.6",
@@ -16,10 +16,11 @@
 		"react-dom": "^19.2.0",
 		"tailwind-merge": "^3.4.0",
 		"zod": "^4.1.12",
-		"zustand": "^5.0.8"
-	},
+    "zustand": "^5.0.8",
+    "googleapis": "^142.0.0"
+  },
 	"packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40",
-	"devDependencies": {
+  "devDependencies": {
 		"@electron/rebuild": "^4.0.1",
 		"@playwright/test": "^1.56.1",
 		"@tailwindcss/vite": "^4.1.17",
@@ -31,7 +32,8 @@
 		"@vitejs/plugin-react": "^5.1.0",
 		"@vitest/coverage-v8": "^4.0.8",
 		"cross-env": "^10.1.0",
-		"drizzle-kit": "^0.31.6",
+    "drizzle-kit": "^0.31.6",
+    "dotenv": "^16.4.5",
 		"electron": "^28.3.3",
 		"electron-vite": "^4.0.1",
 		"eslint": "^9.39.1",
@@ -44,14 +46,18 @@
 		"typescript": "^5.9.3",
 		"vite": "^7.2.2",
 		"vitest": "^4.0.8"
-	},
+  },
+  "vitest": {
+    "setupFiles": ["dotenv/config"]
+  },
   "scripts": {
 		"dev": "electron-vite dev",
 		"dev:3s": "node -e \"const {spawn}=require('child_process');const p=spawn('pnpm',['dev'],{detached:true,stdio:'ignore'});p.unref();setTimeout(()=>{console.log('Electron dev lancé (pid '+p.pid+').');},3000);\"",
     "build": "eslint . && electron-vite build",
     "test": "vitest run --pool=forks",
     "test:ui": "vitest",
-		"rebuild": "electron-rebuild -f -w better-sqlite3",
+    "gmail:auth": "tsx scripts/gmail-auth.ts",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
 		"db:generate": "drizzle-kit generate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio"

@@ -45,3 +45,19 @@ export const runItems = sqliteTable("run_items", {
   status: text("status").notNull(),
   artifactsDir: text("artifacts_dir").notNull(), // chemin dossier screenshots/vidéos
 });
+
+// OAuth tokens (Google)
+export const oauthTokens = sqliteTable(
+  "oauth_tokens",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    provider: text("provider").notNull(),          // 'google'
+    accountEmail: text("account_email").notNull(),
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token").notNull(),
+    expiry: integer("expiry", { mode: "timestamp_ms" }).notNull(),
+    scope: text("scope").notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({ uniquePair: uniqueIndex("oauth_tokens_provider_email_unique").on(t.provider, t.accountEmail) })
+);
