@@ -2,17 +2,15 @@ import { db, schema } from "../db";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { app } from "electron";
 import { Engine } from "../flows/engine";
+import { getUserDataDir } from "@/main/env";
 
-function artifactsRoot() {
-  return join(app.getPath("userData"), "artifacts");
-}
+function artifactsRoot() { return join(getUserDataDir(), "artifacts"); }
 
 export const AutomationService = {
   async enqueue(items: Array<{ flowKey: string; leadId: string }>) {
     const runId = randomUUID();
-    const now = Date.now();
+    const now = new Date();
 
     await db.insert(schema.runs).values({ id: runId, status: "queued", createdAt: now });
 

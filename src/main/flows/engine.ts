@@ -2,13 +2,10 @@ import { db, schema } from "../db";
 import { eq, and } from "drizzle-orm";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { app } from "electron";
 import { Adapters } from "./adapters";
-import { LeadSchema } from "@/shared/validation/lead.zod";
+import { getUserDataDir } from "@/main/env";
 
-function artifactsRoot() {
-  return join(app.getPath("userData"), "artifacts");
-}
+function artifactsRoot() { return join(getUserDataDir(), "artifacts"); }
 function platformForFlow(flowKey: string): "alptis" | "swisslife" | undefined {
   if (flowKey.startsWith("alptis")) return "alptis";
   if (flowKey.startsWith("swisslife")) return "swisslife";
@@ -40,7 +37,7 @@ export const Engine = {
         // lead
         const [leadRow] = await db.select().from(schema.leads).where(eq(schema.leads.id, item.leadId));
         if (!leadRow) throw new Error(`Lead ${item.leadId} not found`);
-        const lead = LeadSchema.parse(JSON.parse(leadRow.data));
+        const lead = JSON.parse(leadRow.data);
 
         // creds
         const [creds] = await db.select().from(schema.credentials).where(eq(schema.credentials.platform, platform));

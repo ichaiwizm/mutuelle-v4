@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 export const CredentialsService = {
   async upsert(p: { platform: string; login: string; password: string }) {
-    const now = Date.now();
+    const now = new Date();
     const existing = await db
       .select({ id: schema.credentials.id })
       .from(schema.credentials)
