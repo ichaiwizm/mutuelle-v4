@@ -1,13 +1,19 @@
-import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // Users/credentials (1 compte/plateforme)
-export const credentials = sqliteTable("credentials", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  platform: text("platform").notNull(),          // "alptis" | "swisslife"
-  login: text("login").notNull(),
-  password: text("password").notNull(),          // chiffré plus tard
-  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const credentials = sqliteTable(
+  "credentials",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    platform: text("platform").notNull(), // "alptis" | "swisslife"
+    login: text("login").notNull(),
+    password: text("password").notNull(), // chiffré plus tard
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({
+    platformUnique: uniqueIndex("credentials_platform_unique").on(t.platform),
+  })
+);
 
 // Leads (simplifié)
 export const leads = sqliteTable("leads", {

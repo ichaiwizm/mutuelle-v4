@@ -15,6 +15,9 @@ const api: Ipc = {
   automation: {
     enqueue: (items) => ipcRenderer.invoke(IPC_CHANNEL.AUTO_ENQUEUE, items),
   },
+  flows: {
+    list: () => ipcRenderer.invoke(IPC_CHANNEL.FLOWS_LIST),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

@@ -1,4 +1,5 @@
 export type Ipc = {
+  flows: { list: () => Promise<import("@/shared/types/flow").Flow[]> };
   leads: {
     list: () => Promise<{ id: string }[]>;
     create: (lead: unknown) => Promise<{ id: string }>;

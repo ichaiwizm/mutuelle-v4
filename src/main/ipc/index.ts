@@ -3,8 +3,10 @@ import { IPC_CHANNEL } from "./channels";
 import { LeadsService } from "../services/leadsService";
 import { CredentialsService } from "../services/credentialsService";
 import { AutomationService } from "../services/automationService";
+import { FlowsService } from "../services/flowsService";
 
 export function registerIpc() {
+  ipcMain.handle(IPC_CHANNEL.FLOWS_LIST, () => FlowsService.list());
   ipcMain.handle(IPC_CHANNEL.LEADS_LIST, () => LeadsService.list());
   ipcMain.handle(IPC_CHANNEL.LEADS_CREATE, (_e, lead) => LeadsService.create(lead));
   ipcMain.handle(IPC_CHANNEL.LEADS_REMOVE, (_e, id) => LeadsService.remove(id));

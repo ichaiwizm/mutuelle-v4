@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `credentials_platform_unique` ON `credentials` (`platform`);

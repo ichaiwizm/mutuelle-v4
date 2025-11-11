@@ -32,8 +32,8 @@ app.whenReady().then(async () => {
   await migrate(db, { migrationsFolder })
 
   // --- seeder flows ---
-  const count = await db.select({ c: db.$count(flows) }).from(flows)
-  if (!count[0]?.c) {
+  const [exists] = await db.select({ key: flows.key }).from(flows).limit(1)
+  if (!exists) {
     await db.insert(flows).values([
       { key: 'alptis_sante_select', version: 'v1', title: 'Alptis Santé Select' },
       { key: 'swisslife_one_slis', version: 'v1', title: 'SwissLife One SLIS' },
