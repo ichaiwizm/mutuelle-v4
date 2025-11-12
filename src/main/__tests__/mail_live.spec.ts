@@ -54,12 +54,26 @@ maybe('Gmail LIVE', () => {
     console.log('\n📧 Gmail Fetch Results:');
     console.log(`   Fetched: ${res.fetched} emails`);
     console.log(`   Matched: ${res.matched} emails from known providers`);
-    console.log(`   Rate: ${res.fetched > 0 ? ((res.matched / res.fetched) * 100).toFixed(1) : 0}%`);
+    console.log(`   Detected: ${res.detected} valid leads`);
+    console.log(`   Parsed: ${res.parsed} leads successfully parsed`);
+    console.log(`   Saved: ${res.saved} leads saved to database`);
+    console.log(`   Match Rate: ${res.fetched > 0 ? ((res.matched / res.fetched) * 100).toFixed(1) : 0}%`);
+    console.log(`   Lead Rate: ${res.matched > 0 ? ((res.detected / res.matched) * 100).toFixed(1) : 0}%`);
+    console.log(`   Success Rate: ${res.detected > 0 ? ((res.saved / res.detected) * 100).toFixed(1) : 0}%`);
+
+    if (res.errors && res.errors.length > 0) {
+      console.log('\n   ⚠️  Errors:');
+      res.errors.forEach((error, i) => {
+        console.log(`   ${i + 1}. ${error}`);
+      });
+    }
 
     if (res.matchedEmails && res.matchedEmails.length > 0) {
       console.log('\n   📬 Matched emails:');
       res.matchedEmails.forEach((email, i) => {
-        console.log(`   ${i + 1}. From: ${email.from}`);
+        const leadStatus = email.isLead ? `✓ LEAD (${email.provider})` : '✗ Not a lead';
+        console.log(`   ${i + 1}. ${leadStatus}`);
+        console.log(`      From: ${email.from}`);
         console.log(`      Subject: ${email.subject}`);
       });
     }
@@ -68,5 +82,8 @@ maybe('Gmail LIVE', () => {
     expect(res.fetched).toBeGreaterThanOrEqual(0);
     expect(res.matched).toBeGreaterThanOrEqual(0);
     expect(res.matched).toBeLessThanOrEqual(res.fetched);
+    expect(res.detected).toBeLessThanOrEqual(res.matched);
+    expect(res.parsed).toBeLessThanOrEqual(res.detected);
+    expect(res.saved).toBeLessThanOrEqual(res.parsed);
   });
 });
