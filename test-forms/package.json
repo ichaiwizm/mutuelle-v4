@@ -4,12 +4,17 @@
   "description": "POC test system for form automation with Playwright",
   "type": "module",
   "scripts": {
+    "dev": "tsx server/index.ts",
     "server": "tsx server/index.ts",
     "server:dev": "tsx watch server/index.ts",
     "test": "playwright test tests/form-automation.spec.ts",
     "test:ui": "playwright test tests/form-automation.spec.ts --ui",
     "test:headed": "playwright test tests/form-automation.spec.ts --headed",
-    "test:debug": "playwright test tests/form-automation.spec.ts --debug"
+    "test:debug": "playwright test tests/form-automation.spec.ts --debug",
+    "test:premium": "playwright test tests/premium/premium-automation.spec.ts",
+    "test:premium:ui": "playwright test tests/premium/premium-automation.spec.ts --ui",
+    "test:premium:headed": "playwright test tests/premium/premium-automation.spec.ts --headed",
+    "test:premium:debug": "playwright test tests/premium/premium-automation.spec.ts --debug"
   },
   "dependencies": {
     "express": "^4.18.2",

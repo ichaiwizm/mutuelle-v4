@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Votre devis - Mutuelle Test</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>Votre devis personnalisé</h1>
+      <p class="subtitle">Voici le résultat de votre simulation</p>
+    </header>
+
+    <div id="quote-content" data-testid="quote-content">
+      <p class="loading">Chargement de votre devis...</p>
+    </div>
+
+    <div class="form-actions">
+      <button
+        class="btn btn-secondary"
+        onclick="window.location.href='/home.html'"
+      >
+        Retour à l'accueil
+      </button>
+      <button
+        class="btn btn-primary"
+        onclick="window.location.href='/form.html'"
+      >
+        Nouvelle simulation
+      </button>
+    </div>
+  </div>
+
+  <script src="/scripts/quote.js"></script>
+</body>
+</html>

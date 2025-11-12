@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - Mutuelle Test</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <h1>Espace Client</h1>
+      <p class="subtitle">Connectez-vous pour accéder à votre espace</p>
+
+      <form id="login-form" data-testid="login-form">
+        <div class="form-group">
+          <label for="username">Nom d'utilisateur</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            data-testid="username-input"
+            required
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            data-testid="password-input"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          data-testid="login-button"
+        >
+          Se connecter
+        </button>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
+      </form>
+
+      <p class="info-text">
+        <small>Environnement de test - Utilisez n'importe quel identifiant</small>
+      </p>
+    </div>
+  </div>
+
+  <script src="/scripts/login.js"></script>
+</body>
+</html>
