@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { setupTestCtx } from './testUtils';
 import { google } from 'googleapis';
@@ -30,9 +31,14 @@ class LiveWrapper implements GmailClient {
 }
 
 maybe('Gmail LIVE', () => {
-  let cleanup: () => void; let db: any; let schema: any;
-  beforeAll(async () => { const ctx = await setupTestCtx(); cleanup = ctx.cleanup; db = ctx.db; schema = ctx.schema; });
-  afterAll(() => { cleanup?.(); });
+  let cleanup: (() => void) | undefined;
+  beforeAll(async () => {
+    const ctx = await setupTestCtx();
+    cleanup = ctx.cleanup;
+  });
+  afterAll(() => {
+    cleanup?.();
+  });
 
   it('lists real messages and filters by provider', { timeout: 120000 }, async () => {
     const clientId = process.env.GOOGLE_CLIENT_ID!;
@@ -43,9 +49,6 @@ maybe('Gmail LIVE', () => {
     const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ refresh_token: refreshToken });
     const gmail = google.gmail({ version: 'v1', auth: oauth2 });
-    const q = buildGmailQuery(Number(process.env.GMAIL_TEST_DAYS || 1));
-    const ids = (await gmail.users.messages.list({ userId: 'me', q, maxResults: 5 })).data.messages || [];
-    expect(Array.isArray(ids)).toBe(true);
     const wrapper = new LiveWrapper(gmail);
     // Ensure tokens row exists for service precondition
     await MailAuthService.saveTokens({
@@ -80,4 +83,3 @@ maybe('Gmail LIVE', () => {
     expect(res.matched).toBeLessThanOrEqual(res.fetched);
   });
 });
-import 'dotenv/config';
