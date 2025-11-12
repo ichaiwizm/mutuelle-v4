@@ -23,7 +23,7 @@ export async function createGmailClientFromTokens(tokens: {
   const gmail = google.gmail({ version: 'v1', auth: oauth2 });
   return {
     async listMessages(q: string) {
-      const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 50 });
+      const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500 });
       return (res.data.messages || []).map(m => m.id!).filter(Boolean);
     },
     async getMessage(id: string) {

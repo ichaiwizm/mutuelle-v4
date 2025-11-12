@@ -2,8 +2,8 @@ import { db, schema } from '../db';
 import { buildGmailQuery } from '@/main/mail/query';
 import type { GmailClient } from '@/main/mail/google/client';
 import { createGmailClientFromTokens } from '@/main/mail/google/client';
-import { Detectors } from '@/main/mail/detectors';
-import { LeadsService } from './leadsService';
+import { matchesProvider } from '@/main/mail/filters';
+import { LEAD_PROVIDERS } from '@/main/mail/providers';
 
 async function ensureClient(provided: GmailClient | undefined) {
   if (provided) return provided;
@@ -18,24 +18,40 @@ async function ensureClient(provided: GmailClient | undefined) {
 }
 
 export const MailService = {
-  async fetch(days: number, client?: GmailClient) {
+  async fetch(days: number, client?: GmailClient, options?: { verbose?: boolean; concurrency?: number }) {
     const rows = await db.select().from(schema.oauthTokens);
     if (!rows[0]) throw new Error('No OAuth tokens');
     const q = buildGmailQuery(days);
     const c = await ensureClient(client);
     const ids = await c.listMessages(q);
-    let scanned = 0, matched = 0, created = 0;
-    for (const id of ids) {
-      const m = await c.getMessage(id); scanned++;
-      for (const det of Detectors) {
-        const found = det.detect(m);
-        for (const cand of found) {
+    const matchedEmails: Array<{ from: string; subject: string }> = [];
+
+    // Traitement en parallèle avec limite de concurrence
+    const concurrency = options?.concurrency ?? 10;
+    let matched = 0;
+
+    for (let i = 0; i < ids.length; i += concurrency) {
+      const batch = ids.slice(i, i + concurrency);
+      const messages = await Promise.all(batch.map(id => c.getMessage(id)));
+
+      for (const m of messages) {
+        if (matchesProvider(m.from, LEAD_PROVIDERS)) {
           matched++;
-          const res = await LeadsService.create({ subscriber: cand.subscriber });
-          if (res?.id) created++;
+          if (options?.verbose) {
+            matchedEmails.push({ from: m.from, subject: m.subject });
+          }
+          // Pour l'instant, on ne fait rien avec les emails matchés
+          // TODO: implémenter le traitement des emails matchés
         }
       }
+
+      // Log progression si verbose (tous les 100 emails)
+      if (options?.verbose && ids.length > 20 && (i + concurrency) % 100 === 0) {
+        const progress = Math.min(i + concurrency, ids.length);
+        console.log(`   Processing... ${progress}/${ids.length} (${matched} matched so far)`);
+      }
     }
-    return { fetched: ids.length, scanned, matched, created };
+
+    return { fetched: ids.length, matched, matchedEmails: options?.verbose ? matchedEmails : undefined };
   },
 };
