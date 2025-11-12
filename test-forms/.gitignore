@@ -1,0 +1,24 @@
+# Playwright artifacts
+playwright-report/
+test-results/
+.playwright/
+
+# Debug screenshots
+debug-*.png
+
+# Runtime data
+server/db.json
+
+# Test artifacts
+*.spec.ts.snap
+*.har
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+.cache/
+
+# Dependencies
+node_modules/

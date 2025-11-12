@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulation de devis - Mutuelle Test</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>Simulation de devis mutuelle</h1>
+      <p class="subtitle">Remplissez le formulaire pour obtenir votre devis personnalisé</p>
+    </header>
+
+    <form id="quote-form" data-testid="quote-form">
+      <!-- Section 1: Informations personnelles -->
+      <section class="form-section">
+        <h2>Vos informations personnelles</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="civilite">Civilité *</label>
+            <select id="civilite" name="civilite" data-testid="civilite" required>
+              <option value="">Sélectionnez...</option>
+              <option value="M.">M.</option>
+              <option value="Mme">Mme</option>
+              <option value="Mlle">Mlle</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input
+              type="text"
+              id="nom"
+              name="nom"
+              data-testid="nom"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="prenom">Prénom *</label>
+            <input
+              type="text"
+              id="prenom"
+              name="prenom"
+              data-testid="prenom"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateNaissance">Date de naissance *</label>
+            <input
+              type="date"
+              id="dateNaissance"
+              name="dateNaissance"
+              data-testid="dateNaissance"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              data-testid="email"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="telephone">Téléphone *</label>
+            <input
+              type="tel"
+              id="telephone"
+              name="telephone"
+              data-testid="telephone"
+              placeholder="06.12.34.56.78"
+              required
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Adresse -->
+      <section class="form-section">
+        <h2>Votre adresse</h2>
+
+        <div class="form-group">
+          <label for="adresse">Adresse *</label>
+          <input
+            type="text"
+            id="adresse"
+            name="adresse"
+            data-testid="adresse"
+            placeholder="Numéro et nom de rue"
+            required
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="codePostal">Code postal *</label>
+            <input
+              type="text"
+              id="codePostal"
+              name="codePostal"
+              data-testid="codePostal"
+              pattern="[0-9]{5}"
+              placeholder="75001"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="ville">Ville *</label>
+            <input
+              type="text"
+              id="ville"
+              name="ville"
+              data-testid="ville"
+              required
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Informations professionnelles -->
+      <section class="form-section">
+        <h2>Informations professionnelles</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="profession">Profession *</label>
+            <select id="profession" name="profession" data-testid="profession" required>
+              <option value="">Sélectionnez...</option>
+              <option value="Profession liberale">Profession libérale</option>
+              <option value="Chef d'entreprise">Chef d'entreprise</option>
+              <option value="Artisan">Artisan</option>
+              <option value="Salarie">Salarié</option>
+              <option value="En recherche d'emploi">En recherche d'emploi</option>
+              <option value="Retraite">Retraité</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regimeSocial">Régime social *</label>
+            <select id="regimeSocial" name="regimeSocial" data-testid="regimeSocial" required>
+              <option value="">Sélectionnez...</option>
+              <option value="TNS : regime des independants">TNS : régime des indépendants</option>
+              <option value="Salarie (ou retraite)">Salarié (ou retraité)</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Situation familiale -->
+      <section class="form-section">
+        <h2>Situation familiale</h2>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              id="hasConjoint"
+              name="hasConjoint"
+              data-testid="hasConjoint"
+            >
+            J'ai un conjoint à assurer
+          </label>
+        </div>
+
+        <!-- Conjoint fields (hidden by default) -->
+        <div id="conjoint-fields" style="display: none;">
+          <h3>Informations du conjoint</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="conjoint_dateNaissance">Date de naissance du conjoint</label>
+              <input
+                type="date"
+                id="conjoint_dateNaissance"
+                name="conjoint_dateNaissance"
+                data-testid="conjoint_dateNaissance"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="conjoint_profession">Profession du conjoint</label>
+              <select id="conjoint_profession" name="conjoint_profession" data-testid="conjoint_profession">
+                <option value="">Sélectionnez...</option>
+                <option value="Profession liberale">Profession libérale</option>
+                <option value="Chef d'entreprise">Chef d'entreprise</option>
+                <option value="Artisan">Artisan</option>
+                <option value="Salarie">Salarié</option>
+                <option value="En recherche d'emploi">En recherche d'emploi</option>
+                <option value="Retraite">Retraité</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="conjoint_regimeSocial">Régime social du conjoint</label>
+              <select id="conjoint_regimeSocial" name="conjoint_regimeSocial" data-testid="conjoint_regimeSocial">
+                <option value="">Sélectionnez...</option>
+                <option value="TNS : regime des independants">TNS : régime des indépendants</option>
+                <option value="Salarie (ou retraite)">Salarié (ou retraité)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nombreEnfants">Nombre d'enfants</label>
+          <input
+            type="number"
+            id="nombreEnfants"
+            name="nombreEnfants"
+            data-testid="nombreEnfants"
+            min="0"
+            max="10"
+            value="0"
+          >
+        </div>
+
+        <!-- Dynamic children container -->
+        <div id="children-container" data-testid="children-container"></div>
+      </section>
+
+      <!-- Section 5: Besoins de couverture -->
+      <section class="form-section">
+        <h2>Vos besoins de couverture</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateEffet">Date d'effet souhaitée *</label>
+            <input
+              type="date"
+              id="dateEffet"
+              name="dateEffet"
+              data-testid="dateEffet"
+              required
+            >
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                id="actuellementAssure"
+                name="actuellementAssure"
+                data-testid="actuellementAssure"
+              >
+              Je suis actuellement assuré
+            </label>
+          </div>
+        </div>
+
+        <div class="coverage-levels">
+          <h3>Niveaux de couverture souhaités</h3>
+          <p class="help-text">1 = Basique, 4 = Premium</p>
+
+          <div class="form-group range-group">
+            <label for="soinsMedicaux">Soins médicaux</label>
+            <div class="range-container">
+              <input
+                type="range"
+                id="soinsMedicaux"
+                name="soinsMedicaux"
+                data-testid="soinsMedicaux"
+                min="1"
+                max="4"
+                value="2"
+              >
+              <span class="range-value" id="soinsMedicaux-value">2</span>
+            </div>
+          </div>
+
+          <div class="form-group range-group">
+            <label for="hospitalisation">Hospitalisation</label>
+            <div class="range-container">
+              <input
+                type="range"
+                id="hospitalisation"
+                name="hospitalisation"
+                data-testid="hospitalisation"
+                min="1"
+                max="4"
+                value="2"
+              >
+              <span class="range-value" id="hospitalisation-value">2</span>
+            </div>
+          </div>
+
+          <div class="form-group range-group">
+            <label for="optique">Optique</label>
+            <div class="range-container">
+              <input
+                type="range"
+                id="optique"
+                name="optique"
+                data-testid="optique"
+                min="1"
+                max="4"
+                value="2"
+              >
+              <span class="range-value" id="optique-value">2</span>
+            </div>
+          </div>
+
+          <div class="form-group range-group">
+            <label for="dentaire">Dentaire</label>
+            <div class="range-container">
+              <input
+                type="range"
+                id="dentaire"
+                name="dentaire"
+                data-testid="dentaire"
+                min="1"
+                max="4"
+                value="2"
+              >
+              <span class="range-value" id="dentaire-value">2</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Submit button -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary btn-large"
+          data-testid="submit-button"
+        >
+          Obtenir mon devis
+        </button>
+      </div>
+
+      <div id="error-message" class="error-message" style="display: none;"></div>
+    </form>
+  </div>
+
+  <script src="/scripts/form.js"></script>
+</body>
+</html>
