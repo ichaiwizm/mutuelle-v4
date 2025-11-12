@@ -1,33 +1,33 @@
-import { db, schema } from '../db';
 import { buildGmailQuery } from '@/main/mail/query';
 import type { GmailClient } from '@/main/mail/google/client';
 import { createGmailClientFromTokens } from '@/main/mail/google/client';
 import { matchesProvider } from '@/main/mail/filters';
 import { LEAD_PROVIDERS } from '@/main/mail/providers';
+import { GMAIL_CONFIG } from '@/main/mail/constants';
+import { MailAuthService } from './mailAuthService';
 
-async function ensureClient(provided: GmailClient | undefined) {
+async function ensureClient(provided: GmailClient | undefined): Promise<GmailClient> {
   if (provided) return provided;
-  const [row] = await db.select().from(schema.oauthTokens);
-  if (!row) throw new Error('No OAuth tokens');
+
+  // Use centralized token access
+  const token = await MailAuthService.requireToken();
   return createGmailClientFromTokens({
-    accessToken: row.accessToken,
-    refreshToken: row.refreshToken,
-    expiry: new Date(row.expiry),
-    accountEmail: row.accountEmail,
+    accessToken: token.accessToken,
+    refreshToken: token.refreshToken,
+    expiry: new Date(token.expiry),
+    accountEmail: token.accountEmail,
   });
 }
 
 export const MailService = {
   async fetch(days: number, client?: GmailClient, options?: { verbose?: boolean; concurrency?: number }) {
-    const rows = await db.select().from(schema.oauthTokens);
-    if (!rows[0]) throw new Error('No OAuth tokens');
     const q = buildGmailQuery(days);
     const c = await ensureClient(client);
     const ids = await c.listMessages(q);
     const matchedEmails: Array<{ from: string; subject: string }> = [];
 
     // Traitement en parallèle avec limite de concurrence
-    const concurrency = options?.concurrency ?? 10;
+    const concurrency = options?.concurrency ?? GMAIL_CONFIG.DEFAULT_CONCURRENCY;
     let matched = 0;
 
     for (let i = 0; i < ids.length; i += concurrency) {
@@ -45,8 +45,8 @@ export const MailService = {
         }
       }
 
-      // Log progression si verbose (tous les 100 emails)
-      if (options?.verbose && ids.length > 20 && (i + concurrency) % 100 === 0) {
+      // Log progression si verbose
+      if (options?.verbose && ids.length > 20 && (i + concurrency) % GMAIL_CONFIG.PROGRESS_LOG_INTERVAL === 0) {
         const progress = Math.min(i + concurrency, ids.length);
         console.log(`   Processing... ${progress}/${ids.length} (${matched} matched so far)`);
       }

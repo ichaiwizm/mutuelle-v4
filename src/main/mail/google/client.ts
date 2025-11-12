@@ -1,3 +1,6 @@
+import { parseGmailMessage } from './parser';
+import { GMAIL_API, GMAIL_CONFIG } from '../constants';
+
 export type MailMsg = { id: string; subject: string; from: string; date: number; text: string };
 
 export interface GmailClient {
@@ -20,23 +23,24 @@ export async function createGmailClientFromTokens(tokens: {
     refresh_token: tokens.refreshToken,
     expiry_date: tokens.expiry.getTime(),
   });
-  const gmail = google.gmail({ version: 'v1', auth: oauth2 });
+  const gmail = google.gmail({ version: GMAIL_API.VERSION, auth: oauth2 });
+
   return {
     async listMessages(q: string) {
-      const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500 });
+      const res = await gmail.users.messages.list({
+        userId: GMAIL_API.USER_ID,
+        q,
+        maxResults: GMAIL_CONFIG.MAX_RESULTS
+      });
       return (res.data.messages || []).map(m => m.id!).filter(Boolean);
     },
     async getMessage(id: string) {
-      const res = await gmail.users.messages.get({ userId: 'me', id, format: 'full' });
-      const payload = res.data.payload;
-      const headers = Object.fromEntries((payload?.headers || []).map(h => [String(h.name).toLowerCase(), String(h.value || '')]));
-      const subject = headers['subject'] || '';
-      const from = headers['from'] || '';
-      const date = Number(res.data.internalDate || Date.now());
-      const bodyPart = (payload?.parts || []).find(p => p.mimeType?.startsWith('text/plain')) || payload;
-      const data = bodyPart?.body?.data || '';
-      const text = data ? Buffer.from(data.replace(/-/g,'+').replace(/_/g,'/'), 'base64').toString('utf8') : '';
-      return { id, subject, from, date, text };
+      const res = await gmail.users.messages.get({
+        userId: GMAIL_API.USER_ID,
+        id,
+        format: GMAIL_API.MESSAGE_FORMAT
+      });
+      return parseGmailMessage(res.data);
     },
   } as GmailClient;
 }
