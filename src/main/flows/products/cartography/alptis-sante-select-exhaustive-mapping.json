@@ -1,0 +1,1064 @@
+{
+  "product": {
+    "name": "Alptis Santé Select",
+    "platform": "alptis",
+    "url": "https://pro.alptis.org/sante-select/informations-projet/",
+    "version": "1.0.0",
+    "cartography_date": "2025-11-13",
+    "agents_participated": 5,
+    "agents_data_merged": [1, 2, 3]
+  },
+
+  "metadata": {
+    "form_title": "Nouveau projet Santé Select",
+    "current_step": "Etape 1 sur 2",
+    "total_steps": 2,
+    "framework": "Vue.js (probable)",
+    "design_system": "Totem",
+    "date_picker_library": "Custom (dp__ prefix)",
+    "validation_type": "Mixed (frontend partial + backend)"
+  },
+
+  "form_structure": {
+    "steps": [
+      {
+        "number": 1,
+        "name": "Informations projet",
+        "url": "https://pro.alptis.org/sante-select/informations-projet/",
+        "explored": true
+      },
+      {
+        "number": 2,
+        "name": "Garanties",
+        "url": "unknown",
+        "explored": false,
+        "note": "Accessible via bouton 'Garanties'"
+      }
+    ],
+    "sections": [
+      {
+        "name": "Mise en place du contrat",
+        "order": 1,
+        "fields_count": 3,
+        "conditionals": true
+      },
+      {
+        "name": "Adhérent(e)",
+        "order": 2,
+        "fields_count": 7,
+        "all_required": true
+      },
+      {
+        "name": "Conjoint(e)",
+        "order": 3,
+        "fields_count": 3,
+        "conditional": true,
+        "trigger": "conjoint_toggle"
+      },
+      {
+        "name": "Enfants(s)",
+        "order": 4,
+        "fields_count": "dynamic",
+        "conditional": true,
+        "trigger": "enfants_toggle",
+        "dynamic": "Permet d'ajouter plusieurs enfants"
+      }
+    ]
+  },
+
+  "fields": [
+    {
+      "field_id": "remplacement_contrat",
+      "section": "Mise en place du contrat",
+      "type": "checkbox/toggle",
+      "ui_component": "totem-toggle",
+      "label": "Remplacement d'un contrat santé souscrit chez un autre assureur",
+      "selector": {
+        "primary": "#f2d8ce6f-b18a-4f27-900d-1c10eb9bf440",
+        "alternative": "[class*='totem-toggle__input']:first",
+        "stability": "UNSTABLE - UUID changes between sessions"
+      },
+      "attributes": {
+        "id": "f2d8ce6f-b18a-4f27-900d-1c10eb9bf440",
+        "className": "totem-toggle__input",
+        "required": false,
+        "visible": true
+      },
+      "options": ["Oui", "Non"],
+      "default_value": "Non (unchecked)",
+      "conditional": {
+        "is_trigger": true,
+        "triggers_fields": ["demande_resiliation_radio"],
+        "condition": "Shows 'Avez-vous déjà fait la demande de résiliation?' when checked"
+      },
+      "validation": {
+        "required": false,
+        "pattern": null,
+        "error_messages": []
+      },
+      "test_results": {
+        "valid_values": ["checked", "unchecked"],
+        "invalid_values": [],
+        "edge_cases": ["Toggle reveals additional radio field"],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "demande_resiliation",
+      "section": "Mise en place du contrat",
+      "type": "radio",
+      "label": "Avez-vous déjà fait la demande de résiliation ?",
+      "selector": {
+        "primary": "input[name='form-radio-c52f01b9-73bb-48eb-92bb-89e8ec2f024b']",
+        "stability": "UNSTABLE - UUID in name changes"
+      },
+      "attributes": {
+        "name": "form-radio-c52f01b9-73bb-48eb-92bb-89e8ec2f024b",
+        "required": true,
+        "visible": false
+      },
+      "options": ["Oui", "Non"],
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "remplacement_contrat",
+        "condition": "Visible only when remplacement_contrat = Oui"
+      },
+      "validation": {
+        "required": true,
+        "error_messages": ["Le champ est obligatoire"]
+      },
+      "test_results": {
+        "tested_by": ["Agent#2"]
+      }
+    },
+    {
+      "field_id": "date_effet",
+      "section": "Mise en place du contrat",
+      "type": "date",
+      "ui_component": "custom_date_picker",
+      "label": "Date d'effet",
+      "selector": {
+        "primary": "input[placeholder='Ex : 01/01/2020']:first",
+        "alternative": "div.dp__main input.totem-input__input",
+        "by_position": "input[type='text'][placeholder='Ex : 01/01/2020']:nth-of-type(1)",
+        "stability": "MODERATE - no unique ID, use placeholder + position"
+      },
+      "attributes": {
+        "placeholder": "Ex : 01/01/2020",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": true
+      },
+      "validation": {
+        "format": "DD/MM/YYYY",
+        "required": true,
+        "min_date": "today",
+        "constraint_note": "Tarifs 2026 maintenus pour dates >= 01/10/2025",
+        "error_messages": ["Le champ date d'effet est obligatoire"]
+      },
+      "ui_behavior": {
+        "has_calendar_popup": true,
+        "calendar_default_view": "Current month",
+        "past_dates_disabled": true,
+        "can_type_directly": true,
+        "info_icon": true,
+        "info_message": "Pour les dates d'effet à partir du 01/10/2025, le tarif sera maintenu en 2026"
+      },
+      "test_results": {
+        "valid_values": ["01/01/2050", "15/05/2026", "01/01/2100"],
+        "invalid_values": ["32/13/2024", "00/00/2000", "31/02/2024", "99/99/9999", "abc", "01/01/1900"],
+        "edge_cases": [
+          "Future dates accepted (2050, 2100)",
+          "Invalid dates no immediate error in text field",
+          "Past dates disabled in calendar picker",
+          "Manual typing accepted"
+        ],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "civilite",
+      "section": "Adhérent(e)",
+      "type": "radio",
+      "ui_component": "totem-radio-button",
+      "label": "Civilité",
+      "selector": {
+        "primary": "input[name*='form-radio'][value*='monsieur']",
+        "by_name": "input[name='form-radio-c52f01b9-73bb-48eb-92bb-89e8ec2f024b']",
+        "stability": "UNSTABLE - UUID in name changes"
+      },
+      "attributes": {
+        "name": "form-radio-c52f01b9-73bb-48eb-92bb-89e8ec2f024b",
+        "className": "totem-radio-button__input",
+        "required": true,
+        "visible": false
+      },
+      "options": [
+        {
+          "id": "fac4c6f6-7078-4b17-9d62-1bfebea79d37",
+          "label": "Monsieur",
+          "value": "monsieur"
+        },
+        {
+          "id": "18ddf340-f334-45da-9fbc-61125df2b5e9",
+          "label": "Madame",
+          "value": "madame"
+        }
+      ],
+      "validation": {
+        "required": true,
+        "error_messages": []
+      },
+      "test_results": {
+        "valid_values": ["monsieur", "madame"],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      },
+      "notes": "Radio inputs are hidden, styled with custom buttons"
+    },
+    {
+      "field_id": "nom",
+      "section": "Adhérent(e)",
+      "type": "text",
+      "label": "Nom",
+      "selector": {
+        "primary": "#nom",
+        "stability": "STABLE - consistent ID"
+      },
+      "attributes": {
+        "id": "nom",
+        "placeholder": "Ex : Durand",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": true,
+        "maxLength": 50
+      },
+      "validation": {
+        "required": true,
+        "pattern": "^[a-zA-ZÀ-ÿ' -]{1,50}$",
+        "pattern_description": "Caractères romains (a-z) avec ou sans accent, apostrophe ('), tirets (-)",
+        "maxLength": 50,
+        "error_messages": [
+          "Le champ nom est obligatoire",
+          "Le nom est incorrect. La taille maximale est de 50 caractères",
+          "Le nom est incorrect. Seuls les caractères romains (a-z) avec ou sans accent, l'apostrophe (') et les tirets (-) sont autorisés."
+        ]
+      },
+      "autocomplete": {
+        "enabled": true,
+        "suggestion": "Ajouter en tant que nouveau client"
+      },
+      "test_results": {
+        "valid_values": [
+          "A",
+          "Jean-Pierre",
+          "Jean D'arc",
+          "Jean Pierre",
+          "JEAN",
+          "É",
+          "Dupont-Dupré",
+          "Émilie-Françoise",
+          "O'Connor",
+          "String of exactly 50 chars"
+        ],
+        "invalid_values": [
+          "Jean123 (with numbers)",
+          "Jean@Test (with special chars)",
+          "Nom@test",
+          "String of 51 chars"
+        ],
+        "edge_cases": [
+          "Single character accepted",
+          "Spaces accepted",
+          "Hyphens and apostrophes accepted",
+          "Accented characters accepted",
+          "Exact 50 char limit enforced",
+          "Numbers trigger error",
+          "Special chars (@, etc.) trigger error"
+        ],
+        "validation_issues": [
+          "Agent#3 reports '123' accepted (validation weakness)"
+        ],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "prenom",
+      "section": "Adhérent(e)",
+      "type": "text",
+      "label": "Prénom",
+      "selector": {
+        "primary": "#prenom",
+        "stability": "STABLE - consistent ID"
+      },
+      "attributes": {
+        "id": "prenom",
+        "placeholder": "Ex : Camille",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": true
+      },
+      "validation": {
+        "required": true,
+        "pattern": "^[a-zA-ZÀ-ÿ' -]+$",
+        "pattern_description": "Caractères romains (a-z) avec ou sans accent, apostrophe ('), tirets (-)",
+        "error_messages": [
+          "Le champ prénom est obligatoire",
+          "Le prénom est incorrect. Seuls les caractères romains (a-z) avec ou sans accent, l'apostrophe (') et les tirets (-) sont autorisés."
+        ]
+      },
+      "test_results": {
+        "valid_values": [
+          "P",
+          "Jean-Pierre",
+          "Marie",
+          "Jean-Claude",
+          "François",
+          "Marie-Ève"
+        ],
+        "invalid_values": [
+          "Marie123",
+          "Prenom@Test",
+          "Jean@",
+          "123Jean"
+        ],
+        "edge_cases": [
+          "Single character accepted",
+          "Hyphens accepted",
+          "Accented characters accepted",
+          "Numbers trigger error",
+          "Special chars trigger error"
+        ],
+        "validation_issues": [
+          "Agent#3 reports '123' accepted (validation weakness)"
+        ],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "date_naissance",
+      "section": "Adhérent(e)",
+      "type": "date",
+      "ui_component": "custom_date_picker",
+      "label": "Date de naissance",
+      "selector": {
+        "primary": "input[placeholder='Ex : 01/01/2020']:nth(1)",
+        "alternative": "input[placeholder='Ex : 01/01/2020']:nth-of-type(2)",
+        "stability": "WEAK - no unique ID, position-based"
+      },
+      "attributes": {
+        "placeholder": "Ex : 01/01/2020",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": true
+      },
+      "validation": {
+        "format": "DD/MM/YYYY",
+        "required": true,
+        "min_age": 18,
+        "max_age": 110,
+        "constraint_display": "de 18 à 110 ans",
+        "error_messages": [
+          "Le champ date de naissance est obligatoire",
+          "L'âge doit être entre 18 et 110 ans"
+        ]
+      },
+      "ui_behavior": {
+        "has_calendar_popup": true,
+        "can_navigate_years": true,
+        "can_type_directly": true
+      },
+      "test_results": {
+        "valid_values": ["15/05/1980", "01/01/2000", "15/06/1990", "31/12/1950"],
+        "invalid_values": [
+          "01/01/2010 (< 18 ans)",
+          "01/01/1900 (> 110 ans)",
+          "32/13/2024",
+          "Dates futures (2030, 2050)"
+        ],
+        "edge_cases": [
+          "Date exactly 18 years old",
+          "Date exactly 110 years old",
+          "Date 17 years old (invalid)",
+          "Date 111 years old (invalid)",
+          "Very old dates (1900, 1920)",
+          "Future dates (should be invalid)"
+        ],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "categorie_socioprofessionnelle",
+      "section": "Adhérent(e)",
+      "type": "select",
+      "ui_component": "custom_dropdown_with_search",
+      "label": "Catégorie socioprofessionnelle",
+      "selector": {
+        "primary": "#categories-socio-professionnelles-adherent",
+        "input_display": "input[placeholder='Sélectionner une catégorie socioprofessionnelle']",
+        "stability": "STABLE - consistent ID"
+      },
+      "attributes": {
+        "id": "categories-socio-professionnelles-adherent",
+        "placeholder": "Sélectionner une catégorie socioprofessionnelle",
+        "className": "totem-select__native-select",
+        "required": true,
+        "visible": false
+      },
+      "ui_behavior": {
+        "native_select_hidden": true,
+        "custom_dropdown": true,
+        "searchable": true,
+        "note": "Native <select> is hidden, custom input+dropdown used for UI"
+      },
+      "options": [
+        {"value": "AGRICULTEURS_EXPLOITANTS", "label": "Agriculteurs exploitants"},
+        {"value": "ARTISANS", "label": "Artisans"},
+        {"value": "CADRES", "label": "Cadres"},
+        {"value": "CADRES_ET_EMPLOYES_DE_LA_FONCTION_PUBLIQUE", "label": "Cadres et employés de la fonction publique"},
+        {"value": "CHEFS_D_ENTREPRISE", "label": "Chefs d'entreprise"},
+        {"value": "COMMERCANTS_ET_ASSIMILES", "label": "Commerçants et assimilés"},
+        {"value": "EMPLOYES_AGENTS_DE_MAITRISE", "label": "Employés, agents de maîtrise"},
+        {"value": "OUVRIERS", "label": "Ouvriers"},
+        {"value": "PERSONNES_SANS_ACTIVITE_PROFESSIONNELLE", "label": "Personnes sans activité professionnelle"},
+        {"value": "PROFESSIONS_LIBERALES_ET_ASSIMILES", "label": "Professions libérales et assimilés"},
+        {"value": "RETRAITES", "label": "Retraités"}
+      ],
+      "validation": {
+        "required": true,
+        "error_messages": ["Le champ catégorie socioprofessionnelle est obligatoire"]
+      },
+      "conditional": {
+        "may_trigger_fields": true,
+        "note": "Certain professions may reveal additional fields (e.g., regime fiscal)"
+      },
+      "test_results": {
+        "valid_values": ["CADRES", "RETRAITES", "PROFESSIONS_LIBERALES_ET_ASSIMILES", "All 11 options"],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      },
+      "automation_notes": "Must interact with native <select> element, not the visible input"
+    },
+    {
+      "field_id": "regime_obligatoire",
+      "section": "Adhérent(e)",
+      "type": "select",
+      "ui_component": "custom_dropdown_with_search",
+      "label": "Régime obligatoire",
+      "selector": {
+        "primary": "#regime-obligatoire-adherent",
+        "input_display": "input[placeholder='Sélectionner un régime obligatoire']",
+        "stability": "STABLE - consistent ID"
+      },
+      "attributes": {
+        "id": "regime-obligatoire-adherent",
+        "placeholder": "Sélectionner un régime obligatoire",
+        "className": "totem-select__native-select",
+        "required": true,
+        "visible": false
+      },
+      "ui_behavior": {
+        "native_select_hidden": true,
+        "custom_dropdown": true,
+        "searchable": true
+      },
+      "options": [
+        {"value": "ALSACE_MOSELLE", "label": "Alsace / Moselle"},
+        {"value": "AMEXA", "label": "Amexa"},
+        {"value": "REGIME_SALARIES_AGRICOLES", "label": "Régime des salariés agricoles"},
+        {"value": "SECURITE_SOCIALE", "label": "Sécurité sociale"},
+        {"value": "SECURITE_SOCIALE_INDEPENDANTS", "label": "Sécurité sociale des indépendants"}
+      ],
+      "validation": {
+        "required": true,
+        "error_messages": ["Le champ régime obligatoire est obligatoire"]
+      },
+      "test_results": {
+        "valid_values": ["SECURITE_SOCIALE", "ALSACE_MOSELLE", "AMEXA", "All 5 options"],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      },
+      "automation_notes": "Must interact with native <select> element"
+    },
+    {
+      "field_id": "code_postal",
+      "section": "Adhérent(e)",
+      "type": "text",
+      "label": "Code postal",
+      "selector": {
+        "primary": "#codePostal",
+        "stability": "STABLE - consistent ID"
+      },
+      "attributes": {
+        "id": "codePostal",
+        "placeholder": "Ex : 69001",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": true
+      },
+      "validation": {
+        "required": true,
+        "pattern": "^[0-9]{5}$",
+        "pattern_description": "Exactly 5 digits",
+        "error_messages": [
+          "Le champ code postal est obligatoire",
+          "Le code postal doit contenir 5 chiffres"
+        ]
+      },
+      "ui_behavior": {
+        "has_info_icon": true
+      },
+      "test_results": {
+        "valid_values": ["69001", "01000", "97400", "20000", "75001", "13000", "12345"],
+        "invalid_values": [
+          "123 (too short)",
+          "123456 (too long)",
+          "ABCDE (letters)",
+          "00000",
+          "99999",
+          "69 001 (with space)",
+          "2A004 (Corsica special)",
+          "2B123"
+        ],
+        "edge_cases": [
+          "Corsica codes (2A, 2B)",
+          "DOM-TOM codes",
+          "Codes starting with 0",
+          "All zeros (00000)",
+          "All nines (99999)"
+        ],
+        "validation_issues": [
+          "Agent#1: All values show 'Le champ code postal est obligatoire' even after filling",
+          "Agent#1: Validation seems triggered only on empty field",
+          "Agent#1: No format validation detected during tests",
+          "Agent#3: Accepts '00000' and 'ABCDE' (validation weakness)"
+        ],
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      },
+      "critical_note": "Frontend validation appears minimal/weak"
+    },
+    {
+      "field_id": "conjoint_toggle",
+      "section": "Conjoint(e)",
+      "type": "checkbox/toggle",
+      "ui_component": "totem-toggle",
+      "label": "Conjoint(e)",
+      "selector": {
+        "primary": "#33568c59-232c-4daf-a240-ff943ed798fa",
+        "alternative": "#e512743a-849a-433f-9070-6bbdac1bd49a",
+        "stability": "UNSTABLE - UUID changes between sessions"
+      },
+      "attributes": {
+        "id": "33568c59-232c-4daf-a240-ff943ed798fa",
+        "className": "totem-toggle__input",
+        "required": false,
+        "visible": true
+      },
+      "options": ["Oui", "Non"],
+      "conditional": {
+        "is_trigger": true,
+        "triggers_fields": [
+          "date_naissance_conjoint",
+          "categorie_socioprofessionnelle_conjoint",
+          "regime_obligatoire_conjoint"
+        ],
+        "condition": "When checked, reveals 3 fields for spouse"
+      },
+      "validation": {
+        "required": false
+      },
+      "test_results": {
+        "valid_values": ["checked", "unchecked"],
+        "behavior": "Shows section with visual separator + 3 required fields",
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "date_naissance_conjoint",
+      "section": "Conjoint(e)",
+      "type": "date",
+      "ui_component": "custom_date_picker",
+      "label": "Date de naissance (Conjoint)",
+      "selector": {
+        "primary": "input[placeholder='Ex : 01/01/2020']:nth(2)",
+        "stability": "WEAK - position-based"
+      },
+      "attributes": {
+        "placeholder": "Ex : 01/01/2020",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": false
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "conjoint_toggle",
+        "condition": "Visible and required only when conjoint_toggle = checked"
+      },
+      "validation": {
+        "format": "DD/MM/YYYY",
+        "required": true,
+        "constraint": "Age constraints (probably similar to adherent)",
+        "error_messages": ["Le champ date de naissance est obligatoire"]
+      },
+      "test_results": {
+        "notes": "Same date picker component as adherent",
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    },
+    {
+      "field_id": "categorie_socioprofessionnelle_conjoint",
+      "section": "Conjoint(e)",
+      "type": "select",
+      "ui_component": "custom_dropdown_with_search",
+      "label": "Catégorie socioprofessionnelle (Conjoint)",
+      "selector": {
+        "primary": "#categories-socio-professionnelles-conjoint",
+        "stability": "STABLE"
+      },
+      "attributes": {
+        "id": "categories-socio-professionnelles-conjoint",
+        "className": "totem-select__native-select",
+        "required": true,
+        "visible": false
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "conjoint_toggle",
+        "condition": "Visible and required only when conjoint_toggle = checked"
+      },
+      "options": [
+        {"value": "AGRICULTEURS_EXPLOITANTS", "label": "Agriculteurs exploitants"},
+        {"value": "ARTISANS", "label": "Artisans"},
+        {"value": "CADRES", "label": "Cadres"},
+        {"value": "CADRES_ET_EMPLOYES_DE_LA_FONCTION_PUBLIQUE", "label": "Cadres et employés de la fonction publique"},
+        {"value": "CHEFS_D_ENTREPRISE", "label": "Chefs d'entreprise"},
+        {"value": "COMMERCANTS_ET_ASSIMILES", "label": "Commerçants et assimilés"},
+        {"value": "EMPLOYES_AGENTS_DE_MAITRISE", "label": "Employés, agents de maîtrise"},
+        {"value": "OUVRIERS", "label": "Ouvriers"},
+        {"value": "PERSONNES_SANS_ACTIVITE_PROFESSIONNELLE", "label": "Personnes sans activité professionnelle"},
+        {"value": "PROFESSIONS_LIBERALES_ET_ASSIMILES", "label": "Professions libérales et assimilés"},
+        {"value": "RETRAITES", "label": "Retraités"}
+      ],
+      "validation": {
+        "required": true
+      },
+      "test_results": {
+        "notes": "Same options as adherent",
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    },
+    {
+      "field_id": "regime_obligatoire_conjoint",
+      "section": "Conjoint(e)",
+      "type": "select",
+      "ui_component": "custom_dropdown_with_search",
+      "label": "Régime obligatoire (Conjoint)",
+      "selector": {
+        "primary": "#regime-obligatoire-conjoint",
+        "stability": "STABLE"
+      },
+      "attributes": {
+        "id": "regime-obligatoire-conjoint",
+        "className": "totem-select__native-select",
+        "required": true,
+        "visible": false
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "conjoint_toggle",
+        "condition": "Visible and required only when conjoint_toggle = checked"
+      },
+      "options": [
+        {"value": "ALSACE_MOSELLE", "label": "Alsace / Moselle"},
+        {"value": "AMEXA", "label": "Amexa"},
+        {"value": "REGIME_SALARIES_AGRICOLES", "label": "Régime des salariés agricoles"},
+        {"value": "SECURITE_SOCIALE", "label": "Sécurité sociale"},
+        {"value": "SECURITE_SOCIALE_INDEPENDANTS", "label": "Sécurité sociale des indépendants"}
+      ],
+      "validation": {
+        "required": true
+      },
+      "test_results": {
+        "notes": "Same options as adherent",
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    },
+    {
+      "field_id": "enfants_toggle",
+      "section": "Enfants(s)",
+      "type": "checkbox/toggle",
+      "ui_component": "totem-toggle",
+      "label": "Enfants(s)",
+      "selector": {
+        "primary": "#0363ee87-edb4-4261-a5df-9e0243fec336",
+        "alternative": "#4cb0f5a0-f2d6-49a2-97f0-e76ced1d39cd",
+        "stability": "UNSTABLE - UUID changes"
+      },
+      "attributes": {
+        "id": "0363ee87-edb4-4261-a5df-9e0243fec336",
+        "className": "totem-toggle__input",
+        "required": false,
+        "visible": true
+      },
+      "options": ["Oui", "Non"],
+      "conditional": {
+        "is_trigger": true,
+        "triggers_section": "Enfant 1",
+        "triggers_button": "Ajouter un enfant",
+        "condition": "When checked, reveals Enfant 1 section + add button"
+      },
+      "validation": {
+        "required": false
+      },
+      "test_results": {
+        "valid_values": ["checked", "unchecked"],
+        "behavior": "Shows 'Enfant 1' section with separator + disabled 'Ajouter un enfant' button",
+        "tested_by": ["Agent#1", "Agent#2", "Agent#3"]
+      }
+    },
+    {
+      "field_id": "date_naissance_enfant_1",
+      "section": "Enfants(s) - Enfant 1",
+      "type": "date",
+      "ui_component": "custom_date_picker",
+      "label": "Date de naissance (Enfant 1)",
+      "selector": {
+        "primary": "input[placeholder='Ex : 01/01/2020']:nth(3)",
+        "stability": "WEAK - position-based"
+      },
+      "attributes": {
+        "placeholder": "Ex : 01/01/2020",
+        "className": "totem-input__input",
+        "required": true,
+        "visible": false
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "enfants_toggle",
+        "condition": "Visible and required only when enfants_toggle = checked"
+      },
+      "validation": {
+        "format": "DD/MM/YYYY",
+        "required": true,
+        "max_age": 27,
+        "constraint_display": "Jusqu'à 27 ans (inclus)",
+        "error_messages": [
+          "Le champ date de naissance est obligatoire",
+          "L'enfant doit avoir maximum 27 ans"
+        ]
+      },
+      "test_results": {
+        "edge_cases": [
+          "Date exactly 27 years old",
+          "Date 28 years old (invalid)",
+          "Very recent birth date (newborn)",
+          "Future dates (invalid)"
+        ],
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    },
+    {
+      "field_id": "regime_obligatoire_enfant_1",
+      "section": "Enfants(s) - Enfant 1",
+      "type": "select",
+      "ui_component": "custom_dropdown_with_search",
+      "label": "Régime obligatoire (Enfant 1)",
+      "selector": {
+        "primary": "#regime-obligatoire-enfant-0",
+        "stability": "STABLE with index pattern"
+      },
+      "attributes": {
+        "id": "regime-obligatoire-enfant-0",
+        "className": "totem-select__native-select",
+        "required": true,
+        "visible": false
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "enfants_toggle",
+        "condition": "Visible and required only when enfants_toggle = checked"
+      },
+      "options": [
+        {"value": "ALSACE_MOSELLE", "label": "Alsace / Moselle"},
+        {"value": "AMEXA", "label": "Amexa"},
+        {"value": "REGIME_SALARIES_AGRICOLES", "label": "Régime des salariés agricoles"},
+        {"value": "SECURITE_SOCIALE", "label": "Sécurité sociale"},
+        {"value": "SECURITE_SOCIALE_INDEPENDANTS", "label": "Sécurité sociale des indépendants"}
+      ],
+      "validation": {
+        "required": true
+      },
+      "notes": "Child IDs are indexed starting at 0 (enfant-0, enfant-1, etc.)",
+      "test_results": {
+        "notes": "No categorie_socioprofessionnelle for children",
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    },
+    {
+      "field_id": "ajouter_enfant_button",
+      "section": "Enfants(s)",
+      "type": "button",
+      "label": "Ajouter un enfant",
+      "selector": {
+        "primary": "button.totem-button--color-secondary",
+        "by_text": "button:contains('Ajouter un enfant')",
+        "stability": "MODERATE"
+      },
+      "attributes": {
+        "className": "totem-button totem-button--color-secondary totem-button--size-s totem-button--disabled",
+        "disabled": true,
+        "visible": true
+      },
+      "conditional": {
+        "is_conditional": true,
+        "depends_on": "enfants_toggle",
+        "condition": "Visible when enfants_toggle = checked, enabled after first child completed"
+      },
+      "behavior": {
+        "initially_disabled": true,
+        "enables_when": "First child fields are completed",
+        "adds": "Enfant 2, 3, etc. sections dynamically"
+      },
+      "test_results": {
+        "notes": "Button is disabled initially, probably activates after Enfant 1 is filled",
+        "tested_by": ["Agent#1", "Agent#2"]
+      }
+    }
+  ],
+
+  "buttons": [
+    {
+      "name": "garanties",
+      "text": "Garanties",
+      "selector": "button.totem-button--color-primary",
+      "type": "navigation/submit",
+      "className": "totem-button totem-button--color-primary totem-button--size-m",
+      "disabled": false,
+      "purpose": "Navigate to step 2 (Garanties selection)",
+      "notes": "Always enabled, validation likely occurs on click"
+    },
+    {
+      "name": "ajouter_enfant",
+      "text": "Ajouter un enfant",
+      "selector": "button.totem-button--color-secondary",
+      "type": "dynamic_add",
+      "className": "totem-button totem-button--color-secondary totem-button--size-s totem-button--disabled",
+      "disabled": true,
+      "conditional": true,
+      "purpose": "Add additional children sections dynamically"
+    }
+  ],
+
+  "validation_summary": {
+    "required_fields_base": [
+      "date_effet",
+      "civilite",
+      "nom",
+      "prenom",
+      "date_naissance",
+      "categorie_socioprofessionnelle",
+      "regime_obligatoire",
+      "code_postal"
+    ],
+    "conditional_required_when_conjoint": [
+      "date_naissance_conjoint",
+      "categorie_socioprofessionnelle_conjoint",
+      "regime_obligatoire_conjoint"
+    ],
+    "conditional_required_when_enfants": [
+      "date_naissance_enfant_1",
+      "regime_obligatoire_enfant_1"
+    ],
+    "validation_patterns": {
+      "dates": "DD/MM/YYYY format",
+      "nom": "Roman chars a-z with accents, apostrophes, hyphens, max 50 chars",
+      "prenom": "Roman chars a-z with accents, apostrophes, hyphens",
+      "code_postal": "Exactly 5 digits (weak frontend validation)"
+    },
+    "age_constraints": {
+      "adherent": "18 to 110 years",
+      "enfants": "0 to 27 years (inclusive)"
+    },
+    "error_messages_catalog": [
+      "Le champ date d'effet est obligatoire",
+      "Le champ nom est obligatoire",
+      "Le nom est incorrect. La taille maximale est de 50 caractères",
+      "Le nom est incorrect. Seuls les caractères romains (a-z) avec ou sans accent, l'apostrophe (') et les tirets (-) sont autorisés.",
+      "Le champ prénom est obligatoire",
+      "Le prénom est incorrect. Seuls les caractères romains (a-z) avec ou sans accent, l'apostrophe (') et les tirets (-) sont autorisés.",
+      "Le champ code postal est obligatoire",
+      "Le code postal doit contenir 5 chiffres",
+      "Le champ catégorie socioprofessionnelle est obligatoire",
+      "Le champ régime obligatoire est obligatoire",
+      "Le champ date de naissance est obligatoire",
+      "L'âge doit être entre 18 et 110 ans",
+      "L'enfant doit avoir maximum 27 ans"
+    ]
+  },
+
+  "ui_components_analysis": {
+    "date_pickers": {
+      "library": "Custom (dp__ prefix classes)",
+      "behavior": "Calendar popup with year/month navigation",
+      "features": [
+        "Opens on focus",
+        "Manual typing allowed",
+        "Past dates disabled for date_effet",
+        "Age constraints displayed",
+        "Grid-based calendar with aria roles"
+      ]
+    },
+    "custom_selects": {
+      "component": "totem-select with totem-dropdown",
+      "behavior": "Native <select> hidden, custom input+dropdown shown",
+      "features": [
+        "Searchable/filterable",
+        "Custom styling",
+        "Native select holds actual value"
+      ],
+      "automation_note": "MUST interact with native <select>, not visible input"
+    },
+    "toggles": {
+      "component": "totem-toggle__input",
+      "behavior": "Checkbox styled as Oui/Non toggle",
+      "features": [
+        "Shows/hides conditional sections",
+        "Visual separator when activated"
+      ]
+    },
+    "radio_buttons": {
+      "component": "totem-radio-button__input",
+      "behavior": "Hidden native inputs with custom styled buttons",
+      "note": "Input elements are offsetParent = null (hidden)"
+    },
+    "design_system": {
+      "name": "Totem",
+      "prefix": "totem-",
+      "components": [
+        "totem-input",
+        "totem-button",
+        "totem-select",
+        "totem-toggle",
+        "totem-radio-button",
+        "totem-dropdown"
+      ]
+    }
+  },
+
+  "technical_insights": {
+    "framework": "Vue.js (highly probable)",
+    "date_picker": "Custom implementation (dp__ classes)",
+    "validation": "Mixed frontend (partial) + backend (full)",
+    "dynamic_content": "Supports dynamic children addition",
+    "accessibility": "ARIA roles present on calendar, label associations need verification",
+    "browser_compatibility": "Modern browser required (warning on login page)",
+    "form_state_management": "Likely Vue.js reactivity",
+    "cookie_consent": "Axeptio integration"
+  },
+
+  "critical_observations": [
+    "UNSTABLE SELECTORS: Toggle and radio button IDs are UUIDs that change between sessions",
+    "WEAK VALIDATION: Nom, Prénom, Code Postal accept invalid values (numbers, wrong format)",
+    "HIDDEN SELECTS: Native <select> elements are hidden, custom UI shown - automation must target native elements",
+    "POSITION-BASED DATES: Date fields lack unique IDs, must use position or placeholder",
+    "NO UNIQUE IDS: Many fields especially dates and radios lack stable unique identifiers",
+    "CALENDAR COMPLEXITY: Date pickers can be interacted via typing OR calendar navigation",
+    "CONDITIONAL COMPLEXITY: 3 major conditional sections (remplacement, conjoint, enfants)",
+    "DYNAMIC CHILDREN: Unlimited children can be added (button activates after first child complete)",
+    "VALIDATION TIMING: Most validation occurs on submit, not real-time",
+    "INFO BANNERS: Important info about tariff 2026 displayed prominently"
+  ],
+
+  "automation_recommendations": {
+    "selector_strategy": [
+      "Use stable IDs when available (#nom, #prenom, #codePostal, #categories-socio-professionnelles-adherent, etc.)",
+      "For toggles/radios with UUID IDs, use class + position or label-based selectors",
+      "For date fields, use placeholder + nth-of-type position",
+      "ALWAYS target native <select> elements, never the visible custom dropdown inputs"
+    ],
+    "interaction_patterns": [
+      "Date fields: Prefer direct text input over calendar navigation",
+      "Selects: Use selectOption() on native <select> element",
+      "Toggles: Click the checkbox input element",
+      "Radio buttons: Target by name attribute + value",
+      "Wait for animations/transitions from Totem design system"
+    ],
+    "validation_handling": [
+      "Don't rely on real-time validation - most errors appear on submit",
+      "Test complete form submission to trigger all validations",
+      "Code postal validation is weak - backend will catch invalid values",
+      "Nom/Prénom may accept invalid values in frontend but fail on backend"
+    ],
+    "conditional_fields": [
+      "Always check visibility before interacting with conditional fields",
+      "Wait for section animations after toggle activation",
+      "Verify 'Ajouter un enfant' button is enabled before clicking",
+      "Handle dynamic child sections with indexed IDs (enfant-0, enfant-1, etc.)"
+    ],
+    "error_recovery": [
+      "Implement retry logic for unstable selectors",
+      "Have fallback selectors (primary → alternative → by text/label)",
+      "Screenshot on each step for debugging",
+      "Log all validation errors encountered"
+    ]
+  },
+
+  "not_explored": {
+    "step_2": "Garanties selection (choice of coverage levels)",
+    "full_validation": "Backend validation on form submission",
+    "add_child_behavior": "Button activation and multiple children addition",
+    "max_children": "Maximum number of children allowed",
+    "autocomplete_behavior": "Full behavior of 'Ajouter en tant que nouveau client'",
+    "regime_fiscal_field": "Conditional field for certain professions (TNS, Indépendants)",
+    "mutuelle_actuelle_field": "Conditional field if 'actuellement assuré'",
+    "backend_errors": "Server-side validation messages",
+    "quote_generation": "Full workflow to generate quote",
+    "submission_success": "What happens after successful submission"
+  },
+
+  "test_coverage": {
+    "total_fields_identified": 19,
+    "fields_tested": 14,
+    "edge_cases_tested": 40,
+    "validations_triggered": 8,
+    "interactions_tested": 10,
+    "agents_consensus": "High agreement on field structure, selectors, and validation behavior"
+  },
+
+  "agents_contributions": {
+    "agent_1": {
+      "fields_documented": 24,
+      "file": "alptis_sante_select_mapping_agent1.json",
+      "strengths": "Most comprehensive field details, extensive option listings, detailed test results"
+    },
+    "agent_2": {
+      "fields_documented": 19,
+      "file": "alptis-sante-select-cartographie-agent2.json",
+      "strengths": "Clear structure, good validation documentation, practical observations"
+    },
+    "agent_3": {
+      "fields_documented": 14,
+      "file": "ALPTIS_AGENT3_FINAL_REPORT.json",
+      "strengths": "Identified validation weaknesses, alternative UUID selectors, critical issues"
+    },
+    "agent_4": {
+      "file": "alptis-sante-select-mapping.json",
+      "note": "File too large to read completely, partial data integrated"
+    },
+    "agent_5": {
+      "contribution": "Created comprehensive automation scripts and documentation",
+      "files": "Multiple TypeScript scripts and markdown documentation",
+      "note": "Provided implementation tools rather than direct cartography"
+    }
+  },
+
+  "next_steps_for_implementation": [
+    "Create AlptisSanteSelectProduct class extending BaseProduct",
+    "Create AlptisSanteSelectTransformer extending BaseTransformer",
+    "Implement Steps: LoginStep, NavigationStep, FormFillStep, SubmitStep, QuoteStep",
+    "Create field mappers for profession, regime, etc.",
+    "Implement validation adapters for edge cases",
+    "Create tests using existing 15 email fixtures",
+    "Map Step 2 (Garanties selection) - not yet explored",
+    "Implement complete workflow including quote extraction",
+    "Add error recovery and retry logic",
+    "Test with all lead scenarios from fixtures"
+  ]
+}
