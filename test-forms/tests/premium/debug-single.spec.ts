@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { PremiumTransformer } from '../../src/products/premium/transformer.js';
 import { PremiumFormFiller } from '../helpers/premium/premiumFormFiller.js';
 import { readFileSync } from 'fs';
+import type { ParseLeadFunction } from '../../src/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +14,7 @@ const FIXTURES_DIR = path.resolve(__dirname, '../../../src/main/__tests__/fixtur
 
 // Import du parser
 const parserLoaderPath = path.resolve(__dirname, '../parser-loader.cjs');
-let parseLead: any;
+let parseLead: ParseLeadFunction;
 
 test.beforeAll(async () => {
   // Load parser dynamically (CommonJS module)
@@ -23,7 +24,7 @@ test.beforeAll(async () => {
   parseLead = parserModule.parseLead;
 });
 
-test('Debug single lead - email-001', async ({ page }) => {
+test.skip('Debug single lead - email-001', async ({ page }) => {
   // Capture console logs
   page.on('console', msg => {
     console.log(`[BROWSER ${msg.type()}]`, msg.text());

@@ -14,6 +14,10 @@ export interface ValidationRule {
 export class ValidationAdapter {
   private rules: ValidationRule[] = [
     // Date d'effet : minimum +7 jours dans le futur
+    // Règle métier : La compagnie d'assurance a besoin d'au moins 7 jours
+    // pour traiter la demande, effectuer les vérifications nécessaires,
+    // et activer la couverture. Cette période permet également au client
+    // de compléter son dossier et fournir les documents requis.
     {
       field: 'dateEffet',
       validate: (value: string) => {
@@ -51,6 +55,10 @@ export class ValidationAdapter {
     },
 
     // Date de naissance : minimum 18 ans
+    // Règle métier : Le produit Premium est réservé aux adultes majeurs.
+    // Les personnes de moins de 18 ans doivent être couvertes en tant
+    // qu'enfants d'un souscripteur adulte. Cette règle est liée aux
+    // obligations légales de souscription d'un contrat d'assurance.
     {
       field: 'dateNaissance',
       validate: (value: string) => {
@@ -89,6 +97,11 @@ export class ValidationAdapter {
     },
 
     // Téléphone : format strict 06/07.XX.XX.XX.XX
+    // Règle métier : Pour le produit Premium, seuls les numéros mobiles
+    // français sont acceptés (06 ou 07). Cette exigence permet d'assurer
+    // une communication rapide avec le client (SMS, validation 2FA) et
+    // garantit la joignabilité pour les urgences médicales. Les numéros
+    // fixes ne sont pas acceptés car moins fiables pour les notifications.
     {
       field: 'telephone',
       validate: (value: string) => {
@@ -116,6 +129,10 @@ export class ValidationAdapter {
     },
 
     // Code postal : 5 chiffres
+    // Règle métier : Le code postal français doit toujours contenir
+    // exactement 5 chiffres. Cette information est cruciale pour
+    // déterminer le réseau de soins disponible (hôpitaux, médecins
+    // conventionnés) et calculer les tarifs régionaux applicables.
     {
       field: 'codePostal',
       validate: (value: string) => {

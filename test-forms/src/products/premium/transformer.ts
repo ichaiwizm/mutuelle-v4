@@ -4,6 +4,7 @@ import { PremiumFormData } from './types.js';
 import { ProfessionMapper } from './professionMapper.js';
 import { ValidationAdapter } from './validationAdapter.js';
 import { DataEnricher } from './dataEnricher.js';
+import { debug, debugWarn } from '../../utils/debug.js';
 
 /**
  * Transformer Premium avec adaptations intelligentes
@@ -50,7 +51,7 @@ export class PremiumTransformer extends BaseTransformer<PremiumFormData> {
       // Project/Coverage - avec defaults
       dateEffet: project
         ? this.convertDateToHtmlFormat(this.extractString(project, 'dateEffet'))
-        : this.getDefaultDateEffet(),
+        : this.getDefaultDateEffet(14),
       actuellementAssure: this.extractBoolean(project, 'actuellementAssure'),
       soinsMedicaux: this.extractNumber(project, 'soinsMedicaux', 2),
       hospitalisation: this.extractNumber(project, 'hospitalisation', 2),
@@ -88,14 +89,14 @@ export class PremiumTransformer extends BaseTransformer<PremiumFormData> {
     const { adapted, warnings } = this.validationAdapter.adapt(baseFormData);
 
     if (warnings.length > 0) {
-      console.log('[PremiumTransformer] Adaptations appliquées:', warnings);
+      debug('[PremiumTransformer] Adaptations appliquées:', warnings);
     }
 
     // 3. Enrichissement des données manquantes
     const { enriched, addedFields } = this.dataEnricher.enrich(lead, adapted);
 
     if (addedFields.length > 0) {
-      console.log('[PremiumTransformer] Champs ajoutés:', addedFields);
+      debug('[PremiumTransformer] Champs ajoutés:', addedFields);
     }
 
     return enriched;
@@ -108,39 +109,11 @@ export class PremiumTransformer extends BaseTransformer<PremiumFormData> {
     const mapping = this.professionMapper.map(leadProfession);
 
     if (mapping.confidence === 'fallback') {
-      console.warn(
+      debugWarn(
         `[PremiumTransformer] Profession "${leadProfession}" non trouvée, fallback vers "${mapping.formValue}"`
       );
     }
 
     return mapping.formValue;
-  }
-
-  /**
-   * Formate un numéro de téléphone
-   */
-  private formatPhone(phone: string): string {
-    // Nettoyer
-    const digits = phone.replace(/\D/g, '');
-
-    if (digits.length === 10) {
-      return digits.match(/.{1,2}/g)!.join('.');
-    }
-
-    return phone;
-  }
-
-  /**
-   * Retourne la date d'effet par défaut (J+14)
-   */
-  private getDefaultDateEffet(): string {
-    const date = new Date();
-    date.setDate(date.getDate() + 14);
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
   }
 }

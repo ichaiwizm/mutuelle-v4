@@ -56,3 +56,20 @@ export interface FormDataInput {
  * Partial form data for testing
  */
 export type PartialFormData = Partial<FormDataInput>;
+
+/**
+ * Email data structure from fixtures
+ */
+export interface EmailData {
+  id: string;
+  subject: string;
+  from: string;
+  date: number;
+  text: string;
+}
+
+/**
+ * Type for parseLead function (from main application)
+ * Parses email text and returns a Lead object
+ */
+export type ParseLeadFunction = (emailText: string) => Lead;

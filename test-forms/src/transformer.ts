@@ -1,4 +1,5 @@
 import type { Lead, FormDataInput } from './types.js';
+import { BaseTransformer } from './core/BaseTransformer.js';
 
 /**
  * Transforms a Lead object (from email parsing) to FormDataInput (for HTML form)
@@ -9,7 +10,7 @@ import type { Lead, FormDataInput } from './types.js';
  * - Booleans: convert to boolean type
  * - Numbers: convert to number type
  */
-export class LeadToFormDataTransformer {
+export class LeadToFormDataTransformer extends BaseTransformer<FormDataInput> {
   /**
    * Transform a Lead object to FormDataInput
    */
@@ -24,7 +25,7 @@ export class LeadToFormDataTransformer {
       civilite: String(subscriber.civilite || ''),
       nom: String(subscriber.nom || ''),
       prenom: String(subscriber.prenom || ''),
-      dateNaissance: this.convertDateToHTML(String(subscriber.dateNaissance || '')),
+      dateNaissance: this.convertDateToHtmlFormat(String(subscriber.dateNaissance || '')),
       email: String(subscriber.email || ''),
       telephone: this.formatPhone(String(subscriber.telephone || '')),
 
@@ -41,7 +42,7 @@ export class LeadToFormDataTransformer {
       nombreEnfants: Number(subscriber.nombreEnfants || children?.length || 0),
 
       // Project/Coverage - with defaults
-      dateEffet: project?.dateEffet ? this.convertDateToHTML(String(project.dateEffet)) : this.getDefaultDateEffet(),
+      dateEffet: project?.dateEffet ? this.convertDateToHtmlFormat(String(project.dateEffet)) : this.getDefaultDateEffet(30),
       actuellementAssure: Boolean(project?.actuellementAssure),
       soinsMedicaux: Number(project?.soinsMedicaux || 2),
       hospitalisation: Number(project?.hospitalisation || 2),
@@ -52,7 +53,7 @@ export class LeadToFormDataTransformer {
     // Add conjoint if present
     if (project?.conjoint) {
       formData.hasConjoint = true;
-      formData.conjoint_dateNaissance = this.convertDateToHTML(String(project.conjoint.dateNaissance || ''));
+      formData.conjoint_dateNaissance = this.convertDateToHtmlFormat(String(project.conjoint.dateNaissance || ''));
       formData.conjoint_profession = String(project.conjoint.profession || '');
       formData.conjoint_regimeSocial = String(project.conjoint.regimeSocial || '');
     }
@@ -60,36 +61,12 @@ export class LeadToFormDataTransformer {
     // Add children if present
     if (children && children.length > 0) {
       formData.children = children.map((child, index) => ({
-        dateNaissance: this.convertDateToHTML(String(child.dateNaissance || '')),
+        dateNaissance: this.convertDateToHtmlFormat(String(child.dateNaissance || '')),
         order: child.order || index + 1,
       }));
     }
 
     return formData;
-  }
-
-  /**
-   * Convert French date format (DD/MM/YYYY) to HTML date format (YYYY-MM-DD)
-   */
-  private convertDateToHTML(frenchDate: string): string {
-    if (!frenchDate || !frenchDate.includes('/')) {
-      return '';
-    }
-
-    const parts = frenchDate.split('/');
-    if (parts.length !== 3) {
-      return '';
-    }
-
-    const [day, month, year] = parts;
-
-    // Validate parts
-    if (!day || !month || !year) {
-      return '';
-    }
-
-    // Return YYYY-MM-DD
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
 
   /**
@@ -103,40 +80,6 @@ export class LeadToFormDataTransformer {
 
     const [year, month, day] = htmlDate.split('-');
     return `${day}/${month}/${year}`;
-  }
-
-  /**
-   * Format phone number to ensure dots
-   * Input: "0644377299" or "06.44.37.72.99"
-   * Output: "06.44.37.72.99"
-   */
-  private formatPhone(phone: string): string {
-    if (!phone) return '';
-
-    // Remove all non-digits
-    const digits = phone.replace(/\D/g, '');
-
-    // If not 10 digits, return as is
-    if (digits.length !== 10) {
-      return phone;
-    }
-
-    // Format as XX.XX.XX.XX.XX
-    return digits.match(/.{1,2}/g)?.join('.') || phone;
-  }
-
-  /**
-   * Get default date effet (30 days from now)
-   */
-  private getDefaultDateEffet(): string {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
   }
 
   /**

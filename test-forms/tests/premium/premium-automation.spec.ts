@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { PremiumTransformer } from '../../src/products/premium/transformer.js';
 import { PremiumFormFiller } from '../helpers/premium/premiumFormFiller.js';
 import { PremiumQuoteExtractor } from '../helpers/premium/premiumQuoteExtractor.js';
+import type { ParseLeadFunction, EmailData } from '../../src/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,12 +14,12 @@ const FIXTURES_DIR = path.resolve(__dirname, '../../../src/main/__tests__/fixtur
 
 // Import du parser depuis le projet principal (dynamic import pour CommonJS)
 const parserLoaderPath = path.resolve(__dirname, '../parser-loader.cjs');
-let parseLead: any;
+let parseLead: ParseLeadFunction;
 
 /**
  * Charge une fixture d'email
  */
-async function loadFixture(filename: string) {
+async function loadFixture(filename: string): Promise<EmailData> {
   const { readFileSync } = await import('fs');
   const fixturePath = path.join(FIXTURES_DIR, filename);
   const content = readFileSync(fixturePath, 'utf-8');

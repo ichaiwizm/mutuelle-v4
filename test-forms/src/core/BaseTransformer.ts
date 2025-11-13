@@ -72,4 +72,39 @@ export abstract class BaseTransformer<TFormData> {
       throw new Error(`Missing required fields: ${missing.join(', ')}`);
     }
   }
+
+  /**
+   * Formate un numéro de téléphone au format XX.XX.XX.XX.XX
+   * Input: "0644377299" ou "06.44.37.72.99"
+   * Output: "06.44.37.72.99"
+   */
+  protected formatPhone(phone: string): string {
+    if (!phone) return '';
+
+    // Nettoyer - retirer tous les caractères non-numériques
+    const digits = phone.replace(/\D/g, '');
+
+    // Si ce n'est pas 10 chiffres, retourner tel quel
+    if (digits.length !== 10) {
+      return phone;
+    }
+
+    // Formater comme XX.XX.XX.XX.XX
+    return digits.match(/.{1,2}/g)?.join('.') || phone;
+  }
+
+  /**
+   * Retourne la date d'effet par défaut (aujourd'hui + offsetDays jours)
+   * @param offsetDays Nombre de jours à ajouter (par défaut 30)
+   */
+  protected getDefaultDateEffet(offsetDays: number = 30): string {
+    const date = new Date();
+    date.setDate(date.getDate() + offsetDays);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
 }

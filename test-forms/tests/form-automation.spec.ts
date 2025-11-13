@@ -13,9 +13,10 @@ import { LeadToFormDataTransformer } from '../src/transformer.js';
 
 // Import lead parser - using CommonJS loader
 import type { Lead } from '../../src/shared/types/lead.js';
+import type { ParseLeadFunction } from '../src/types.js';
 import { createRequire } from 'module';
 const require2 = createRequire(import.meta.url);
-const { parseLead } = require2('./parser-loader.cjs');
+const { parseLead } = require2('./parser-loader.cjs') as { parseLead: ParseLeadFunction };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
