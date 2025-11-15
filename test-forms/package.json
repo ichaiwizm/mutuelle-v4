@@ -14,7 +14,12 @@
     "test:premium": "playwright test tests/premium/premium-automation.spec.ts",
     "test:premium:ui": "playwright test tests/premium/premium-automation.spec.ts --ui",
     "test:premium:headed": "playwright test tests/premium/premium-automation.spec.ts --headed",
-    "test:premium:debug": "playwright test tests/premium/premium-automation.spec.ts --debug"
+    "test:premium:debug": "playwright test tests/premium/premium-automation.spec.ts --debug",
+    "test:alptis": "playwright test tests/alptis-sante-select/login.spec.ts",
+    "test:alptis:ui": "playwright test tests/alptis-sante-select/login.spec.ts --ui",
+    "test:alptis:headed": "playwright test tests/alptis-sante-select/login.spec.ts --headed",
+    "test:alptis:debug": "playwright test tests/alptis-sante-select/login.spec.ts --debug",
+    "ui:alptis": "playwright test tests/alptis-sante-select/login.spec.ts --ui"
   },
   "dependencies": {
     "express": "^4.18.2",
