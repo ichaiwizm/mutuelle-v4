@@ -62,6 +62,8 @@
     "build": "eslint . && electron-vite build",
     "test": "vitest run --pool=forks",
     "test:ui": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "gmail:auth": "tsx scripts/gmail-auth.ts",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "db:generate": "drizzle-kit generate",
