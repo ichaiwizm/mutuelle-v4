@@ -25,7 +25,7 @@ export const leads = sqliteTable("leads", {
 
 // Flows (métadonnées déclaratives)
 export const flows = sqliteTable("flows", {
-  key: text("key").primaryKey(),                 // "alptis_sante_select"
+  key: text("key").primaryKey(),                 // "swisslife_one_slis"
   version: text("version").notNull(),            // "v1"
   title: text("title").notNull(),
 });

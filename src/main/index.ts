@@ -35,7 +35,6 @@ app.whenReady().then(async () => {
   const [exists] = await db.select({ key: flows.key }).from(flows).limit(1)
   if (!exists) {
     await db.insert(flows).values([
-      { key: 'alptis_sante_select', version: 'v1', title: 'Alptis Santé Select' },
       { key: 'swisslife_one_slis', version: 'v1', title: 'SwissLife One SLIS' },
     ])
   }
