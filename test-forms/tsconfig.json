@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./",
@@ -12,8 +12,12 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/platforms/*": ["../src/main/flows/platforms/*"]
+    }
   },
-  "include": ["server/**/*", "src/**/*", "tests/**/*"],
+  "include": ["tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
