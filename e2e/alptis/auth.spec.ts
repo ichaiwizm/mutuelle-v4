@@ -78,35 +78,32 @@ test.describe('Alptis - Authentification', () => {
     console.log('🎉 Test des sélecteurs terminé avec succès');
   });
 
-  test('AlptisAuth - Doit remplir les credentials', async ({ page }) => {
-    console.log('📋 Début du test de remplissage des credentials');
+  test('AlptisAuth - Doit se connecter complètement', async ({ page }) => {
+    console.log('📋 Début du test de connexion complète');
 
     const credentials = getAlptisCredentials();
     console.log('✅ Credentials chargés:', credentials.username);
 
-    // Importer AlptisAuth directement
     const { AlptisAuth } = await import('../../src/main/flows/platforms/alptis/lib/AlptisAuth');
     const auth = new AlptisAuth(credentials);
     console.log('✅ AlptisAuth créée');
 
-    // Effectuer la connexion (navigation + remplissage)
-    console.log('🚀 Exécution de auth.login()...');
+    // Effectuer la connexion complète (navigation + remplissage + submit)
+    console.log('🚀 Exécution de auth.login() (avec submit)...');
     await auth.login(page);
     console.log('✅ auth.login() terminée');
 
-    // Vérifier que les champs sont remplis avec les bonnes valeurs
-    console.log('🔍 Vérification que le champ username est rempli...');
-    const usernameValue = await page.inputValue('#username');
-    console.log('   Valeur username:', usernameValue);
-    expect(usernameValue).toBe(credentials.username);
-    console.log('✅ Username correctement rempli');
+    // Attendre la navigation après la connexion
+    console.log('⏳ Attente de la navigation après connexion...');
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
 
-    console.log('🔍 Vérification que le champ password est rempli...');
-    const passwordValue = await page.inputValue('#password');
-    console.log('   Valeur password:', '***' + passwordValue.slice(-4));
-    expect(passwordValue).toBe(credentials.password);
-    console.log('✅ Password correctement rempli');
+    const currentUrl = page.url();
+    console.log('🔍 URL après connexion:', currentUrl);
 
-    console.log('🎉 Test de remplissage des credentials terminé avec succès');
+    // Vérifier qu'on n'est plus sur la page de login Keycloak
+    expect(currentUrl).not.toContain('/auth/realms/alptis-distribution/protocol/openid-connect/auth');
+    console.log('✅ Navigation après connexion réussie');
+
+    console.log('🎉 Test de connexion complète terminé avec succès');
   });
 });

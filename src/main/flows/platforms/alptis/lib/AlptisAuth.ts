@@ -25,6 +25,7 @@ export const ALPTIS_URLS = {
 export const ALPTIS_LOGIN_SELECTORS = {
   username: '#username',
   password: '#password',
+  submitButton: 'button[name="login"]',
 } as const;
 
 /**
@@ -59,14 +60,23 @@ export class AlptisAuth {
   }
 
   /**
+   * Soumet le formulaire de connexion en cliquant sur le bouton
+   */
+  async submitLogin(page: Page): Promise<void> {
+    await page.click(ALPTIS_LOGIN_SELECTORS.submitButton);
+  }
+
+  /**
    * Effectue la connexion complète
    * 1. Navigue vers la page de login
    * 2. Attend que les champs soient visibles
    * 3. Remplit les credentials
+   * 4. Clique sur le bouton de connexion
    */
   async login(page: Page): Promise<void> {
     await this.navigateToLogin(page);
     await this.waitForLoginFields(page);
     await this.fillCredentials(page);
+    await this.submitLogin(page);
   }
 }
