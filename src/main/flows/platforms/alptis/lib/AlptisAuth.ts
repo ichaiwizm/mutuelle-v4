@@ -49,4 +49,24 @@ export class AlptisAuth {
     await page.waitForSelector(ALPTIS_LOGIN_SELECTORS.username, { state: 'visible' });
     await page.waitForSelector(ALPTIS_LOGIN_SELECTORS.password, { state: 'visible' });
   }
+
+  /**
+   * Remplit les champs de connexion avec les credentials
+   */
+  async fillCredentials(page: Page): Promise<void> {
+    await page.fill(ALPTIS_LOGIN_SELECTORS.username, this.config.username);
+    await page.fill(ALPTIS_LOGIN_SELECTORS.password, this.config.password);
+  }
+
+  /**
+   * Effectue la connexion complète
+   * 1. Navigue vers la page de login
+   * 2. Attend que les champs soient visibles
+   * 3. Remplit les credentials
+   */
+  async login(page: Page): Promise<void> {
+    await this.navigateToLogin(page);
+    await this.waitForLoginFields(page);
+    await this.fillCredentials(page);
+  }
 }

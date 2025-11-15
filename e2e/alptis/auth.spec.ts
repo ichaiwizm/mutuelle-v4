@@ -77,4 +77,36 @@ test.describe('Alptis - Authentification', () => {
 
     console.log('🎉 Test des sélecteurs terminé avec succès');
   });
+
+  test('AlptisAuth - Doit remplir les credentials', async ({ page }) => {
+    console.log('📋 Début du test de remplissage des credentials');
+
+    const credentials = getAlptisCredentials();
+    console.log('✅ Credentials chargés:', credentials.username);
+
+    // Importer AlptisAuth directement
+    const { AlptisAuth } = await import('../../src/main/flows/platforms/alptis/lib/AlptisAuth');
+    const auth = new AlptisAuth(credentials);
+    console.log('✅ AlptisAuth créée');
+
+    // Effectuer la connexion (navigation + remplissage)
+    console.log('🚀 Exécution de auth.login()...');
+    await auth.login(page);
+    console.log('✅ auth.login() terminée');
+
+    // Vérifier que les champs sont remplis avec les bonnes valeurs
+    console.log('🔍 Vérification que le champ username est rempli...');
+    const usernameValue = await page.inputValue('#username');
+    console.log('   Valeur username:', usernameValue);
+    expect(usernameValue).toBe(credentials.username);
+    console.log('✅ Username correctement rempli');
+
+    console.log('🔍 Vérification que le champ password est rempli...');
+    const passwordValue = await page.inputValue('#password');
+    console.log('   Valeur password:', '***' + passwordValue.slice(-4));
+    expect(passwordValue).toBe(credentials.password);
+    console.log('✅ Password correctement rempli');
+
+    console.log('🎉 Test de remplissage des credentials terminé avec succès');
+  });
 });

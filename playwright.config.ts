@@ -13,14 +13,14 @@ export default defineConfig({
   timeout: 30 * 1000,
   retries: 0,
   workers: 1,
+  outputDir: './e2e/test-results',
 
   reporter: [
-    ['html', { open: 'never' }],
+    ['html', { outputFolder: './e2e/playwright-report', open: 'never' }],
     ['list']
   ],
 
   use: {
-    baseURL: 'https://pro.alptis.org',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',

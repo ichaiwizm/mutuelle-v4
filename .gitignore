@@ -40,6 +40,8 @@ release/
 # Testing
 coverage/
 .nyc_output/
+e2e/test-results/
+e2e/playwright-report/
 
 # OS
 Thumbs.db
