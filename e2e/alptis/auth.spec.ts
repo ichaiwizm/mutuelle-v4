@@ -14,44 +14,67 @@ test.describe('Alptis - Authentification', () => {
   test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 
   test('LoginStep - Doit naviguer vers la page de login et afficher les champs', async ({ page }) => {
+    console.log('📋 Début du test LoginStep');
+
     // 1. Récupérer les credentials de test
     const credentials = getAlptisCredentials();
+    console.log('✅ Credentials chargés:', credentials.username);
 
     // 2. Créer une instance de LoginStep avec vos credentials
     const loginStep = new LoginStep(credentials);
+    console.log('✅ LoginStep créée');
 
     // 3. Exécuter l'étape (appelle votre code existant)
+    console.log('🚀 Exécution de loginStep.execute()...');
     await loginStep.execute(page);
+    console.log('✅ loginStep.execute() terminée');
 
     // 4. Vérifications - la page doit être sur le login Alptis
+    const currentUrl = page.url();
+    console.log('🔍 URL actuelle:', currentUrl);
     await expect(page).toHaveURL(/alptis\.org/);
+    console.log('✅ URL vérifiée');
 
     // 5. Les champs username et password doivent être visibles
+    console.log('🔍 Recherche du champ #username...');
     const usernameField = page.locator('#username');
-    const passwordField = page.locator('#password');
-
     await expect(usernameField).toBeVisible();
-    await expect(passwordField).toBeVisible();
+    console.log('✅ Champ username visible');
 
-    // Note: On ne teste pas la connexion complète ici,
-    // juste que la navigation et la détection des champs fonctionnent
+    console.log('🔍 Recherche du champ #password...');
+    const passwordField = page.locator('#password');
+    await expect(passwordField).toBeVisible();
+    console.log('✅ Champ password visible');
+
+    console.log('🎉 Test terminé avec succès');
   });
 
   test('LoginStep - Les sélecteurs doivent être stables', async ({ page }) => {
+    console.log('📋 Début du test des sélecteurs');
+
     const credentials = getAlptisCredentials();
     const loginStep = new LoginStep(credentials);
 
+    console.log('🚀 Exécution de loginStep.execute()...');
     await loginStep.execute(page);
+    console.log('✅ loginStep.execute() terminée');
 
     // Vérifier que les sélecteurs documentés dans ALPTIS_LOGIN_SELECTORS
     // sont toujours valides
     const usernameSelector = '#username';
     const passwordSelector = '#password';
 
+    console.log('🔍 Comptage des éléments avec sélecteur:', usernameSelector);
     const usernameExists = await page.locator(usernameSelector).count();
+    console.log('   Trouvé:', usernameExists, 'élément(s)');
+
+    console.log('🔍 Comptage des éléments avec sélecteur:', passwordSelector);
     const passwordExists = await page.locator(passwordSelector).count();
+    console.log('   Trouvé:', passwordExists, 'élément(s)');
 
     expect(usernameExists).toBe(1);
     expect(passwordExists).toBe(1);
+
+    console.log('🎉 Test des sélecteurs terminé avec succès');
   });
 });
