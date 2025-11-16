@@ -20,27 +20,21 @@ type AlptisFixtures = {
   formWithSection1: void;
   /** Données transformées du premier lead */
   leadData: AlptisFormData;
-  /** Tous les leads disponibles (transformés) */
-  allLeadsData: AlptisFormData[];
 };
 
 export const test = base.extend<AlptisFixtures>({
   /**
-   * Fixture: tous les leads transformés
-   * Charge tous les leads disponibles et les transforme
+   * Fixture: données du lead transformées (aléatoire)
    */
-  allLeadsData: async ({}, use) => {
-    const leads = loadAllLeads();
-    const transformedLeads = leads.map(lead => LeadTransformer.transform(lead));
-    await use(transformedLeads);
-  },
+  leadData: async ({}, use) => {
+    const allLeads = loadAllLeads();
+    const leadIndex = Math.floor(Math.random() * allLeads.length);
+    const lead = allLeads[leadIndex];
 
-  /**
-   * Fixture: données du premier lead transformées
-   * Disponible dans tous les tests (pour compatibilité)
-   */
-  leadData: async ({ allLeadsData }, use) => {
-    await use(allLeadsData[0]);
+    console.log(`\n🎲 [LEAD] Aléatoire - Index: ${leadIndex}/${allLeads.length - 1}`);
+
+    const data = LeadTransformer.transform(lead);
+    await use(data);
   },
 
   /**
