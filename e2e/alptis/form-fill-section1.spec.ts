@@ -183,6 +183,10 @@ test.describe('Alptis - Form Fill Section 1', () => {
     expect(dateEffetValue).toBe(transformedData.mise_en_place.date_effet);
     console.log(`✅ [VERIFY] Date d'effet: ${dateEffetValue}`);
 
+    // Ensure the date input lost focus (blurred) after fill
+    await expect(dateEffetInput).not.toBeFocused();
+    console.log('✅ [VERIFY] Date input blur: OK');
+
     // ==========================================
     // STEP 7: Take screenshot
     // ==========================================

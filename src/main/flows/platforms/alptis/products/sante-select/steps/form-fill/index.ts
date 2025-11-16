@@ -117,6 +117,10 @@ export class FormFillStep {
       // Verify the value was entered correctly
       await this.verifyDateValue(page, dateInputLocator, dateEffet);
 
+      // Blur the date input by clicking outside (trigger validations and close pickers)
+      await page.locator('body').click({ position: { x: 1, y: 1 } });
+      await page.waitForTimeout(150);
+
     } catch (error) {
       console.error('❌ Erreur lors du remplissage de date_effet:', error);
       throw error;
