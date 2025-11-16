@@ -56,12 +56,18 @@ function parseContact(fields: Record<string, string>): ExtractedContact {
 }
 
 function parsePerson(fields: Record<string, string>): ExtractedPerson {
-  return {
+  const person: ExtractedPerson = {
     dateNaissance: fields.dateNaissance,
     profession: fields.profession,
     regimeSocial: fields.regimeSocial,
-    nombreEnfants: parseNumeric(fields.nombreEnfants),
   };
+
+  const nombreEnfants = parseNumeric(fields.nombreEnfants);
+  if (nombreEnfants !== undefined) {
+    person.nombreEnfants = nombreEnfants;
+  }
+
+  return person;
 }
 
 function parseBesoin(fields: Record<string, string>): ExtractedBesoin {
