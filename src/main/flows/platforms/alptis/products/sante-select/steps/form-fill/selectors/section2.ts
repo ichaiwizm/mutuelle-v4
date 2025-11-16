@@ -60,7 +60,7 @@ export const SECTION_2_SELECTORS = {
 
   /** Field 7: Code postal (text, STABLE, validation ^[0-9]{5}$) */
   code_postal: {
-    primary: '#codePostal',
+    primary: 'input#codePostal',
   },
 } as const;
 

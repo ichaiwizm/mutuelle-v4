@@ -77,6 +77,6 @@ export async function verifySection2(page: Page, data: AlptisFormData): Promise<
   console.log(`✅ [VERIFY] Régime: ${data.adherent.regime_obligatoire}`);
 
   // Code postal
-  await verifyTextValue(page, page.locator('#codePostal'), data.adherent.code_postal);
+  await verifyTextValue(page, page.locator('input#codePostal'), data.adherent.code_postal);
   console.log(`✅ [VERIFY] Code postal: ${data.adherent.code_postal}`);
 }

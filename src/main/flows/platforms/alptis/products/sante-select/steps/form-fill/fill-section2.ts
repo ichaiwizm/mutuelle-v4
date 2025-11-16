@@ -1,106 +1,86 @@
 import type { Page } from 'playwright';
 import { SECTION_2_SELECTORS } from './selectors';
 import { verifyTextValue, verifyDateValue, verifySelectValue } from './verifiers';
-import { blurField, clearAndType, selectByValue } from './actions';
+import { blurField, clearAndType } from './actions';
+import { PROFESSION_LABELS } from './mappers/profession-labels';
+import type { AlptisProfession } from '../../transformers/types';
 
-/**
- * Section 2 - Civilité
- */
+// Champs Section 2
 export async function fillCivilite(page: Page, civilite: 'monsieur' | 'madame'): Promise<void> {
   console.log(`[1/4] Civilité: ${civilite}`);
-
-  const labelText = civilite === 'monsieur' ? 'Monsieur' : 'Madame';
-  const labelLocator = page.locator(`label:has-text("${labelText}")`).first();
-
-  await labelLocator.waitFor({ state: 'visible', timeout: 5000 });
-  await labelLocator.click();
-  console.log(`  ↳ Radio "${civilite}" cliqué (via label)`);
-  console.log(`  ✓ Vérifié: civilité sélectionnée (via label click)`);
+  const label = page.locator(`label:has-text("${civilite === 'monsieur' ? 'Monsieur' : 'Madame'}")`).first();
+  await label.waitFor({ state: 'visible', timeout: 5000 });
+  await label.click();
 }
 
-/**
- * Section 2 - Nom
- */
 export async function fillNom(page: Page, nom: string): Promise<void> {
   console.log(`[2/4] Nom: ${nom}`);
-
-  const nomLocator = page.locator(SECTION_2_SELECTORS.nom.primary);
-  await clearAndType(nomLocator, nom);
-  console.log(`  ↳ Nom saisi`);
-
-  await verifyTextValue(page, nomLocator, nom);
+  await clearAndType(page.locator(SECTION_2_SELECTORS.nom.primary), nom);
+  await verifyTextValue(page, page.locator(SECTION_2_SELECTORS.nom.primary), nom);
 }
 
-/**
- * Section 2 - Prénom
- */
 export async function fillPrenom(page: Page, prenom: string): Promise<void> {
   console.log(`[3/4] Prénom: ${prenom}`);
-
-  const prenomLocator = page.locator(SECTION_2_SELECTORS.prenom.primary);
-  await clearAndType(prenomLocator, prenom);
-  console.log(`  ↳ Prénom saisi`);
-
-  await verifyTextValue(page, prenomLocator, prenom);
-
+  await clearAndType(page.locator(SECTION_2_SELECTORS.prenom.primary), prenom);
+  await verifyTextValue(page, page.locator(SECTION_2_SELECTORS.prenom.primary), prenom);
   await blurField(page);
-  console.log(`  ↳ Blur déclenché`);
 }
 
-/**
- * Section 2 - Date de naissance (deuxième champ date de la page)
- */
 export async function fillDateNaissance(page: Page, dateNaissance: string): Promise<void> {
   console.log(`[4/4] Date de naissance: ${dateNaissance}`);
-
-  // IMPORTANT: utiliser .nth(1) car date_effet est .nth(0)
-  const dateInputLocator = page.locator(SECTION_2_SELECTORS.date_naissance.primary).nth(1);
-  await clearAndType(dateInputLocator, dateNaissance);
-  console.log(`  ↳ Date saisie`);
-
-  await verifyDateValue(page, dateInputLocator, dateNaissance);
-
+  const locator = page.locator(SECTION_2_SELECTORS.date_naissance.primary).nth(1);
+  await clearAndType(locator, dateNaissance);
+  await verifyDateValue(page, locator, dateNaissance);
   await blurField(page);
-  console.log(`  ↳ Blur déclenché`);
 }
 
-/**
- * Section 2 - Catégorie socioprofessionnelle
- */
 export async function fillCategorieSocioprofessionnelle(page: Page, value: string): Promise<void> {
-  console.log(`[5/7] Catégorie socioprofessionnelle: ${value}`);
+  console.log(`[5/7] Catégorie: ${value}`);
+  const label = PROFESSION_LABELS[value as AlptisProfession];
+  if (!label) throw new Error(`Label inconnu: ${value}`);
 
-  const selectLocator = page.locator(SECTION_2_SELECTORS.categorie_socioprofessionnelle.primary);
-  await selectByValue(selectLocator, value);
-  console.log(`  ↳ Option "${value}" sélectionnée`);
+  const textbox = page.getByRole('textbox', { name: /catégorie socioprofessionnelle/i });
+  await textbox.click();
+  await textbox.fill(label);
+  await page.waitForTimeout(500);
 
-  await verifySelectValue(page, selectLocator, value);
+  await page.locator('.totem-select-option__label').filter({ hasText: label }).first().click();
+  await verifySelectValue(page, page.locator(SECTION_2_SELECTORS.categorie_socioprofessionnelle.primary), value);
 }
 
-/**
- * Section 2 - Régime obligatoire
- */
 export async function fillRegimeObligatoire(page: Page, value: string): Promise<void> {
-  console.log(`[6/7] Régime obligatoire: ${value}`);
+  console.log(`[6/7] Régime: ${value}`);
+  const labels: Record<string, string> = {
+    ALSACE_MOSELLE: 'Alsace / Moselle',
+    AMEXA: 'Amexa',
+    REGIME_SALARIES_AGRICOLES: 'Régime des salariés agricoles',
+    SECURITE_SOCIALE: 'Sécurité sociale',
+    SECURITE_SOCIALE_INDEPENDANTS: 'Sécurité sociale des indépendants',
+  };
 
-  const selectLocator = page.locator(SECTION_2_SELECTORS.regime_obligatoire.primary);
-  await selectByValue(selectLocator, value);
-  console.log(`  ↳ Option "${value}" sélectionnée`);
+  const label = labels[value];
+  if (!label) throw new Error(`Label inconnu: ${value}`);
 
-  await verifySelectValue(page, selectLocator, value);
+  const textbox = page.getByRole('textbox', { name: /régime obligatoire/i });
+  await textbox.click();
+  await textbox.fill(label);
+  await page.waitForTimeout(700);
+
+  // Match exact du texte (important: "Sécurité sociale" vs "Sécurité sociale des indépendants")
+  const options = await page.locator('.totem-select-option__label:visible').all();
+  for (const opt of options) {
+    if ((await opt.textContent())?.trim() === label) {
+      await opt.click();
+      await page.waitForTimeout(300);
+      await verifySelectValue(page, page.locator(SECTION_2_SELECTORS.regime_obligatoire.primary), value);
+      return;
+    }
+  }
+  throw new Error(`Option "${label}" not found`);
 }
 
-/**
- * Section 2 - Code postal
- */
 export async function fillCodePostal(page: Page, codePostal: string): Promise<void> {
   console.log(`[7/7] Code postal: ${codePostal}`);
-
-  const codePostalLocator = page.locator(SECTION_2_SELECTORS.code_postal.primary);
-  await clearAndType(codePostalLocator, codePostal);
-  console.log(`  ↳ Code postal saisi`);
-
-  await verifyTextValue(page, codePostalLocator, codePostal);
+  await clearAndType(page.locator(SECTION_2_SELECTORS.code_postal.primary), codePostal);
+  await verifyTextValue(page, page.locator(SECTION_2_SELECTORS.code_postal.primary), codePostal);
 }
-
-
