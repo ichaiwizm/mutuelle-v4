@@ -20,17 +20,27 @@ type AlptisFixtures = {
   formWithSection1: void;
   /** Données transformées du premier lead */
   leadData: AlptisFormData;
+  /** Tous les leads disponibles (transformés) */
+  allLeadsData: AlptisFormData[];
 };
 
 export const test = base.extend<AlptisFixtures>({
   /**
-   * Fixture: données du lead transformées
-   * Disponible dans tous les tests
+   * Fixture: tous les leads transformés
+   * Charge tous les leads disponibles et les transforme
    */
-  leadData: async ({}, use) => {
-    const lead = loadAllLeads()[0];
-    const data = LeadTransformer.transform(lead);
-    await use(data);
+  allLeadsData: async ({}, use) => {
+    const leads = loadAllLeads();
+    const transformedLeads = leads.map(lead => LeadTransformer.transform(lead));
+    await use(transformedLeads);
+  },
+
+  /**
+   * Fixture: données du premier lead transformées
+   * Disponible dans tous les tests (pour compatibilité)
+   */
+  leadData: async ({ allLeadsData }, use) => {
+    await use(allLeadsData[0]);
   },
 
   /**
