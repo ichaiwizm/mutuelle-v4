@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import { setupAxeptioInterception } from './cookie-interceptor';
 
 /**
  * Configuration de l'authentification Alptis
@@ -68,12 +69,14 @@ export class AlptisAuth {
 
   /**
    * Effectue la connexion complète
-   * 1. Navigue vers la page de login
-   * 2. Attend que les champs soient visibles
-   * 3. Remplit les credentials
-   * 4. Clique sur le bouton de connexion
+   * 1. Installe l'interception Axeptio (bannières cookies) page + context
+   * 2. Navigue vers la page de login
+   * 3. Attend que les champs soient visibles
+   * 4. Remplit les credentials
+   * 5. Clique sur le bouton de connexion
    */
   async login(page: Page): Promise<void> {
+    await setupAxeptioInterception(page, { debug: process.env.ALPTIS_DEBUG_COOKIES === '1' });
     await this.navigateToLogin(page);
     await this.waitForLoginFields(page);
     await this.fillCredentials(page);
