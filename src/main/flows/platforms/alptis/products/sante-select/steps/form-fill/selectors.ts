@@ -45,6 +45,57 @@ export const SECTION_1_SELECTORS = {
 } as const;
 
 /**
+ * Section 2: Adhérent(e)
+ */
+export const SECTION_2_SELECTORS = {
+  /**
+   * Field 1: Civilité
+   * Type: Radio
+   * Stability: UNSTABLE (UUID in name attribute)
+   * Strategy: Use value selector for monsieur/madame
+   * Note: Radio inputs are hidden, styled with custom buttons
+   */
+  civilite: {
+    primary: "input[name*='form-radio']",
+    byValue: (value: 'monsieur' | 'madame') => `input[name*='form-radio'][value='${value}']`,
+    fallback: "label:has-text('Civilité')",
+  },
+
+  /**
+   * Field 2: Nom
+   * Type: Text
+   * Stability: STABLE (consistent ID)
+   * Validation: ^[a-zA-ZÀ-ÿ' -]{1,50}$
+   */
+  nom: {
+    primary: '#nom',
+  },
+
+  /**
+   * Field 3: Prénom
+   * Type: Text
+   * Stability: STABLE (consistent ID)
+   * Validation: ^[a-zA-ZÀ-ÿ' -]+$
+   */
+  prenom: {
+    primary: '#prenom',
+  },
+
+  /**
+   * Field 4: Date de naissance
+   * Type: Date input
+   * Stability: WEAK (no unique ID, position-based)
+   * Strategy: Use placeholder, then .nth(1) because date_effet is .nth(0)
+   * Validation: DD/MM/YYYY, age 18-110
+   * IMPORTANT: This is the SECOND date field on the page
+   */
+  date_naissance: {
+    primary: "input[placeholder='Ex : 01/01/2020']",
+    note: "Use .nth(1) to get the second date field (first is date_effet)",
+  },
+} as const;
+
+/**
  * Error message selectors
  */
 export const ERROR_SELECTORS = {
