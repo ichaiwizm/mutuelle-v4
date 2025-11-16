@@ -6,7 +6,7 @@ async function exportAllFixtures() {
   console.log('║  EXPORT DE TOUS LES EMAILS VERS FIXTURES             ║');
   console.log('╚════════════════════════════════════════════════════════╝\n');
 
-  const days = 30; // Export des 30 derniers jours
+  const days = parseInt(process.env.GMAIL_TEST_DAYS || '300', 10);
   console.log(`📅 Export des emails des ${days} derniers jours...\n`);
 
   try {
