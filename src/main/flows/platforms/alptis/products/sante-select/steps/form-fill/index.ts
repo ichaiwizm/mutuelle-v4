@@ -9,13 +9,16 @@ import {
   fillNom,
   fillPrenom,
   fillDateNaissance,
+  fillCategorieSocioprofessionnelle,
+  fillRegimeObligatoire,
+  fillCodePostal,
 } from './field-fillers';
 
 /**
  * FormFillStep - Fills Alptis Santé Select form
  * Sections implemented:
- * - Section 1: Mise en place du contrat (complete)
- * - Section 2: Adhérent(e) (partial: 4/7 fields)
+ * - Section 1: Mise en place du contrat (complete - 3/3 fields)
+ * - Section 2: Adhérent(e) (complete - 7/7 fields)
  */
 export class FormFillStep {
   /**
@@ -37,7 +40,7 @@ export class FormFillStep {
   }
 
   /**
-   * Fill Section 2: Adhérent(e) (partial - 4/7 fields)
+   * Fill Section 2: Adhérent(e) (complete - 7/7 fields)
    */
   async fillAdherent(page: Page, data: AlptisFormData): Promise<void> {
     console.log('--- SECTION: Adhérent(e) ---');
@@ -55,8 +58,11 @@ export class FormFillStep {
     await fillNom(page, data.adherent.nom);
     await fillPrenom(page, data.adherent.prenom);
     await fillDateNaissance(page, data.adherent.date_naissance);
+    await fillCategorieSocioprofessionnelle(page, data.adherent.categorie_socioprofessionnelle);
+    await fillRegimeObligatoire(page, data.adherent.regime_obligatoire);
+    await fillCodePostal(page, data.adherent.code_postal);
 
-    console.log('✅ Section "Adhérent(e)" complétée (4/7 champs)');
+    console.log('✅ Section "Adhérent(e)" complétée (7/7 champs)');
     console.log('---');
   }
 
