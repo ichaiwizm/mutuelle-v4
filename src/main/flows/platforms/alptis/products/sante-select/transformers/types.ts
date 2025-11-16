@@ -22,6 +22,7 @@ export type AlptisFormData = {
     prenom: string;
     date_naissance: string; // DD/MM/YYYY
     categorie_socioprofessionnelle: AlptisProfession;
+    cadre_exercice?: AlptisCadreExercice; // Conditionnel selon la profession
     regime_obligatoire: AlptisRegime;
     code_postal: string;
   };
@@ -30,6 +31,7 @@ export type AlptisFormData = {
   conjoint?: {
     date_naissance: string;
     categorie_socioprofessionnelle: AlptisProfession;
+    cadre_exercice?: AlptisCadreExercice; // Conditionnel selon la profession
     regime_obligatoire: AlptisRegime;
   };
 
@@ -65,6 +67,11 @@ export type AlptisRegime =
   | 'REGIME_SALARIES_AGRICOLES'
   | 'SECURITE_SOCIALE'
   | 'SECURITE_SOCIALE_INDEPENDANTS';
+
+/**
+ * Cadre d'exercice (conditionnel selon la profession)
+ */
+export type AlptisCadreExercice = 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS';
 
 /**
  * Résultat de transformation

@@ -6,6 +6,7 @@ import type { Lead } from '../types';
 import { mapCivilite } from '../mappers/civilite-mapper';
 import { mapProfession } from '../mappers/profession-mapper';
 import { mapRegimeSocial } from '../mappers/regime-mapper';
+import { requiresCadreExercice, getCadreExercice } from '../mappers/cadre-exercice-mapper';
 import { transformBirthDate } from './date-transformer';
 import { validateSubscriberAge } from '../validators/age-validator';
 import { parseDate } from './date-transformer';
@@ -33,13 +34,19 @@ export function transformSubscriber(lead: Lead) {
     throw new Error(`Subscriber age out of range (must be 18-110 years): ${subscriber.dateNaissance}`);
   }
 
+  const profession = mapProfession(subscriber.profession as string);
+  const regimeSocial = subscriber.regimeSocial as string;
+
   const transformed = {
     civilite: mapCivilite(subscriber.civilite as string),
     nom: subscriber.nom as string,
     prenom: subscriber.prenom as string,
     date_naissance: transformBirthDate(subscriber.dateNaissance as string),
-    categorie_socioprofessionnelle: mapProfession(subscriber.profession as string),
-    regime_obligatoire: mapRegimeSocial(subscriber.regimeSocial as string),
+    categorie_socioprofessionnelle: profession,
+    ...(requiresCadreExercice(profession) && {
+      cadre_exercice: getCadreExercice(regimeSocial),
+    }),
+    regime_obligatoire: mapRegimeSocial(regimeSocial),
     code_postal: subscriber.codePostal as string,
   };
 

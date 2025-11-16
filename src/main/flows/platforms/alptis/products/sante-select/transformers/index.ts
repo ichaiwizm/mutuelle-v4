@@ -7,6 +7,7 @@ export type {
   AlptisFormData,
   AlptisProfession,
   AlptisRegime,
+  AlptisCadreExercice,
   TransformResult,
   TransformError,
   TransformWarning,
