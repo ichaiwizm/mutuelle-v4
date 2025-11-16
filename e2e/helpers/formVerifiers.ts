@@ -50,9 +50,13 @@ export async function verifySection2(page: Page, data: AlptisFormData): Promise<
   console.log(`✅ [VERIFY] Nom: ${nomValue}`);
 
   // Prenom
-  const prenomValue = await page.inputValue('#prenom');
+  const prenomInput = page.locator('#prenom');
+  const prenomValue = await prenomInput.inputValue();
   expect(prenomValue).toBe(data.adherent.prenom);
   console.log(`✅ [VERIFY] Prénom: ${prenomValue}`);
+
+  await expect(prenomInput).not.toBeFocused();
+  console.log('✅ [VERIFY] Prénom blur: OK');
 
   // Date naissance
   const dateNaissanceInput = page.locator("input[placeholder='Ex : 01/01/2020']").nth(1);

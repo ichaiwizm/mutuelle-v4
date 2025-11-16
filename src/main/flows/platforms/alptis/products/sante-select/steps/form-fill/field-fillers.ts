@@ -7,6 +7,15 @@ import { SECTION_1_SELECTORS, SECTION_2_SELECTORS } from './selectors';
 import { verifyToggleState, verifyRadioSelection, verifyTextValue, verifyDateValue } from './verifiers';
 
 /**
+ * Blur current focused element by clicking outside
+ * Triggers validations and closes any open pickers
+ */
+async function blurField(page: Page): Promise<void> {
+  await page.locator('body').click({ position: { x: 1, y: 1 } });
+  await page.waitForTimeout(150);
+}
+
+/**
  * Fill remplacement_contrat toggle
  */
 export async function fillRemplacementContrat(page: Page, shouldCheck: boolean): Promise<void> {
@@ -58,9 +67,7 @@ export async function fillDateEffet(page: Page, dateEffet: string): Promise<void
 
   await verifyDateValue(page, dateInputLocator, dateEffet);
 
-  // Blur to trigger validations
-  await page.locator('body').click({ position: { x: 1, y: 1 } });
-  await page.waitForTimeout(150);
+  await blurField(page);
 }
 
 /**
@@ -104,6 +111,9 @@ export async function fillPrenom(page: Page, prenom: string): Promise<void> {
   console.log(`  ↳ Prénom saisi`);
 
   await verifyTextValue(page, prenomLocator, prenom);
+
+  await blurField(page);
+  console.log(`  ↳ Blur déclenché`);
 }
 
 /**
@@ -121,8 +131,6 @@ export async function fillDateNaissance(page: Page, dateNaissance: string): Prom
 
   await verifyDateValue(page, dateInputLocator, dateNaissance);
 
-  // Blur to trigger validations
-  await page.locator('body').click({ position: { x: 1, y: 1 } });
-  await page.waitForTimeout(150);
+  await blurField(page);
   console.log(`  ↳ Blur déclenché`);
 }
