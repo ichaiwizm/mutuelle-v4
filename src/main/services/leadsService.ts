@@ -5,8 +5,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 
 export const LeadsService = {
   async list() {
-    const rows = await db.select({ id: schema.leads.id }).from(schema.leads);
-    return rows.map((r) => ({ id: r.id }));
+    const rows = await db.select().from(schema.leads);
+    return rows;
   },
 
   async create(raw: unknown) {
@@ -33,5 +33,9 @@ export const LeadsService = {
 
   async remove(id: string) {
     await db.delete(schema.leads).where(eq(schema.leads.id, id));
+  },
+
+  async deleteAll() {
+    await db.delete(schema.leads);
   },
 };

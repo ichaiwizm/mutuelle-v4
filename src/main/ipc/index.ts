@@ -6,11 +6,13 @@ import { AutomationService } from "../services/automationService";
 import { FlowsService } from "../services/flowsService";
 import { MailAuthService } from "../services/mailAuthService";
 import { MailService } from "../services/mailService";
+import { FixtureExporter } from "../services/fixtureExporter";
 
 export function registerIpc() {
   ipcMain.handle(IPC_CHANNEL.MAIL_STATUS, () => MailAuthService.status());
   ipcMain.handle(IPC_CHANNEL.MAIL_CONNECT, async () => ({ ok: false, error: 'not_implemented_yet' }));
   ipcMain.handle(IPC_CHANNEL.MAIL_FETCH, (_e, days: number) => MailService.fetch(days).catch(err => ({ fetched:0, scanned:0, matched:0, created:0, error:String(err) })));
+  ipcMain.handle(IPC_CHANNEL.FIXTURES_EXPORT, (_e, days: number) => FixtureExporter.exportEmailsToFixtures(days));
   ipcMain.handle(IPC_CHANNEL.FLOWS_LIST, () => FlowsService.list());
   ipcMain.handle(IPC_CHANNEL.LEADS_LIST, () => LeadsService.list());
   ipcMain.handle(IPC_CHANNEL.LEADS_CREATE, (_e, lead) => LeadsService.create(lead));

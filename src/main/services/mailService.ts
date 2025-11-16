@@ -6,7 +6,7 @@ import { LEAD_PROVIDERS } from '@/main/mail/providers';
 import { GMAIL_CONFIG } from '@/main/mail/constants';
 import { MailAuthService } from './mailAuthService';
 import { isLead, detectProvider } from '@/main/leads/detection/detector';
-import { parseLead } from '@/main/leads/parsing/parser';
+import { parseLeads } from '@/main/leads/parsing/parser';
 import { LeadsService } from './leadsService';
 
 async function ensureClient(provided: GmailClient | undefined): Promise<GmailClient> {
@@ -53,15 +53,15 @@ export const MailService = {
             // Detect provider
             const providerDetection = detectProvider({ text: m.text, subject: m.subject });
 
-            // Parse lead
-            const lead = parseLead(
+            // Parse all leads from email (may contain multiple)
+            const leads = parseLeads(
               { text: m.text, subject: m.subject },
               { emailId: m.id, source: 'email' }
             );
-            if (lead) {
-              parsed++;
 
-              // Save to database
+            // Save each lead to database
+            for (const lead of leads) {
+              parsed++;
               try {
                 await LeadsService.create(lead);
                 saved++;

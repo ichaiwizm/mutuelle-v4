@@ -7,13 +7,50 @@ import type { ExtractedContact, ExtractedPerson, ExtractedChild, ExtractedBesoin
 const FIELD_PATTERN = /^(.+?)\s*:\s*(.+)$/;
 
 /**
+ * Splits email text into multiple lead blocks
+ * Returns array of text blocks (one per lead)
+ * Each block includes everything from "Transmission" to before the next "Transmission"
+ * or until the end of the email
+ */
+export function splitEmailIntoLeadBlocks(text: string): string[] {
+  // Remove email quote markers (> at start of lines)
+  let normalized = text.replace(/\r\n/g, '\n');
+  normalized = normalized.replace(/^>\s?/gm, '');
+  const transmissionPattern = /Transmission d['']une fiche/gi;
+
+  const matches: Array<{ index: number }> = [];
+  let match;
+  while ((match = transmissionPattern.exec(normalized)) !== null) {
+    matches.push({ index: match.index });
+  }
+
+  if (matches.length === 0) return [];
+  if (matches.length === 1) return [normalized];
+
+  // Split blocks at each "Transmission d'une fiche"
+  // Include preamble text before first transmission in first block
+  const blocks: string[] = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = i === 0 ? 0 : matches[i].index;
+    const end = i < matches.length - 1 ? matches[i + 1].index : normalized.length;
+    blocks.push(normalized.slice(start, end));
+  }
+
+  return blocks;
+}
+
+/**
  * Splits email text into sections
+ * Handles both full emails and isolated lead blocks
  */
 export function splitIntoSections(text: string): SectionMap {
-  const normalized = text.replace(/\r\n/g, '\n');
+  // Remove email quote markers (> at start of lines)
+  let normalized = text.replace(/\r\n/g, '\n');
+  normalized = normalized.replace(/^>\s?/gm, '');
   const startMatch = normalized.match(/Transmission d['']une fiche/i);
-  if (!startMatch || !startMatch.index) return {};
+  if (!startMatch || startMatch.index === undefined) return {};
 
+  // Extract relevant text (from "Transmission" to footer or end)
   const relevantText = normalized.slice(startMatch.index);
   const footerMatch = relevantText.match(/\n\s*A noter\s*:/i);
   const contentText = footerMatch && footerMatch.index

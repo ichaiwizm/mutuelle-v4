@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import type { Lead } from '@/shared/types/lead';
 import { isLead, detectProvider, type LeadInput } from '../detection/detector';
 import { parseAssurProspect } from './assurprospect';
+import { splitEmailIntoLeadBlocks } from './extractors';
 import type { ParseResult, ExtractedLead } from './types';
 
 /**
@@ -93,12 +94,24 @@ function transformToLead(
 
 /**
  * Batch parse multiple text/email inputs
+ * OR parse a single email that may contain multiple leads
  */
 export function parseLeads(
-  inputs: Array<string | LeadInput>,
-  metadataFn?: (input: string | LeadInput, index: number) => { emailId?: string; source?: string }
+  inputs: Array<string | LeadInput> | string | LeadInput,
+  metadata?: { emailId?: string; source?: string }
 ): Lead[] {
+  // If single input, split it into multiple lead blocks
+  if (!Array.isArray(inputs)) {
+    const text = typeof inputs === 'string' ? inputs : inputs.text;
+    const blocks = splitEmailIntoLeadBlocks(text);
+
+    return blocks
+      .map(block => parseLead(block, metadata))
+      .filter((lead): lead is Lead => lead !== null);
+  }
+
+  // Legacy: array of inputs
   return inputs
-    .map((input, index) => parseLead(input, metadataFn?.(input, index)))
+    .map(input => parseLead(input, metadata))
     .filter((lead): lead is Lead => lead !== null);
 }
