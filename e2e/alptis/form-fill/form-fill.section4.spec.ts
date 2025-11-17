@@ -20,12 +20,16 @@ test.describe('Alptis - Form Fill Section 4', () => {
       expect(await step.checkForErrors(page)).toHaveLength(0);
       await verifySection4Toggle(page, true);
 
-      // Step 2: Fill first child's data
+      // Step 2: Fill all children's data
       await step.fillEnfants(page, leadData.enfants);
       expect(await step.checkForErrors(page)).toHaveLength(0);
-      await verifySection4Enfant(page, leadData.enfants[0], 0);
 
-      console.log(`✅ Section 4 complétée pour 1/${leadData.enfants.length} enfant(s)`);
+      // Step 3: Verify the last child (only the last one has its accordion open and fields accessible)
+      const lastChildIndex = leadData.enfants.length - 1;
+      await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
+      console.log(`✅ Enfant ${leadData.enfants.length}/${leadData.enfants.length} vérifié (dernier enfant)`);
+
+      console.log(`✅ Section 4 complétée pour ${leadData.enfants.length} enfant(s)`);
     } else {
       console.log('⏭️ Pas d\'enfants dans les données, section 4 ignorée');
 

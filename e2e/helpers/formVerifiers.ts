@@ -162,15 +162,24 @@ export async function verifySection4Toggle(page: Page, hasEnfants: boolean): Pro
 export async function verifySection4Enfant(page: Page, enfantData: { date_naissance: string; regime_obligatoire: string }, childIndex: number): Promise<void> {
   console.log(`\n🔍 [VERIFY] Vérification du formulaire Enfant ${childIndex + 1}...`);
 
-  // Date de naissance
-  // Date fields: nth(0) = date effet, nth(1) = adherent, nth(2) = conjoint, nth(3+) = enfants
-  const enfantDateInput = page.locator("input[placeholder='Ex : 01/01/2020']").nth(3 + childIndex);
+  // IMPORTANT: Only the LAST child added has its accordion open and fields accessible
+  // We can only verify the currently open child (the last one added)
+  // For simplicity, we verify using the visible fields which belong to the open accordion
+
+  // Date de naissance - use the last visible date field (always the currently open child)
+  const dateSelector = "input[placeholder='Ex : 01/01/2020']";
+  const allDateFields = page.locator(dateSelector);
+  const visibleCount = await allDateFields.count();
+
+  // The last visible date field is the currently open child
+  const enfantDateInput = allDateFields.nth(visibleCount - 1);
+
   await verifyDateValue(page, enfantDateInput, enfantData.date_naissance);
   console.log(`✅ [VERIFY] Date de naissance enfant ${childIndex + 1}: ${enfantData.date_naissance}`);
   await expect(enfantDateInput).not.toBeFocused();
   console.log(`✅ [VERIFY] Date enfant ${childIndex + 1} blur: OK`);
 
-  // Régime obligatoire - uses 0-based indexing for all children
+  // Régime obligatoire - uses 0-based indexing for all children (has stable ID)
   const regimeSelector = `#regime-obligatoire-enfant-${childIndex}`;
   await verifySelectValue(page, page.locator(regimeSelector), enfantData.regime_obligatoire);
   console.log(`✅ [VERIFY] Régime enfant ${childIndex + 1}: ${enfantData.regime_obligatoire}`);
