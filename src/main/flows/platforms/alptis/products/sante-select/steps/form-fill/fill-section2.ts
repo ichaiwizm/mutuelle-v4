@@ -50,7 +50,7 @@ export async function fillCategorieSocioprofessionnelle(page: Page, value: strin
 
 export async function fillCadreExercice(page: Page, value: 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS'): Promise<void> {
   console.log(`[6/8] Cadre d'exercice: ${value}`);
-  const labelText = value === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU / SAS';
+  const labelText = value === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU/SAS';
   const label = page.locator(`label:has-text("${labelText}")`).first();
   await label.waitFor({ state: 'visible', timeout: 5000 });
   await label.click();
