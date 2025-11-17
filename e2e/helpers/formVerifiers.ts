@@ -72,6 +72,14 @@ export async function verifySection2(page: Page, data: AlptisFormData): Promise<
   await verifySelectValue(page, page.locator('#categories-socio-professionnelles-adherent'), data.adherent.categorie_socioprofessionnelle);
   console.log(`✅ [VERIFY] Catégorie: ${data.adherent.categorie_socioprofessionnelle}`);
 
+  // Cadre d'exercice (conditional)
+  if (data.adherent.cadre_exercice) {
+    const labelText = data.adherent.cadre_exercice === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU / SAS';
+    const cadreRadio = page.locator(`label:has-text("${labelText}")`).first();
+    await expect(cadreRadio).toBeVisible();
+    console.log(`✅ [VERIFY] Cadre d'exercice: ${data.adherent.cadre_exercice} (${labelText})`);
+  }
+
   // Regime obligatoire
   await verifySelectValue(page, page.locator('#regime-obligatoire-adherent'), data.adherent.regime_obligatoire);
   console.log(`✅ [VERIFY] Régime: ${data.adherent.regime_obligatoire}`);

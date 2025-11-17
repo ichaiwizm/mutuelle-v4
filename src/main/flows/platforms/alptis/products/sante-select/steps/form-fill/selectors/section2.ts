@@ -53,12 +53,28 @@ export const SECTION_2_SELECTORS = {
     primary: '#categories-socio-professionnelles-adherent',
   },
 
-  /** Field 6: Régime obligatoire (select, STABLE, use native <select>) */
+  /**
+   * Field 6: Cadre d'exercice (CONDITIONAL)
+   * Type: Radio
+   * Stability: UNSTABLE (UUID in name attribute)
+   * Strategy: Use label text matching
+   * Visible only for certain professions (AGRICULTEURS, ARTISANS, CHEFS_D_ENTREPRISE, etc.)
+   */
+  cadre_exercice: {
+    primary: "input[name*='form-radio']",
+    byValue: (value: 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS') => {
+      const labelText = value === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU / SAS';
+      return `label:has-text("${labelText}")`;
+    },
+    fallback: "label:has-text('Cadre d\\'exercice')",
+  },
+
+  /** Field 7: Régime obligatoire (select, STABLE, use native <select>) */
   regime_obligatoire: {
     primary: '#regime-obligatoire-adherent',
   },
 
-  /** Field 7: Code postal (text, STABLE, validation ^[0-9]{5}$) */
+  /** Field 8: Code postal (text, STABLE, validation ^[0-9]{5}$) */
   code_postal: {
     primary: 'input#codePostal',
   },

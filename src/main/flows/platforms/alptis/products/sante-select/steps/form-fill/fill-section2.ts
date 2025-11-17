@@ -35,7 +35,7 @@ export async function fillDateNaissance(page: Page, dateNaissance: string): Prom
 }
 
 export async function fillCategorieSocioprofessionnelle(page: Page, value: string): Promise<void> {
-  console.log(`[5/7] Catégorie: ${value}`);
+  console.log(`[5/8] Catégorie: ${value}`);
   const label = PROFESSION_LABELS[value as AlptisProfession];
   if (!label) throw new Error(`Label inconnu: ${value}`);
 
@@ -48,8 +48,17 @@ export async function fillCategorieSocioprofessionnelle(page: Page, value: strin
   await verifySelectValue(page, page.locator(SECTION_2_SELECTORS.categorie_socioprofessionnelle.primary), value);
 }
 
+export async function fillCadreExercice(page: Page, value: 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS'): Promise<void> {
+  console.log(`[6/8] Cadre d'exercice: ${value}`);
+  const labelText = value === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU / SAS';
+  const label = page.locator(`label:has-text("${labelText}")`).first();
+  await label.waitFor({ state: 'visible', timeout: 5000 });
+  await label.click();
+  console.log(`  ↳ Option "${labelText}" sélectionnée`);
+}
+
 export async function fillRegimeObligatoire(page: Page, value: string): Promise<void> {
-  console.log(`[6/7] Régime: ${value}`);
+  console.log(`[7/8] Régime: ${value}`);
   const labels: Record<string, string> = {
     ALSACE_MOSELLE: 'Alsace / Moselle',
     AMEXA: 'Amexa',
@@ -80,7 +89,7 @@ export async function fillRegimeObligatoire(page: Page, value: string): Promise<
 }
 
 export async function fillCodePostal(page: Page, codePostal: string): Promise<void> {
-  console.log(`[7/7] Code postal: ${codePostal}`);
+  console.log(`[8/8] Code postal: ${codePostal}`);
   await clearAndType(page.locator(SECTION_2_SELECTORS.code_postal.primary), codePostal);
   await verifyTextValue(page, page.locator(SECTION_2_SELECTORS.code_postal.primary), codePostal);
 }

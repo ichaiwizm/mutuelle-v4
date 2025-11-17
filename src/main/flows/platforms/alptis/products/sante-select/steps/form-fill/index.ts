@@ -10,6 +10,7 @@ import {
   fillPrenom,
   fillDateNaissance,
   fillCategorieSocioprofessionnelle,
+  fillCadreExercice,
   fillRegimeObligatoire,
   fillCodePostal,
   fillToggleConjoint,
@@ -19,7 +20,7 @@ import {
  * FormFillStep - Fills Alptis Santé Select form
  * Sections implemented:
  * - Section 1: Mise en place du contrat (complete - 3/3 fields)
- * - Section 2: Adhérent(e) (complete - 7/7 fields)
+ * - Section 2: Adhérent(e) (complete - 8/8 fields including conditional cadre_exercice)
  * - Section 3: Conjoint(e) (partial - 1/4 fields: toggle only)
  */
 export class FormFillStep {
@@ -42,7 +43,7 @@ export class FormFillStep {
   }
 
   /**
-   * Fill Section 2: Adhérent(e) (complete - 7/7 fields)
+   * Fill Section 2: Adhérent(e) (complete - 8/8 fields including conditional cadre_exercice)
    */
   async fillAdherent(page: Page, data: AlptisFormData): Promise<void> {
     console.log('--- SECTION: Adhérent(e) ---');
@@ -61,10 +62,17 @@ export class FormFillStep {
     await fillPrenom(page, data.adherent.prenom);
     await fillDateNaissance(page, data.adherent.date_naissance);
     await fillCategorieSocioprofessionnelle(page, data.adherent.categorie_socioprofessionnelle);
+
+    // Cadre d'exercice is conditional - only appears for certain professions
+    if (data.adherent.cadre_exercice) {
+      await fillCadreExercice(page, data.adherent.cadre_exercice);
+    }
+
     await fillRegimeObligatoire(page, data.adherent.regime_obligatoire);
     await fillCodePostal(page, data.adherent.code_postal);
 
-    console.log('✅ Section "Adhérent(e)" complétée (7/7 champs)');
+    const fieldCount = data.adherent.cadre_exercice ? '8/8' : '7/7';
+    console.log(`✅ Section "Adhérent(e)" complétée (${fieldCount} champs)`);
     console.log('---');
   }
 
