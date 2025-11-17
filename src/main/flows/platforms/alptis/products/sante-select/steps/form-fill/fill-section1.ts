@@ -1,7 +1,7 @@
 import type { Page } from 'playwright';
 import { SECTION_1_SELECTORS } from './selectors';
-import { verifyToggleState, verifyRadioSelection, verifyDateValue } from './verifiers';
-import { blurField, clearAndType } from './actions';
+import { verifyToggleState, verifyRadioSelection } from './verifiers';
+import { fillDateField } from './field-fillers';
 
 /**
  * Section 1 - Remplacement d'un contrat
@@ -45,15 +45,7 @@ export async function fillDemandeResiliation(page: Page, value: 'Oui' | 'Non'): 
  * Section 1 - Date d'effet
  */
 export async function fillDateEffet(page: Page, dateEffet: string): Promise<void> {
-  console.log(`[3/3] Date d'effet: ${dateEffet}`);
-
-  const dateInputLocator = page.locator(SECTION_1_SELECTORS.date_effet.primary).first();
-  await clearAndType(dateInputLocator, dateEffet);
-  console.log(`  ↳ Date saisie`);
-
-  await verifyDateValue(page, dateInputLocator, dateEffet);
-
-  await blurField(page);
+  await fillDateField(page, dateEffet, 0, '[3/3] Date d\'effet');
 }
 
 

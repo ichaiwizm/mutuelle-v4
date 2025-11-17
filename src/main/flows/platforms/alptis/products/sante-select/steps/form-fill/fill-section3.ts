@@ -1,6 +1,7 @@
 import type { Page } from 'playwright';
 import { SECTION_3_SELECTORS } from './selectors/section3';
 import { verifyToggleState } from './verifiers';
+import { fillDateField } from './field-fillers';
 
 /**
  * Section 3 - Toggle Conjoint
@@ -23,4 +24,11 @@ export async function fillToggleConjoint(page: Page, shouldCheck: boolean): Prom
   }
 
   await verifyToggleState(page, toggleLocator, shouldCheck);
+}
+
+/**
+ * Section 3 - Date de naissance du conjoint
+ */
+export async function fillConjointDateNaissance(page: Page, dateNaissance: string): Promise<void> {
+  await fillDateField(page, dateNaissance, 2, '[1/4] Date de naissance conjoint');
 }

@@ -1,9 +1,10 @@
 import type { Page } from 'playwright';
 import { SECTION_2_SELECTORS } from './selectors';
-import { verifyTextValue, verifyDateValue, verifySelectValue } from './verifiers';
+import { verifyTextValue, verifySelectValue } from './verifiers';
 import { blurField, clearAndType } from './actions';
 import { PROFESSION_LABELS } from './mappers/profession-labels';
 import type { AlptisProfession } from '../../transformers/types';
+import { fillDateField } from './field-fillers';
 
 // Champs Section 2
 export async function fillCivilite(page: Page, civilite: 'monsieur' | 'madame'): Promise<void> {
@@ -27,11 +28,7 @@ export async function fillPrenom(page: Page, prenom: string): Promise<void> {
 }
 
 export async function fillDateNaissance(page: Page, dateNaissance: string): Promise<void> {
-  console.log(`[4/4] Date de naissance: ${dateNaissance}`);
-  const locator = page.locator(SECTION_2_SELECTORS.date_naissance.primary).nth(1);
-  await clearAndType(locator, dateNaissance);
-  await verifyDateValue(page, locator, dateNaissance);
-  await blurField(page);
+  await fillDateField(page, dateNaissance, 1, '[4/4] Date de naissance');
 }
 
 export async function fillCategorieSocioprofessionnelle(page: Page, value: string): Promise<void> {
