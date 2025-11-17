@@ -159,7 +159,7 @@ export async function verifySection4Toggle(page: Page, hasEnfants: boolean): Pro
 /**
  * Verify Section 4 enfant fields are filled correctly
  */
-export async function verifySection4Enfant(page: Page, enfantData: { date_naissance: string }, childIndex: number): Promise<void> {
+export async function verifySection4Enfant(page: Page, enfantData: { date_naissance: string; regime_obligatoire: string }, childIndex: number): Promise<void> {
   console.log(`\n🔍 [VERIFY] Vérification du formulaire Enfant ${childIndex + 1}...`);
 
   // Date de naissance
@@ -169,4 +169,9 @@ export async function verifySection4Enfant(page: Page, enfantData: { date_naissa
   console.log(`✅ [VERIFY] Date de naissance enfant ${childIndex + 1}: ${enfantData.date_naissance}`);
   await expect(enfantDateInput).not.toBeFocused();
   console.log(`✅ [VERIFY] Date enfant ${childIndex + 1} blur: OK`);
+
+  // Régime obligatoire - uses 0-based indexing for all children
+  const regimeSelector = `#regime-obligatoire-enfant-${childIndex}`;
+  await verifySelectValue(page, page.locator(regimeSelector), enfantData.regime_obligatoire);
+  console.log(`✅ [VERIFY] Régime enfant ${childIndex + 1}: ${enfantData.regime_obligatoire}`);
 }

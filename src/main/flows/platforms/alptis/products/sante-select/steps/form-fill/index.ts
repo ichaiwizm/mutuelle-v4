@@ -20,6 +20,7 @@ import {
   fillConjointRegimeObligatoire,
   fillToggleEnfants,
   fillEnfantDateNaissance,
+  fillEnfantRegimeObligatoire,
 } from './field-fillers';
 
 /**
@@ -146,7 +147,7 @@ export class FormFillStep {
   }
 
   /**
-   * Fill Section 4: Enfant(s) - First child only (partial - 1/N fields per child)
+   * Fill Section 4: Enfant(s) - First child only (2/2 fields per child)
    * Note: This should be called AFTER fillEnfantsToggle when hasEnfants is true
    */
   async fillEnfants(page: Page, enfants: AlptisFormData['enfants']): Promise<void> {
@@ -160,10 +161,11 @@ export class FormFillStep {
     // Wait for form fields to appear after toggle
     await page.waitForTimeout(500);
 
-    // Fill first child only for now
+    // Fill first child only for now (date + regime)
     await fillEnfantDateNaissance(page, enfants[0].date_naissance, 0);
+    await fillEnfantRegimeObligatoire(page, enfants[0].regime_obligatoire, 0);
 
-    console.log(`✅ Section "Enfant(s)" formulaire complété (1/1 champs pour 1/${enfants.length} enfant(s))`);
+    console.log(`✅ Section "Enfant(s)" formulaire complété (2/2 champs pour 1/${enfants.length} enfant(s))`);
     console.log('---');
   }
 
