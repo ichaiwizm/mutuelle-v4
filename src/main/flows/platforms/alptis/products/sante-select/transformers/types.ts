@@ -112,6 +112,17 @@ export type ValidationResult = {
 };
 
 /**
+ * Résultat d'éligibilité
+ */
+export interface EligibilityResult {
+  subscriberEligible: boolean;
+  conjointEligible: boolean;
+  shouldSwap: boolean;
+  subscriberReason?: string;
+  conjointReason?: string;
+}
+
+/**
  * Export du type Lead pour usage interne
  */
 export type { Lead };
