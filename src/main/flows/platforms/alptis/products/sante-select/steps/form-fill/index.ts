@@ -15,6 +15,9 @@ import {
   fillCodePostal,
   fillToggleConjoint,
   fillConjointDateNaissance,
+  fillConjointCategorieSocioprofessionnelle,
+  fillConjointCadreExercice,
+  fillConjointRegimeObligatoire,
 } from './field-fillers';
 
 /**
@@ -22,7 +25,7 @@ import {
  * Sections implemented:
  * - Section 1: Mise en place du contrat (complete - 3/3 fields)
  * - Section 2: Adhérent(e) (complete - 8/8 fields including conditional cadre_exercice)
- * - Section 3: Conjoint(e) (partial - 2/5 fields: toggle + date de naissance)
+ * - Section 3: Conjoint(e) (complete - 5/5 fields: toggle + 4 form fields including conditional cadre_exercice)
  */
 export class FormFillStep {
   /**
@@ -99,7 +102,7 @@ export class FormFillStep {
   }
 
   /**
-   * Fill Section 3: Conjoint(e) - Complete form (partial - 2/5 fields: date de naissance only for now)
+   * Fill Section 3: Conjoint(e) - Complete form (4/4 fields including conditional cadre_exercice)
    * Note: This should be called AFTER fillConjointToggle when hasConjoint is true
    */
   async fillConjoint(page: Page, data: AlptisFormData['conjoint']): Promise<void> {
@@ -113,15 +116,19 @@ export class FormFillStep {
     // Wait for form fields to appear after toggle
     await page.waitForTimeout(500);
 
-    // Fill date de naissance
+    // Fill all fields
     await fillConjointDateNaissance(page, data.date_naissance);
+    await fillConjointCategorieSocioprofessionnelle(page, data.categorie_socioprofessionnelle);
 
-    // TODO: Add other fields later:
-    // - fillCategorieSocioprofessionnelle (conjoint version)
-    // - fillCadreExercice (conjoint version) - conditional
-    // - fillRegimeObligatoire (conjoint version)
+    // Cadre d'exercice is conditional - only appears for certain professions
+    if (data.cadre_exercice) {
+      await fillConjointCadreExercice(page, data.cadre_exercice);
+    }
 
-    console.log(`✅ Section "Conjoint(e)" formulaire complété (1/4 champs pour l'instant)`);
+    await fillConjointRegimeObligatoire(page, data.regime_obligatoire);
+
+    const fieldCount = data.cadre_exercice ? '4/4' : '3/3';
+    console.log(`✅ Section "Conjoint(e)" formulaire complété (${fieldCount} champs)`);
     console.log('---');
   }
 
