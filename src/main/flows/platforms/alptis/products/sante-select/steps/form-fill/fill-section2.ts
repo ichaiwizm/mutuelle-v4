@@ -1,10 +1,13 @@
 import type { Page } from 'playwright';
 import { SECTION_2_SELECTORS } from './selectors';
-import { verifyTextValue, verifySelectValue } from './verifiers';
+import { verifyTextValue } from './verifiers';
 import { blurField, clearAndType } from './actions';
-import { PROFESSION_LABELS } from './mappers/profession-labels';
-import type { AlptisProfession } from '../../transformers/types';
-import { fillDateField } from './field-fillers';
+import {
+  fillDateField,
+  fillCadreExerciceField,
+  fillCategorieSocioprofessionnelleField,
+  fillRegimeObligatoireField,
+} from './field-fillers';
 
 // Champs Section 2
 export async function fillCivilite(page: Page, civilite: 'monsieur' | 'madame'): Promise<void> {
@@ -32,57 +35,32 @@ export async function fillDateNaissance(page: Page, dateNaissance: string): Prom
 }
 
 export async function fillCategorieSocioprofessionnelle(page: Page, value: string): Promise<void> {
-  console.log(`[5/8] Catégorie: ${value}`);
-  const label = PROFESSION_LABELS[value as AlptisProfession];
-  if (!label) throw new Error(`Label inconnu: ${value}`);
-
-  const textbox = page.getByRole('textbox', { name: /catégorie socioprofessionnelle/i });
-  await textbox.click();
-  await textbox.fill(label);
-  await page.waitForTimeout(500);
-
-  await page.locator('.totem-select-option__label').filter({ hasText: label }).first().click();
-  await verifySelectValue(page, page.locator(SECTION_2_SELECTORS.categorie_socioprofessionnelle.primary), value);
+  await fillCategorieSocioprofessionnelleField(
+    page,
+    value,
+    0, // adherent is first (index 0)
+    '[5/8] Catégorie',
+    SECTION_2_SELECTORS.categorie_socioprofessionnelle.primary
+  );
 }
 
 export async function fillCadreExercice(page: Page, value: 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS'): Promise<void> {
-  console.log(`[6/8] Cadre d'exercice: ${value}`);
-  const labelText = value === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU/SAS';
-  const label = page.locator(`label:has-text("${labelText}")`).first();
-  await label.waitFor({ state: 'visible', timeout: 5000 });
-  await label.click();
-  console.log(`  ↳ Option "${labelText}" sélectionnée`);
+  await fillCadreExerciceField(
+    page,
+    value,
+    0, // adherent is first (index 0)
+    "[6/8] Cadre d'exercice"
+  );
 }
 
 export async function fillRegimeObligatoire(page: Page, value: string): Promise<void> {
-  console.log(`[7/8] Régime: ${value}`);
-  const labels: Record<string, string> = {
-    ALSACE_MOSELLE: 'Alsace / Moselle',
-    AMEXA: 'Amexa',
-    REGIME_SALARIES_AGRICOLES: 'Régime des salariés agricoles',
-    SECURITE_SOCIALE: 'Sécurité sociale',
-    SECURITE_SOCIALE_INDEPENDANTS: 'Sécurité sociale des indépendants',
-  };
-
-  const label = labels[value];
-  if (!label) throw new Error(`Label inconnu: ${value}`);
-
-  const textbox = page.getByRole('textbox', { name: /régime obligatoire/i });
-  await textbox.click();
-  await textbox.fill(label);
-  await page.waitForTimeout(700);
-
-  // Match exact du texte (important: "Sécurité sociale" vs "Sécurité sociale des indépendants")
-  const options = await page.locator('.totem-select-option__label:visible').all();
-  for (const opt of options) {
-    if ((await opt.textContent())?.trim() === label) {
-      await opt.click();
-      await page.waitForTimeout(300);
-      await verifySelectValue(page, page.locator(SECTION_2_SELECTORS.regime_obligatoire.primary), value);
-      return;
-    }
-  }
-  throw new Error(`Option "${label}" not found`);
+  await fillRegimeObligatoireField(
+    page,
+    value,
+    0, // adherent is first (index 0)
+    '[7/8] Régime',
+    SECTION_2_SELECTORS.regime_obligatoire.primary
+  );
 }
 
 export async function fillCodePostal(page: Page, codePostal: string): Promise<void> {
