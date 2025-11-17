@@ -18,6 +18,8 @@ import {
   fillConjointCategorieSocioprofessionnelle,
   fillConjointCadreExercice,
   fillConjointRegimeObligatoire,
+  fillToggleEnfants,
+  fillEnfantDateNaissance,
 } from './field-fillers';
 
 /**
@@ -26,6 +28,7 @@ import {
  * - Section 1: Mise en place du contrat (complete - 3/3 fields)
  * - Section 2: Adhérent(e) (complete - 8/8 fields including conditional cadre_exercice)
  * - Section 3: Conjoint(e) (complete - 5/5 fields: toggle + 4 form fields including conditional cadre_exercice)
+ * - Section 4: Enfant(s) (partial - 1/N fields: toggle only)
  */
 export class FormFillStep {
   /**
@@ -129,6 +132,38 @@ export class FormFillStep {
 
     const fieldCount = data.cadre_exercice ? '4/4' : '3/3';
     console.log(`✅ Section "Conjoint(e)" formulaire complété (${fieldCount} champs)`);
+    console.log('---');
+  }
+
+  /**
+   * Fill Section 4: Enfant(s) - Toggle only (partial - 1/N fields)
+   */
+  async fillEnfantsToggle(page: Page, hasEnfants: boolean): Promise<void> {
+    console.log('--- SECTION: Enfant(s) ---');
+    await fillToggleEnfants(page, hasEnfants);
+    console.log(`✅ Section "Enfant(s)" toggle complétée (1/N champs)`);
+    console.log('---');
+  }
+
+  /**
+   * Fill Section 4: Enfant(s) - First child only (partial - 1/N fields per child)
+   * Note: This should be called AFTER fillEnfantsToggle when hasEnfants is true
+   */
+  async fillEnfants(page: Page, enfants: AlptisFormData['enfants']): Promise<void> {
+    if (!enfants || enfants.length === 0) {
+      console.log('⏭️ Pas de données enfants, remplissage ignoré');
+      return;
+    }
+
+    console.log('--- SECTION: Enfant(s) - Formulaire ---');
+
+    // Wait for form fields to appear after toggle
+    await page.waitForTimeout(500);
+
+    // Fill first child only for now
+    await fillEnfantDateNaissance(page, enfants[0].date_naissance, 0);
+
+    console.log(`✅ Section "Enfant(s)" formulaire complété (1/1 champs pour 1/${enfants.length} enfant(s))`);
     console.log('---');
   }
 

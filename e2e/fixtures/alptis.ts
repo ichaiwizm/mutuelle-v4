@@ -30,6 +30,8 @@ type AlptisFixtures = {
   formWithSection1: void;
   /** Formulaire avec Section 1 et 2 remplies */
   formWithSection2: void;
+  /** Formulaire avec Sections 1, 2 et 3 remplies */
+  formWithSection3: void;
   /** Données transformées du premier lead */
   leadData: AlptisFormData;
 };
@@ -93,6 +95,28 @@ export const test = base.extend<AlptisFixtures>({
     const step = new FormFillStep();
     await step.fillAdherent(page, leadData);
     console.log('✅ [FIXTURE] Section 2 remplie');
+    await use();
+  },
+
+  /**
+   * Fixture: formulaire avec Sections 1, 2 et 3 remplies
+   * Dépend de formWithSection2 + remplit la Section 3 (si conjoint présent)
+   */
+  formWithSection3: async ({ page, formWithSection2, leadData }, use) => {
+    console.log('\n📝 [FIXTURE] Remplissage Section 3...');
+    const step = new FormFillStep();
+
+    const hasConjoint = !!leadData.conjoint;
+
+    if (hasConjoint) {
+      await step.fillConjointToggle(page, true);
+      await step.fillConjoint(page, leadData.conjoint);
+      console.log('✅ [FIXTURE] Section 3 remplie (avec conjoint)');
+    } else {
+      await step.fillConjointToggle(page, false);
+      console.log('✅ [FIXTURE] Section 3 remplie (sans conjoint)');
+    }
+
     await use();
   },
 });

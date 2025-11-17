@@ -90,15 +90,28 @@ export async function verifySection2(page: Page, data: AlptisFormData): Promise<
 }
 
 /**
+ * Generic function to verify toggle state
+ * @param page - Playwright page object
+ * @param toggleIndex - Position of the toggle (0 = first, 1 = second, etc.)
+ * @param expectedState - Expected state (true = checked, false = unchecked)
+ * @param label - Label for logging
+ */
+async function verifyToggle(page: Page, toggleIndex: number, expectedState: boolean, label: string): Promise<void> {
+  console.log(`\n🔍 [VERIFY] Vérification du toggle ${label}...`);
+
+  const toggle = toggleIndex === 0
+    ? page.locator("[class*='totem-toggle__input']").first()
+    : page.locator("[class*='totem-toggle__input']").nth(toggleIndex);
+
+  await verifyToggleState(page, toggle, expectedState);
+  console.log(`✅ [VERIFY] Toggle ${label}: ${expectedState ? 'Oui' : 'Non'}`);
+}
+
+/**
  * Verify Section 3 toggle (conjoint) is set correctly
  */
 export async function verifySection3Toggle(page: Page, hasConjoint: boolean): Promise<void> {
-  console.log('\n🔍 [VERIFY] Vérification du toggle Conjoint...');
-
-  // The conjoint toggle is the second toggle on the page
-  const conjointToggle = page.locator("[class*='totem-toggle__input']").nth(1);
-  await verifyToggleState(page, conjointToggle, hasConjoint);
-  console.log(`✅ [VERIFY] Toggle conjoint: ${hasConjoint ? 'Oui' : 'Non'}`);
+  await verifyToggle(page, 1, hasConjoint, 'conjoint');
 }
 
 /**
@@ -134,4 +147,26 @@ export async function verifySection3Conjoint(page: Page, data: AlptisFormData['c
   // Régime obligatoire
   await verifySelectValue(page, page.locator('#regime-obligatoire-conjoint'), data.regime_obligatoire);
   console.log(`✅ [VERIFY] Régime conjoint: ${data.regime_obligatoire}`);
+}
+
+/**
+ * Verify Section 4 toggle (enfants) is set correctly
+ */
+export async function verifySection4Toggle(page: Page, hasEnfants: boolean): Promise<void> {
+  await verifyToggle(page, 2, hasEnfants, 'enfants');
+}
+
+/**
+ * Verify Section 4 enfant fields are filled correctly
+ */
+export async function verifySection4Enfant(page: Page, enfantData: { date_naissance: string }, childIndex: number): Promise<void> {
+  console.log(`\n🔍 [VERIFY] Vérification du formulaire Enfant ${childIndex + 1}...`);
+
+  // Date de naissance
+  // Date fields: nth(0) = date effet, nth(1) = adherent, nth(2) = conjoint, nth(3+) = enfants
+  const enfantDateInput = page.locator("input[placeholder='Ex : 01/01/2020']").nth(3 + childIndex);
+  await verifyDateValue(page, enfantDateInput, enfantData.date_naissance);
+  console.log(`✅ [VERIFY] Date de naissance enfant ${childIndex + 1}: ${enfantData.date_naissance}`);
+  await expect(enfantDateInput).not.toBeFocused();
+  console.log(`✅ [VERIFY] Date enfant ${childIndex + 1} blur: OK`);
 }

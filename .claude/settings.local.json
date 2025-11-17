@@ -4,7 +4,11 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(cat:*)",
-      "Bash(pnpm test:e2e:*)"
+      "Bash(pnpm test:e2e:*)",
+      "Bash(for f in /home/ichai/dev/mutuelle-v4/src/main/__tests__/fixtures/emails/email-*.json)",
+      "Bash(do:*)",
+      "Bash(jq:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
