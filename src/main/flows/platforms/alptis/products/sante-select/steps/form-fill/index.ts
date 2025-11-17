@@ -14,6 +14,7 @@ import {
   fillRegimeObligatoire,
   fillCodePostal,
   fillToggleConjoint,
+  fillConjointDateNaissance,
 } from './field-fillers';
 
 /**
@@ -21,7 +22,7 @@ import {
  * Sections implemented:
  * - Section 1: Mise en place du contrat (complete - 3/3 fields)
  * - Section 2: Adhérent(e) (complete - 8/8 fields including conditional cadre_exercice)
- * - Section 3: Conjoint(e) (partial - 1/4 fields: toggle only)
+ * - Section 3: Conjoint(e) (partial - 2/5 fields: toggle + date de naissance)
  */
 export class FormFillStep {
   /**
@@ -77,7 +78,7 @@ export class FormFillStep {
   }
 
   /**
-   * Fill Section 3: Conjoint(e) - Toggle only (partial - 1/4 fields)
+   * Fill Section 3: Conjoint(e) - Toggle only (partial - 1/5 fields)
    */
   async fillConjointToggle(page: Page, hasConjoint: boolean): Promise<void> {
     console.log('--- SECTION: Conjoint(e) ---');
@@ -93,7 +94,34 @@ export class FormFillStep {
 
     await fillToggleConjoint(page, hasConjoint);
 
-    console.log(`✅ Section "Conjoint(e)" toggle complétée (1/4 champs)`);
+    console.log(`✅ Section "Conjoint(e)" toggle complétée (1/5 champs)`);
+    console.log('---');
+  }
+
+  /**
+   * Fill Section 3: Conjoint(e) - Complete form (partial - 2/5 fields: date de naissance only for now)
+   * Note: This should be called AFTER fillConjointToggle when hasConjoint is true
+   */
+  async fillConjoint(page: Page, data: AlptisFormData['conjoint']): Promise<void> {
+    if (!data) {
+      console.log('⏭️ Pas de données conjoint, remplissage ignoré');
+      return;
+    }
+
+    console.log('--- SECTION: Conjoint(e) - Formulaire ---');
+
+    // Wait for form fields to appear after toggle
+    await page.waitForTimeout(500);
+
+    // Fill date de naissance
+    await fillConjointDateNaissance(page, data.date_naissance);
+
+    // TODO: Add other fields later:
+    // - fillCategorieSocioprofessionnelle (conjoint version)
+    // - fillCadreExercice (conjoint version) - conditional
+    // - fillRegimeObligatoire (conjoint version)
+
+    console.log(`✅ Section "Conjoint(e)" formulaire complété (1/4 champs pour l'instant)`);
     console.log('---');
   }
 

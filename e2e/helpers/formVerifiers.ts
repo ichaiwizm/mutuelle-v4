@@ -100,3 +100,23 @@ export async function verifySection3Toggle(page: Page, hasConjoint: boolean): Pr
   await verifyToggleState(page, conjointToggle, hasConjoint);
   console.log(`✅ [VERIFY] Toggle conjoint: ${hasConjoint ? 'Oui' : 'Non'}`);
 }
+
+/**
+ * Verify Section 3 conjoint date de naissance is filled correctly
+ */
+export async function verifySection3ConjointDate(page: Page, data: AlptisFormData['conjoint']): Promise<void> {
+  if (!data) {
+    console.log('⏭️ Pas de données conjoint, vérification ignorée');
+    return;
+  }
+
+  console.log('\n🔍 [VERIFY] Vérification de la date de naissance du conjoint...');
+
+  // The conjoint date field is the third date input on the page (date_effet, adherent, conjoint)
+  const conjointDateInput = page.locator("input[placeholder='Ex : 01/01/2020']").nth(2);
+  await verifyDateValue(page, conjointDateInput, data.date_naissance);
+  console.log(`✅ [VERIFY] Date de naissance conjoint: ${data.date_naissance}`);
+
+  await expect(conjointDateInput).not.toBeFocused();
+  console.log('✅ [VERIFY] Date conjoint blur: OK');
+}
