@@ -8,8 +8,18 @@ import { NavigationStep } from '@/main/flows/platforms/alptis/products/sante-sel
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import type { AlptisFormData } from '@/main/flows/platforms/alptis/products/sante-select/transformers/types';
+import type { LeadType } from '../helpers/leadSelector';
 import { getAlptisCredentials } from '../helpers/credentials';
 import { loadAllLeads } from '../helpers/loadLeads';
+import { selectLead, getLeadTypeName } from '../helpers/leadSelector';
+
+declare module '@playwright/test' {
+  interface Project {
+    use?: {
+      leadType?: LeadType;
+    };
+  }
+}
 
 type AlptisFixtures = {
   /** Page authentifiée sur Alptis */
@@ -26,14 +36,13 @@ type AlptisFixtures = {
 
 export const test = base.extend<AlptisFixtures>({
   /**
-   * Fixture: données du lead transformées (aléatoire)
+   * Fixture: données du lead transformées selon le projet Playwright
    */
-  leadData: async ({}, use) => {
-    const allLeads = loadAllLeads();
-    const leadIndex = Math.floor(Math.random() * allLeads.length);
-    const lead = allLeads[leadIndex];
+  leadData: async ({}, use, testInfo) => {
+    const leadType: LeadType = testInfo.project.use?.leadType || 'random';
+    const lead = selectLead(leadType);
 
-    console.log(`\n🎲 [LEAD] Aléatoire - Index: ${leadIndex}/${allLeads.length - 1}`);
+    console.log(`\n${getLeadTypeName(leadType)} [LEAD] Selected`);
 
     const data = LeadTransformer.transform(lead);
     await use(data);

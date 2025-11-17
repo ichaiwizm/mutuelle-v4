@@ -29,8 +29,32 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: '🎲 Random',
+      use: {
+        ...devices['Desktop Chrome'],
+        leadType: 'random',
+      },
+    },
+    {
+      name: '👫 Avec conjoint',
+      use: {
+        ...devices['Desktop Chrome'],
+        leadType: 'conjoint',
+      },
+    },
+    {
+      name: '👶 Avec enfants',
+      use: {
+        ...devices['Desktop Chrome'],
+        leadType: 'children',
+      },
+    },
+    {
+      name: '👨‍👩‍👧 Conjoint + Enfants',
+      use: {
+        ...devices['Desktop Chrome'],
+        leadType: 'both',
+      },
     },
   ],
 });
