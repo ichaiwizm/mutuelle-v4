@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import { SECTION_3_SELECTORS } from './selectors';
+import { SECTION_3_SELECTORS } from './selectors/section3';
 import { verifyToggleState } from './verifiers';
 
 /**
@@ -14,7 +14,8 @@ export async function fillToggleConjoint(page: Page, shouldCheck: boolean): Prom
   const isCurrentlyChecked = await toggleLocator.isChecked();
 
   if (isCurrentlyChecked !== shouldCheck) {
-    await toggleLocator.click();
+    // Use force: true because the label overlays the input element
+    await toggleLocator.click({ force: true });
     console.log(`  ↳ Toggle cliqué (${isCurrentlyChecked ? 'décoché' : 'coché'})`);
     await page.waitForTimeout(300);
   } else {
