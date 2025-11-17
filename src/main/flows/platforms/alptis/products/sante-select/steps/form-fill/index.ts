@@ -12,6 +12,7 @@ import {
   fillCategorieSocioprofessionnelle,
   fillRegimeObligatoire,
   fillCodePostal,
+  fillToggleConjoint,
 } from './field-fillers';
 
 /**
@@ -19,6 +20,7 @@ import {
  * Sections implemented:
  * - Section 1: Mise en place du contrat (complete - 3/3 fields)
  * - Section 2: Adhérent(e) (complete - 7/7 fields)
+ * - Section 3: Conjoint(e) (partial - 1/4 fields: toggle only)
  */
 export class FormFillStep {
   /**
@@ -63,6 +65,27 @@ export class FormFillStep {
     await fillCodePostal(page, data.adherent.code_postal);
 
     console.log('✅ Section "Adhérent(e)" complétée (7/7 champs)');
+    console.log('---');
+  }
+
+  /**
+   * Fill Section 3: Conjoint(e) - Toggle only (partial - 1/4 fields)
+   */
+  async fillConjointToggle(page: Page, hasConjoint: boolean): Promise<void> {
+    console.log('--- SECTION: Conjoint(e) ---');
+
+    // Scroll to section
+    await page.evaluate(() => {
+      const section = Array.from(document.querySelectorAll('h2, h3, div')).find(el =>
+        el.textContent?.includes('Conjoint')
+      );
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    await page.waitForTimeout(500);
+
+    await fillToggleConjoint(page, hasConjoint);
+
+    console.log(`✅ Section "Conjoint(e)" toggle complétée (1/4 champs)`);
     console.log('---');
   }
 

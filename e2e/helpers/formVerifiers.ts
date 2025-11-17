@@ -80,3 +80,15 @@ export async function verifySection2(page: Page, data: AlptisFormData): Promise<
   await verifyTextValue(page, page.locator('input#codePostal'), data.adherent.code_postal);
   console.log(`✅ [VERIFY] Code postal: ${data.adherent.code_postal}`);
 }
+
+/**
+ * Verify Section 3 toggle (conjoint) is set correctly
+ */
+export async function verifySection3Toggle(page: Page, hasConjoint: boolean): Promise<void> {
+  console.log('\n🔍 [VERIFY] Vérification du toggle Conjoint...');
+
+  // The conjoint toggle is the second toggle on the page
+  const conjointToggle = page.locator("[class*='totem-toggle__input']").nth(1);
+  await verifyToggleState(page, conjointToggle, hasConjoint);
+  console.log(`✅ [VERIFY] Toggle conjoint: ${hasConjoint ? 'Oui' : 'Non'}`);
+}

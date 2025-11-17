@@ -18,6 +18,8 @@ type AlptisFixtures = {
   formPage: void;
   /** Formulaire avec Section 1 remplie */
   formWithSection1: void;
+  /** Formulaire avec Section 1 et 2 remplies */
+  formWithSection2: void;
   /** Données transformées du premier lead */
   leadData: AlptisFormData;
 };
@@ -70,6 +72,18 @@ export const test = base.extend<AlptisFixtures>({
     const step = new FormFillStep();
     await step.fillMiseEnPlace(page, leadData);
     console.log('✅ [FIXTURE] Section 1 remplie');
+    await use();
+  },
+
+  /**
+   * Fixture: formulaire avec Section 1 et 2 remplies
+   * Dépend de formWithSection1 + remplit la Section 2
+   */
+  formWithSection2: async ({ page, formWithSection1, leadData }, use) => {
+    console.log('\n📝 [FIXTURE] Remplissage Section 2...');
+    const step = new FormFillStep();
+    await step.fillAdherent(page, leadData);
+    console.log('✅ [FIXTURE] Section 2 remplie');
     await use();
   },
 });
