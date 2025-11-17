@@ -17,7 +17,7 @@ export function transformProject(lead: Lead) {
     actuellementAssure: project?.actuellementAssure,
   });
 
-  const remplacementContrat = Boolean(project?.actuellementAssure);
+  const remplacementContrat = false;
 
   const transformed = {
     remplacement_contrat: remplacementContrat,
