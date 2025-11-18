@@ -27,7 +27,11 @@ export async function fillCadreExerciceField(
   const labelText = CADRE_EXERCICE_LABELS[value];
   if (!labelText) throw new Error(`Label inconnu pour cadre d'exercice: ${value}`);
 
-  const label = page.locator(`label:has-text("${labelText}")`).nth(fieldIndex);
+  // For conjoint (fieldIndex = 1), use .last() to handle cases where adherent doesn't have this field
+  const label = fieldIndex === 0
+    ? page.locator(`label:has-text("${labelText}")`).first()
+    : page.locator(`label:has-text("${labelText}")`).last();
+
   await label.waitFor({ state: 'visible', timeout: 5000 });
   await label.click();
   console.log(`  ↳ Option "${labelText}" sélectionnée`);

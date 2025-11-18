@@ -41,8 +41,8 @@ export async function verifySection3Conjoint(page: Page, data: AlptisFormData['c
 
   console.log('\n🔍 [VERIFY] Vérification du formulaire Conjoint...');
 
-  // Date de naissance
-  const conjointDateInput = page.locator("input[placeholder='Ex : 01/01/2020']").nth(2);
+  // Date de naissance - Use .last() for robustness in bulk tests
+  const conjointDateInput = page.locator("input[placeholder='Ex : 01/01/2020']").last();
   await verifyDateValue(page, conjointDateInput, data.date_naissance);
   console.log(`✅ [VERIFY] Date de naissance conjoint: ${data.date_naissance}`);
   await expect(conjointDateInput).not.toBeFocused();
@@ -55,7 +55,8 @@ export async function verifySection3Conjoint(page: Page, data: AlptisFormData['c
   // Cadre d'exercice (conditional)
   if (data.cadre_exercice) {
     const labelText = data.cadre_exercice === 'SALARIE' ? 'Salarié' : 'Indépendant Président SASU/SAS';
-    const cadreRadio = page.locator(`label:has-text("${labelText}")`).nth(1); // nth(1) for conjoint
+    // Use .last() to handle cases where adherent doesn't have this field
+    const cadreRadio = page.locator(`label:has-text("${labelText}")`).last();
     await expect(cadreRadio).toBeVisible();
     console.log(`✅ [VERIFY] Cadre d'exercice conjoint: ${data.cadre_exercice} (${labelText})`);
   }
