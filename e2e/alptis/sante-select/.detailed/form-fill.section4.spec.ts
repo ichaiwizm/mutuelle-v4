@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../../fixtures';
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
-import { hasAlptisCredentials } from '../helpers/credentials';
-import { verifySection4Toggle, verifySection4Enfant } from '../helpers/verification';
+import { hasAlptisCredentials } from '../../helpers/credentials';
+import { verifySection4Toggle, verifySection4Enfant } from '../../helpers/verification';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 

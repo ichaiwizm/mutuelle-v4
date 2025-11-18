@@ -9,7 +9,10 @@
       "Bash(do:*)",
       "Bash(jq:*)",
       "Bash(done)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": [],
     "ask": []

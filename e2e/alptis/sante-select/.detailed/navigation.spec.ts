@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
-import { hasAlptisCredentials } from '../helpers/credentials';
+import { test, expect } from '../../fixtures';
+import { hasAlptisCredentials } from '../../helpers/credentials';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 

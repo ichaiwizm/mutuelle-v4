@@ -8,7 +8,7 @@ import { NavigationStep } from '@/main/flows/platforms/alptis/products/sante-sel
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import type { AlptisFormData } from '@/main/flows/platforms/alptis/products/sante-select/transformers/types';
-import type { LeadType } from './helpers/leadSelector';
+import type { LeadType } from './types';
 import { getAlptisCredentials } from './helpers/credentials';
 import { loadAllLeads } from './helpers/loadLeads';
 import { selectLead, getLeadTypeName } from './helpers/leadSelector';
