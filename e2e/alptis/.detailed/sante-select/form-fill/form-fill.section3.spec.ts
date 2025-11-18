@@ -1,4 +1,4 @@
-import { test, expect } from '../../../fixtures/alptis';
+import { test, expect } from '../../../fixtures';
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../../../helpers/credentials';
 import { verifySection3Toggle, verifySection3Conjoint } from '../../../helpers/verification';

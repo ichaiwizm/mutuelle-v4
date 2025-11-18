@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { LeadTransformer } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
-import { loadAllLeads } from '../helpers/loadLeads';
-import { verifyTransformedData } from '../helpers/transformerVerifiers';
+import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
+import { loadAllLeads } from '../../helpers/loadLeads';
+import { verifyTransformedData } from '../../helpers/transformerVerifiers';
 
 /**
  * Tests du transformer Alptis Santé Select
