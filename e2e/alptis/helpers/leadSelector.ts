@@ -129,5 +129,47 @@ export function getLeadTypeName(type: LeadType): string {
   return LEAD_TYPE_NAMES[type] ?? 'Unknown';
 }
 
+/**
+ * Get the total number of available leads
+ *
+ * @returns Total count of leads
+ *
+ * @example
+ * ```typescript
+ * const count = getLeadCount(); // 22
+ * ```
+ */
+export function getLeadCount(): number {
+  return loadAllLeads().length;
+}
+
+/**
+ * Select a lead by its index in the leads array
+ *
+ * This is useful for interactive selection where the user chooses
+ * a specific lead from a displayed list.
+ *
+ * @param index - Zero-based index of the lead to select (0 to getLeadCount()-1)
+ * @returns The lead at the specified index
+ * @throws {Error} If index is out of bounds
+ *
+ * @example
+ * ```typescript
+ * const lead = selectLeadByIndex(0);  // First lead
+ * const lead = selectLeadByIndex(5);  // Sixth lead
+ * ```
+ */
+export function selectLeadByIndex(index: number): Lead {
+  const allLeads = loadAllLeads();
+
+  if (index < 0 || index >= allLeads.length) {
+    throw new Error(
+      `Invalid lead index ${index}. Must be between 0 and ${allLeads.length - 1} (inclusive)`
+    );
+  }
+
+  return allLeads[index];
+}
+
 // Re-export LeadType for convenience
 export type { LeadType };

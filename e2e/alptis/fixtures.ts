@@ -11,7 +11,7 @@ import type { AlptisFormData } from '@/main/flows/platforms/alptis/products/sant
 import type { LeadType } from './types';
 import { getAlptisCredentials } from './helpers/credentials';
 import { loadAllLeads } from './helpers/loadLeads';
-import { selectLead, getLeadTypeName } from './helpers/leadSelector';
+import { selectLead, selectLeadByIndex, getLeadTypeName } from './helpers/leadSelector';
 
 type AlptisFixtures = {
   /** Page authentifiée sur Alptis */
@@ -32,22 +32,36 @@ export const test = base.extend<AlptisFixtures>({
   /**
    * Fixture: données du lead transformées selon le titre du test
    * Détecte le type de lead à partir des emojis dans le nom du test
+   * OU utilise LEAD_INDEX si défini dans les variables d'environnement
    */
   leadData: async ({}, use, testInfo) => {
-    let leadType: LeadType = 'random';
+    let lead;
+    let selectionMethod: string;
 
-    // Parse le titre du test pour détecter le type de lead
-    const title = testInfo.title;
-    if (title.includes('👫') || title.toLowerCase().includes('conjoint')) {
-      leadType = 'conjoint';
-    } else if (title.includes('👶') || title.toLowerCase().includes('enfants')) {
-      leadType = 'children';
-    } else if (title.includes('👨‍👩‍👧') || title.toLowerCase().includes('conjoint + enfants')) {
-      leadType = 'both';
+    // Priorité 1 : Sélection par index via variable d'environnement
+    const leadIndexEnv = process.env.LEAD_INDEX;
+    if (leadIndexEnv !== undefined) {
+      const leadIndex = parseInt(leadIndexEnv, 10);
+      lead = selectLeadByIndex(leadIndex);
+      selectionMethod = `[INDEX ${leadIndex}]`;
+      console.log(`\n🎯 ${selectionMethod} Lead selected via LEAD_INDEX`);
+    } else {
+      // Priorité 2 : Sélection par type basée sur le titre du test
+      let leadType: LeadType = 'random';
+
+      const title = testInfo.title;
+      if (title.includes('👫') || title.toLowerCase().includes('conjoint')) {
+        leadType = 'conjoint';
+      } else if (title.includes('👶') || title.toLowerCase().includes('enfants')) {
+        leadType = 'children';
+      } else if (title.includes('👨‍👩‍👧') || title.toLowerCase().includes('conjoint + enfants')) {
+        leadType = 'both';
+      }
+
+      lead = selectLead(leadType);
+      selectionMethod = getLeadTypeName(leadType);
+      console.log(`\n${selectionMethod} [LEAD] Selected by type`);
     }
-
-    const lead = selectLead(leadType);
-    console.log(`\n${getLeadTypeName(leadType)} [LEAD] Selected`);
 
     const data = LeadTransformer.transform(lead);
     await use(data);
