@@ -10,7 +10,6 @@ import 'dotenv/config';
  */
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: '**/.detailed/**',
   timeout: 30 * 1000,
   retries: 0,
   workers: 1,
@@ -22,40 +21,10 @@ export default defineConfig({
   ],
 
   use: {
+    ...devices['Desktop Chrome'],
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
     viewport: { width: 1280, height: 720 },
   },
-
-  projects: [
-    {
-      name: '🎲 Random',
-      use: {
-        ...devices['Desktop Chrome'],
-        leadType: 'random',
-      },
-    },
-    {
-      name: '👫 Avec conjoint',
-      use: {
-        ...devices['Desktop Chrome'],
-        leadType: 'conjoint',
-      },
-    },
-    {
-      name: '👶 Avec enfants',
-      use: {
-        ...devices['Desktop Chrome'],
-        leadType: 'children',
-      },
-    },
-    {
-      name: '👨‍👩‍👧 Conjoint + Enfants',
-      use: {
-        ...devices['Desktop Chrome'],
-        leadType: 'both',
-      },
-    },
-  ],
 });

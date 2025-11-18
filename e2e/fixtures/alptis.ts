@@ -13,14 +13,6 @@ import { getAlptisCredentials } from '../helpers/credentials';
 import { loadAllLeads } from '../helpers/loadLeads';
 import { selectLead, getLeadTypeName } from '../helpers/leadSelector';
 
-declare module '@playwright/test' {
-  interface Project {
-    use?: {
-      leadType?: LeadType;
-    };
-  }
-}
-
 type AlptisFixtures = {
   /** Page authentifiée sur Alptis */
   authenticatedPage: void;
@@ -38,12 +30,23 @@ type AlptisFixtures = {
 
 export const test = base.extend<AlptisFixtures>({
   /**
-   * Fixture: données du lead transformées selon le projet Playwright
+   * Fixture: données du lead transformées selon le titre du test
+   * Détecte le type de lead à partir des emojis dans le nom du test
    */
   leadData: async ({}, use, testInfo) => {
-    const leadType: LeadType = testInfo.project.use?.leadType || 'random';
-    const lead = selectLead(leadType);
+    let leadType: LeadType = 'random';
 
+    // Parse le titre du test pour détecter le type de lead
+    const title = testInfo.title;
+    if (title.includes('👫') || title.toLowerCase().includes('conjoint')) {
+      leadType = 'conjoint';
+    } else if (title.includes('👶') || title.toLowerCase().includes('enfants')) {
+      leadType = 'children';
+    } else if (title.includes('👨‍👩‍👧') || title.toLowerCase().includes('conjoint + enfants')) {
+      leadType = 'both';
+    }
+
+    const lead = selectLead(leadType);
     console.log(`\n${getLeadTypeName(leadType)} [LEAD] Selected`);
 
     const data = LeadTransformer.transform(lead);
