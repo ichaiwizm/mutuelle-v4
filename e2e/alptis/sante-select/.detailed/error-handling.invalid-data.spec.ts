@@ -1,12 +1,11 @@
-import { test, expect } from '../../../fixtures';
+import { test, expect } from '../fixtures';
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
-import { hasAlptisCredentials } from '../../../helpers/credentials';
-import { expectValidationError, verifyNoErrors, getAllErrorMessages } from '../../../helpers/errorHelpers';
+import { hasAlptisCredentials } from '../helpers/credentials';
+import { expectValidationError, verifyNoErrors, getAllErrorMessages } from '../helpers/errorHelpers';
 
-test.describe('Alptis - Error Handling: Invalid Data', () => {
-  test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
+test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 
-  test('Should show error for invalid date format', async ({ page, formPage }) => {
+test('Should show error for invalid date format', async ({ page, formPage }) => {
     const step = new FormFillStep();
 
     // Try to fill with invalid date format
