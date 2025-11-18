@@ -103,4 +103,3 @@ test('Should show error for invalid date format', async ({ page, formPage }) => 
     console.log('✅ Form filled with valid data up to Section 2');
     console.log('ℹ️ Error handling tests completed');
   });
-});
