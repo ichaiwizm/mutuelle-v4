@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/login';
-import { getAlptisCredentials, hasAlptisCredentials } from '../../helpers/credentials';
+import { getAlptisCredentials, hasAlptisCredentials } from '../../../helpers/credentials';
 
 test.describe('Alptis - Login selectors stability', () => {
   test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');

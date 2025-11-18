@@ -1,7 +1,7 @@
-import { test, expect } from '../../fixtures/alptis';
+import { test, expect } from '../../../fixtures/alptis';
 import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
-import { hasAlptisCredentials } from '../../helpers/credentials';
-import { expectValidationError, verifyNoErrors, getAllErrorMessages } from '../../helpers/errorHelpers';
+import { hasAlptisCredentials } from '../../../helpers/credentials';
+import { expectValidationError, verifyNoErrors, getAllErrorMessages } from '../../../helpers/errorHelpers';
 
 test.describe('Alptis - Error Handling: Invalid Data', () => {
   test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');

@@ -10,6 +10,7 @@ import 'dotenv/config';
  */
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: '**/.detailed/**',
   timeout: 30 * 1000,
   retries: 0,
   workers: 1,

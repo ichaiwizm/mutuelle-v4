@@ -1,5 +1,5 @@
-import { test, expect } from '../../fixtures/alptis';
-import { hasAlptisCredentials } from '../../helpers/credentials';
+import { test, expect } from '../../../fixtures/alptis';
+import { hasAlptisCredentials } from '../../../helpers/credentials';
 
 test.describe('Alptis - Navigation vers Santé Select', () => {
   test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AlptisAuth } from '@/main/flows/platforms/alptis/lib/AlptisAuth';
-import { getAlptisCredentials, hasAlptisCredentials } from '../../helpers/credentials';
+import { getAlptisCredentials, hasAlptisCredentials } from '../../../helpers/credentials';
 
 test.describe('Alptis - Login flow', () => {
   test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
