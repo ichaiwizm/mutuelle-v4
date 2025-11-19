@@ -1,0 +1,659 @@
+{
+  "platform": "SwissLife One",
+  "url": "https://www.swisslifeone.fr/",
+  "version": "3.0.0 - Technical Automation Ready",
+  "extraction_date": "2025-01-19",
+  "framework": "Angular 18.2.14",
+
+  "authentication": {
+    "login_url": "https://adfs.swisslife.fr/adfs/ls/",
+    "method": "ADFS/SAML",
+    "fields": {
+      "username": {
+        "selector": "input[type='text']",
+        "playwright_selector": "page.getByRole('textbox', { name: 'Identifiant' })",
+        "placeholder": "Exemple : A111AAA ou AAA111A",
+        "format": "alphanumeric 7 chars",
+        "test_value": "UPFK76G"
+      },
+      "password": {
+        "selector": "input[type='password']",
+        "playwright_selector": "page.getByRole('textbox', { name: 'Password' })",
+        "placeholder": "Je saisis mon mot de passe",
+        "test_value": "04240424_aAAA"
+      },
+      "submit": {
+        "selector": "button",
+        "playwright_selector": "page.getByRole('button', { name: 'Je m\\'identifie' })",
+        "text": "Je m'identifie"
+      }
+    },
+    "redirect_after_login": "https://www.swisslifeone.fr/index-swisslifeOne.html#/accueil"
+  },
+
+  "navigation": {
+    "form_url": "https://www.swisslifeone.fr/index-swisslifeOne.html#/tarification-et-simulation/slsis",
+    "iframe": {
+      "name": "iFrameTarificateur",
+      "selector": "iframe[name='iFrameTarificateur']",
+      "playwright_selector": "page.locator('iframe[name=\"iFrameTarificateur\"]').contentFrame()",
+      "loading_time": "30-60 seconds",
+      "note": "All subsequent selectors are scoped to this iframe"
+    }
+  },
+
+  "STEP_1_informations_projet": {
+    "step_name": "Informations du projet et assurés",
+    "url_hash": "#/tarification-et-simulation/slsis",
+    "total_fields": 25,
+
+    "section_1_nom_projet": {
+      "nom_projet": {
+        "type": "textbox",
+        "selector": "input[type='text']",
+        "playwright_selector": "frame.getByRole('textbox').first()",
+        "xpath": "//input[@type='text'][1]",
+        "id": null,
+        "name": null,
+        "required": true,
+        "label": "Nom du projet *",
+        "test_value": "Projet Test SwissLife"
+      }
+    },
+
+    "section_2_vos_projets": {
+      "besoin_couverture_individuelle": {
+        "type": "radio",
+        "name": "besoin_couverture_individuelle",
+        "required": true,
+        "options": {
+          "oui": {
+            "selector": "input[type='radio'][value='oui']",
+            "playwright_selector": "frame.getByRole('radio', { name: 'oui' }).first()",
+            "label": "oui",
+            "default": true
+          },
+          "non": {
+            "selector": "input[type='radio'][value='non']",
+            "playwright_selector": "frame.getByRole('radio', { name: 'non' }).first()",
+            "label": "non"
+          }
+        },
+        "test_value": "oui"
+      },
+      "besoin_indemnites_journalieres": {
+        "type": "radio",
+        "name": "besoin_indemnites_journalieres",
+        "required": true,
+        "options": {
+          "oui": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'oui' }).nth(1)",
+            "label": "oui"
+          },
+          "non": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'non' }).nth(1)",
+            "label": "non"
+          }
+        },
+        "test_value": "non"
+      }
+    },
+
+    "section_3_couverture_sante": {
+      "type_simulation": {
+        "type": "radio",
+        "name": "type_simulation",
+        "required": true,
+        "options": {
+          "individuel": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'Individuel' })",
+            "label": "Individuel",
+            "default": true
+          },
+          "couple": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'Pour le couple' })",
+            "label": "Pour le couple",
+            "triggers": "Shows Conjoint tab"
+          }
+        },
+        "test_value": "couple"
+      },
+
+      "tab_assure_principal": {
+        "tab_selector": "a[href='#tabs-assure-principal']",
+        "playwright_tab_selector": "frame.getByRole('link', { name: 'Assuré principal' })",
+
+        "date_naissance": {
+          "type": "textbox",
+          "selector": "input[type='text']",
+          "playwright_selector": "frame.getByRole('textbox').nth(1)",
+          "id": null,
+          "format": "date (jj/mm/aaaa)",
+          "required": true,
+          "has_datepicker": true,
+          "placeholder": "jj/mm/aaaa",
+          "test_value": "15/01/1985"
+        },
+
+        "departement_residence": {
+          "type": "combobox",
+          "selector": "select",
+          "playwright_selector": "frame.getByRole('combobox').first()",
+          "id": "departement-assure-principal",
+          "required": true,
+          "options_count": 101,
+          "options": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2A", "2B", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "97"],
+          "test_value": "75",
+          "automation_method": "selectOption",
+          "playwright_select": "await frame.getByRole('combobox').first().selectOption('75')"
+        },
+
+        "regime_social": {
+          "type": "combobox",
+          "playwright_selector": "frame.getByRole('combobox').nth(1)",
+          "id": "regime-social-assure-principal",
+          "required": true,
+          "options": [
+            {
+              "value": "regime_general",
+              "label": "Régime Général (CPAM)"
+            },
+            {
+              "value": "regime_local",
+              "label": "Régime Local (CPAM Alsace Moselle)"
+            },
+            {
+              "value": "regime_general_tns",
+              "label": "Régime Général pour TNS (CPAM)"
+            },
+            {
+              "value": "msa",
+              "label": "Mutualité Sociale Agricole (MSA-Amexa)"
+            },
+            {
+              "value": "autres_regimes",
+              "label": "Autres régimes spéciaux"
+            }
+          ],
+          "test_value": "Régime Général (CPAM)",
+          "triggers": "Loads Profession and Statut options dynamically",
+          "playwright_select": "await frame.getByRole('combobox').nth(1).selectOption({ label: 'Régime Général (CPAM)' })"
+        },
+
+        "profession": {
+          "type": "combobox",
+          "playwright_selector": "frame.getByRole('combobox').nth(2)",
+          "required": true,
+          "dynamic": true,
+          "loaded_after": "regime_social selection",
+          "options": [
+            "Médecin",
+            "Chirurgien",
+            "Chirurgien dentiste",
+            "Pharmacien",
+            "Auxiliaire médical",
+            "Non médicale"
+          ],
+          "test_value": "Non médicale",
+          "note": "NEW FIELD - appears after selecting regime_social",
+          "playwright_select": "await frame.getByRole('combobox').nth(2).selectOption('Non médicale')"
+        },
+
+        "statut": {
+          "type": "combobox",
+          "playwright_selector": "frame.getByRole('combobox').nth(3)",
+          "id": "statut-assure-principal",
+          "required": true,
+          "dynamic": true,
+          "loaded_after": "regime_social + profession selection",
+          "options": [
+            "Salarié et autres statuts",
+            "Etudiant",
+            "Travailleur transfrontalier",
+            "Fonctionnaire"
+          ],
+          "test_value": "Salarié et autres statuts",
+          "playwright_select": "await frame.getByRole('combobox').nth(3).selectOption('Salarié et autres statuts')"
+        }
+      },
+
+      "tab_conjoint": {
+        "conditional": "Visible only when type_simulation = 'Pour le couple'",
+        "tab_selector": "a[href='#tabs-assure-conjoint']",
+        "playwright_tab_selector": "frame.getByRole('link', { name: 'Conjoint' })",
+
+        "conjoint_date_naissance": {
+          "type": "textbox",
+          "playwright_selector": "frame.getByRole('textbox').nth(2)",
+          "format": "date (jj/mm/aaaa)",
+          "required": true,
+          "has_datepicker": true,
+          "test_value": "20/03/1987"
+        },
+
+        "conjoint_regime_social": {
+          "type": "combobox",
+          "playwright_selector": "frame.locator('select').nth(1)",
+          "required": true,
+          "options": [
+            "Régime Général (CPAM)",
+            "Régime Local (CPAM Alsace Moselle)",
+            "Régime Général pour TNS (CPAM)",
+            "Mutualité Sociale Agricole (MSA-Amexa)",
+            "Autres régimes spéciaux"
+          ],
+          "test_value": "Régime Général (CPAM)"
+        },
+
+        "conjoint_profession": {
+          "type": "combobox",
+          "playwright_selector": "frame.locator('select').nth(2)",
+          "required": true,
+          "dynamic": true,
+          "options": [
+            "Médecin",
+            "Chirurgien",
+            "Chirurgien dentiste",
+            "Pharmacien",
+            "Auxiliaire médical",
+            "Non médicale"
+          ],
+          "test_value": "Non médicale",
+          "note": "NEW FIELD - appears after selecting conjoint regime_social"
+        },
+
+        "conjoint_statut": {
+          "type": "combobox",
+          "playwright_selector": "frame.locator('select').nth(3)",
+          "required": true,
+          "options": [
+            "Salarié et autres statuts",
+            "Etudiant",
+            "Travailleur transfrontalier",
+            "Fonctionnaire"
+          ],
+          "test_value": "Salarié et autres statuts"
+        }
+      },
+
+      "subsection_enfants": {
+        "nombre_enfants": {
+          "type": "combobox",
+          "playwright_selector": "frame.getByRole('combobox', { name: /Nombre d'enfants/ })",
+          "id": "sante-nombre-enfant-assures",
+          "required": false,
+          "options": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+          "test_value": "2",
+          "triggers": "Shows N rows in children table"
+        },
+
+        "dynamic_children_fields": {
+          "note": "2 fields per child (date_naissance + ayant_droit)",
+          "enfant_N_date_naissance": {
+            "type": "textbox",
+            "playwright_selector_pattern": "frame.locator('input[type=\"text\"]').nth(N+2)",
+            "format": "date",
+            "required": true,
+            "has_datepicker": true,
+            "test_values": ["01/01/2015", "01/01/2018"]
+          },
+          "enfant_N_ayant_droit": {
+            "type": "combobox",
+            "playwright_selector_pattern": "frame.locator('select').nth(N+4)",
+            "required": true,
+            "options": ["Assuré principal", "Conjoint"],
+            "test_value": "Assuré principal"
+          }
+        }
+      },
+
+      "subsection_gammes_options": {
+        "gammes": {
+          "type": "combobox",
+          "playwright_selector": "frame.getByRole('combobox', { name: /Gammes/ })",
+          "id": "selection-produit-sante",
+          "required": true,
+          "dynamic": true,
+          "loaded_after": "Complete form fill",
+          "options": [
+            "SwissLife Santé",
+            "SwissLife Santé Additionnelle",
+            "Swiss santé, Ma formule hospitalisation"
+          ],
+          "test_value": "SwissLife Santé"
+        },
+
+        "date_effet": {
+          "type": "textbox",
+          "playwright_selector": "frame.locator('input[type=\"text\"]').last()",
+          "format": "date",
+          "required": true,
+          "has_datepicker": true,
+          "test_value": "01/02/2025"
+        },
+
+        "loi_madelin": {
+          "type": "checkbox",
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Loi Madelin' })",
+          "required": false,
+          "label": "Loi Madelin",
+          "has_info_link": true
+        },
+
+        "reprise_concurrence_iso_garanties": {
+          "type": "radio",
+          "name": "reprise_concurrence",
+          "required": true,
+          "options": {
+            "oui": {
+              "playwright_selector": "frame.getByRole('radio', { name: 'oui' }).nth(2)",
+              "label": "oui"
+            },
+            "non": {
+              "playwright_selector": "frame.getByRole('radio', { name: 'non' }).nth(2)",
+              "label": "non"
+            }
+          },
+          "test_value": "non",
+          "note": "NEW FIELD - appears after gammes selection"
+        },
+
+        "resiliation_a_effectuer": {
+          "type": "radio",
+          "name": "resiliation",
+          "required": true,
+          "options": {
+            "oui": {
+              "playwright_selector": "frame.getByRole('radio', { name: 'oui' }).nth(3)",
+              "label": "oui"
+            },
+            "non": {
+              "playwright_selector": "frame.getByRole('radio', { name: 'non' }).nth(3)",
+              "label": "non"
+            }
+          },
+          "test_value": "non"
+        }
+      }
+    },
+
+    "navigation": {
+      "button_suivant": {
+        "selector": "button",
+        "playwright_selector": "frame.getByRole('button', { name: 'Suivant' })",
+        "text": "Suivant",
+        "action": "Navigate to Step 2"
+      }
+    }
+  },
+
+  "STEP_2_configuration_tarification": {
+    "step_name": "Configuration des garanties et tarification",
+    "total_fields": 10,
+
+    "configuration": {
+      "fractionnement": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Fractionnement/ })",
+        "required": false,
+        "options": ["mensuel", "trimestriel", "semestriel", "annuel"],
+        "default": "mensuel",
+        "test_value": "mensuel"
+      },
+
+      "reduction_famille": {
+        "type": "checkbox",
+        "playwright_selector": "frame.getByRole('checkbox', { name: 'Réduction famille' })",
+        "required": false,
+        "label": "Réduction famille",
+        "test_value": true
+      }
+    },
+
+    "garanties": {
+      "niveau_lineaire": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox').first()",
+        "label": "Veuillez sélectionner un niveau linéaire de garanties",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3", "Formule 4", "Formule 5", "Formule 6", "Formule 7", "Formule 8", "Formule 9"],
+        "test_value": "Formule 1"
+      },
+
+      "hospitalisation": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Hospitalisation/ })",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3"],
+        "test_value": "Formule 1"
+      },
+
+      "dentaire": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Dentaire/ })",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3"],
+        "test_value": "Formule 1"
+      },
+
+      "optique": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Optique/ })",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3"],
+        "test_value": "Formule 1"
+      },
+
+      "soins_courants": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Soins courants/ })",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3"],
+        "test_value": "Formule 1"
+      },
+
+      "aides_auditives": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Aides auditives/ })",
+        "required": true,
+        "options": ["Formule 1"],
+        "test_value": "Formule 1",
+        "note": "Only 1 option available"
+      },
+
+      "prevention": {
+        "type": "combobox",
+        "playwright_selector": "frame.getByRole('combobox', { name: /Prévention/ })",
+        "required": true,
+        "options": ["Formule 1", "Formule 2", "Formule 3", "Formule 4"],
+        "disabled": true,
+        "test_value": "Formule 1",
+        "note": "Disabled by default, gray out"
+      }
+    },
+
+    "pricing_display": {
+      "selector": "div.tarification",
+      "text_pattern": "168,36 €",
+      "xpath": "//generic[contains(text(), '168,36 €')]"
+    },
+
+    "navigation": {
+      "button_precedent": {
+        "playwright_selector": "frame.getByRole('button', { name: 'Précédent' })",
+        "text": "Précédent",
+        "action": "Back to Step 1"
+      },
+      "button_suivant": {
+        "playwright_selector": "frame.getByRole('button', { name: 'Suivant' })",
+        "text": "Suivant",
+        "action": "Navigate to Step 3"
+      }
+    }
+  },
+
+  "STEP_3_synthese_documents": {
+    "step_name": "Synthèse, mode de vente et documents",
+    "total_tabs": 3,
+
+    "tab_synthese": {
+      "tab_selector": "a[href='#tab-synthese']",
+      "playwright_tab_selector": "frame.getByRole('link', { name: 'Synthèse' })",
+      "display_only": true,
+      "fields": {
+        "solution_name": {
+          "selector": "td",
+          "text_pattern": "Solution 1 H1D1O1M1P1S0"
+        },
+        "price": {
+          "selector": "td",
+          "text_pattern": "168,36€/mois"
+        }
+      }
+    },
+
+    "tab_mode_vente": {
+      "tab_selector": "a[href='#tab-mode-vente']",
+      "playwright_tab_selector": "frame.getByRole('link', { name: 'Mode de vente' })",
+
+      "face_a_face_question": {
+        "type": "radio",
+        "name": "face_a_face",
+        "required": true,
+        "question": "Avez-vous vu en face-à-face votre prospect / client durant le process de souscription ?",
+        "options": {
+          "oui": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'oui' })",
+            "label": "oui"
+          },
+          "non": {
+            "playwright_selector": "frame.getByRole('radio', { name: 'non' })",
+            "label": "non"
+          }
+        },
+        "test_value": "oui"
+      }
+    },
+
+    "tab_documents_precontractuels": {
+      "tab_selector": "a[href='#tab-edition']",
+      "playwright_tab_selector": "frame.getByRole('link', { name: 'Documents précontractuels' })",
+
+      "checkboxes": {
+        "page_de_garde": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Page de garde' })",
+          "required": false,
+          "default": true,
+          "test_value": true
+        },
+        "solution_1": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: /Solution 1/ })",
+          "required": true,
+          "disabled": true,
+          "test_value": true
+        },
+        "100_sante": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: /100% santé/ })",
+          "required": false,
+          "test_value": true
+        },
+        "fiche_services": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Fiche Services' })",
+          "required": false,
+          "test_value": true
+        },
+        "fiche_assistance": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Fiche Assistance' })",
+          "required": false,
+          "test_value": true
+        },
+        "fiche_forfait_prevention": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Fiche Forfait Prévention' })",
+          "required": false,
+          "test_value": true
+        },
+        "dispositions_generales": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Dispositions générales' })",
+          "required": true,
+          "disabled": true,
+          "test_value": true
+        },
+        "convention_assistance": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: 'Convention d\\'assistance' })",
+          "required": true,
+          "disabled": true,
+          "test_value": true
+        },
+        "ipid": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: /IPID/ })",
+          "required": true,
+          "disabled": true,
+          "test_value": true
+        },
+        "devoir_information_acknowledgment": {
+          "playwright_selector": "frame.getByRole('checkbox', { name: /J'ai pris connaissance/ })",
+          "required": true,
+          "test_value": true,
+          "note": "CRITICAL - Must be checked to generate PDF"
+        }
+      },
+
+      "buttons": {
+        "imprimer": {
+          "playwright_selector": "frame.getByRole('button', { name: 'Imprimer' })",
+          "action": "Generate PDF for printing"
+        },
+        "envoyer_email": {
+          "playwright_selector": "frame.getByRole('button', { name: /ENVOYER LA LIASSE/ })",
+          "action": "Send documents by email",
+          "requires": "Email field filled"
+        }
+      },
+
+      "email_field": {
+        "type": "textbox",
+        "playwright_selector": "frame.getByRole('textbox', { name: /Email/ })",
+        "required": false,
+        "format": "email",
+        "placeholder": null
+      }
+    },
+
+    "navigation": {
+      "button_precedent": {
+        "playwright_selector": "frame.getByRole('button', { name: 'Précédent' })",
+        "text": "Précédent",
+        "action": "Back to Step 2"
+      },
+      "button_suivant": {
+        "playwright_selector": "frame.getByRole('button', { name: 'Suivant' })",
+        "text": "Suivant",
+        "action": "Navigate to Step 4 (Souscription)",
+        "warning": "DO NOT CLICK - Goes to final submission"
+      }
+    }
+  },
+
+  "automation_notes": {
+    "framework_recommendation": "Playwright",
+    "language": "TypeScript or JavaScript",
+    "key_patterns": {
+      "iframe_access": "const frame = await page.locator('iframe[name=\"iFrameTarificateur\"]').contentFrame();",
+      "wait_for_load": "await page.waitForTimeout(45000); // 45 seconds minimum",
+      "date_filling": "Use datepicker UI instead of typing",
+      "select_filling": "Use selectOption() with label or value",
+      "radio_clicking": "Click on label element, not input",
+      "dynamic_fields": "Wait for regime_social change before accessing profession/statut"
+    },
+    "error_handling": {
+      "504_timeout": "Reload page and wait 30-60 seconds",
+      "401_unauthorized": "Re-authenticate via ADFS",
+      "missing_fields": "Ensure all dependencies filled before accessing dynamic fields"
+    }
+  },
+
+  "complete_automation_example": {
+    "language": "TypeScript",
+    "code": "// Complete automation flow\nconst page = await browser.newPage();\n\n// 1. Login\nawait page.goto('https://www.swisslifeone.fr/');\nawait page.getByRole('button', { name: 'Se connecter' }).click();\nawait page.getByRole('textbox', { name: 'Identifiant' }).fill('UPFK76G');\nawait page.getByRole('textbox', { name: 'Password' }).fill('04240424_aAAA');\nawait page.getByRole('button', { name: 'Je m\\\\'identifie' }).click();\n\n// 2. Navigate to form\nawait page.goto('https://www.swisslifeone.fr/index-swisslifeOne.html#/tarification-et-simulation/slsis');\nawait page.waitForTimeout(45000);\n\nconst frame = await page.locator('iframe[name=\"iFrameTarificateur\"]').contentFrame();\n\n// 3. Fill Step 1\nawait frame.getByRole('textbox').first().fill('Projet Test');\nawait frame.getByRole('radio', { name: 'Pour le couple' }).click();\nawait frame.getByRole('combobox').first().selectOption('75');\nawait frame.getByRole('combobox').nth(1).selectOption({ label: 'Régime Général (CPAM)' });\nawait frame.getByRole('combobox').nth(2).selectOption('Non médicale');\n// ... continue with all fields\n\n// 4. Navigate to Step 2\nawait frame.getByRole('button', { name: 'Suivant' }).click();\n\n// 5. Fill Step 2\nawait frame.getByRole('combobox').first().selectOption('Formule 1');\n// ... continue\n\n// 6. Navigate to Step 3 and generate PDF\nawait frame.getByRole('button', { name: 'Suivant' }).click();\nawait frame.getByRole('link', { name: 'Documents précontractuels' }).click();\nawait frame.getByRole('checkbox', { name: /J'ai pris connaissance/ }).check();\nawait frame.getByRole('button', { name: 'Imprimer' }).click();"
+  }
+}
