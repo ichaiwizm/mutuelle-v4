@@ -8,7 +8,7 @@
 import { FormFillOrchestrator } from './platforms/alptis/products/sante-select/steps/form-fill/FormFillOrchestrator';
 import { NavigationStep } from './platforms/alptis/products/sante-select/steps/navigation';
 import { AlptisAuth } from './platforms/alptis/lib/AlptisAuth';
-import { SwissLifeOneAuth } from './platforms/swisslifeone/lib/SwissLifeOneAuth';
+import { SwissLifeOneAuth } from './platforms/swisslifeone/lib';
 import { SwissLifeNavigationStep } from './platforms/swisslifeone/products/slsis/steps/navigation';
 import { getAlptisCredentials, getSwissLifeOneCredentials } from './config';
 
