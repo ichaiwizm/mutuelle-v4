@@ -4,6 +4,7 @@ import {
   SwissLifeOneAuthSelectors,
   SwissLifeOneTimeouts,
 } from '../../../config';
+import { setupCookieInterception } from './cookie-interceptor';
 
 export interface SwissLifeOneAuthConfig {
   username: string;
@@ -80,6 +81,7 @@ export class SwissLifeOneAuth {
   }
 
   async login(page: Page): Promise<void> {
+    await setupCookieInterception(page, { debug: process.env.SWISSLIFE_DEBUG_COOKIES === '1' });
     await this.navigateToLogin(page);
     await this.clickSeConnecter(page);
     await this.waitForAdfsPage(page);

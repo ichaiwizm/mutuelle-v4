@@ -4,6 +4,7 @@ import {
   SwissLifeOneSelectors,
   SwissLifeOneTimeouts,
 } from '../../../../../../config';
+import { setupCookieInterception } from '../../../../lib/cookie-interceptor';
 
 /**
  * Étape de navigation vers le formulaire SLSIS
@@ -11,6 +12,8 @@ import {
  */
 export class SwissLifeNavigationStep {
   async execute(page: Page): Promise<void> {
+    // Note: Le bandeau de cookies (OneTrust) doit être bloqué dans le test avant le login pour persister pendant toute la session
+    await setupCookieInterception(page, { debug: process.env.SWISSLIFE_DEBUG_COOKIES === '1' });
     await this.navigateToForm(page);
     await this.waitForIframeLoad(page);
   }
