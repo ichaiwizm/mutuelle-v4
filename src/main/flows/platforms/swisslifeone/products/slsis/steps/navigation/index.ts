@@ -31,13 +31,22 @@ export class SwissLifeNavigationStep {
       timeout: SwissLifeOneTimeouts.iframeAppear,
     });
 
-    await page.waitForTimeout(SwissLifeOneTimeouts.iframeLoad);
-
     const frame = await this.getIframe(page);
-    await frame.waitForSelector('input[type="text"]', {
-      state: 'visible',
+
+    console.log(`[DEBUG] Iframe URL: ${frame.url()}`);
+
+    // Vérifier que l'iframe a une URL réelle (pas about:blank)
+    if (frame.url() === 'about:blank' || frame.url() === '') {
+      console.log('[DEBUG] Iframe is blank, waiting for content...');
+      await page.waitForTimeout(2000);
+    }
+
+    // Attendre que l'iframe soit complètement chargée (load complet, pas juste DOM)
+    await frame.waitForLoadState('load', {
       timeout: SwissLifeOneTimeouts.iframeReady,
     });
+
+    console.log(`[DEBUG] Iframe loaded, URL: ${frame.url()}`);
 
     await this.waitForLoaderToDisappear(frame);
   }

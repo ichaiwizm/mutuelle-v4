@@ -9,7 +9,7 @@ test.skip(!hasSwissLifeOneCredentials(), 'Credentials manquants dans .env');
 
 test.describe('Navigation SLSIS', () => {
   test.beforeEach(() => {
-    test.setTimeout(90000); // 90s: Auth (~14s) + iframe load (45s+) + marge
+    test.setTimeout(60000); // 60s: Auth (~14s) + iframe load + marge
   });
 
   test('Navigation complète: Auth + Formulaire SLSIS', async ({ page, formPage }) => {
@@ -21,6 +21,16 @@ test.describe('Navigation SLSIS', () => {
     // Vérifier que l'iframe existe
     const iframe = page.frame({ name: 'iFrameTarificateur' });
     expect(iframe).not.toBeNull();
+
+    console.log(`[TEST] Iframe URL: ${iframe!.url()}`);
+    console.log(`[TEST] Iframe title: ${await iframe!.title()}`);
+
+    // Prendre un screenshot de la page entière
+    await page.screenshot({ path: 'e2e/test-results/swisslife-page-full.png', fullPage: true });
+
+    // Prendre un screenshot de l'iframe spécifiquement
+    const iframeElement = await page.locator('iframe[name="iFrameTarificateur"]');
+    await iframeElement.screenshot({ path: 'e2e/test-results/swisslife-iframe.png' });
 
     // Vérifier qu'un champ est visible dans l'iframe (confirme que c'est chargé)
     const firstField = iframe!.locator('input[type="text"]').first();
