@@ -5,5 +5,4 @@
  */
 
 export * from './alptis.config';
-
-// Future: export * from './swisslife.config';
+export * from './swisslifeone.config';

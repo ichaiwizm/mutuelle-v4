@@ -8,7 +8,9 @@
 import { FormFillOrchestrator } from './platforms/alptis/products/sante-select/steps/form-fill/FormFillOrchestrator';
 import { NavigationStep } from './platforms/alptis/products/sante-select/steps/navigation';
 import { AlptisAuth } from './platforms/alptis/lib/AlptisAuth';
-import { getAlptisCredentials } from './config';
+import { SwissLifeOneAuth } from './platforms/swisslifeone/lib/SwissLifeOneAuth';
+import { SwissLifeNavigationStep } from './platforms/swisslifeone/products/slsis/steps/navigation';
+import { getAlptisCredentials, getSwissLifeOneCredentials } from './config';
 
 /**
  * Registry générique pour stocker des instances
@@ -91,5 +93,43 @@ export const AlptisInstances = {
     registry.reset('alptis-auth');
     registry.reset('alptis-navigation');
     registry.reset('alptis-form-fill');
+  },
+};
+
+/**
+ * Helpers pour obtenir les instances SwissLife One
+ *
+ * Ces helpers fournissent un accès simplifié aux instances
+ * du flow SwissLife One SLSIS via le registry.
+ *
+ * Utilisation:
+ * ```typescript
+ * const auth = SwissLifeOneInstances.getAuth();
+ * await auth.login(page);
+ *
+ * const nav = SwissLifeOneInstances.getNavigationStep();
+ * await nav.execute(page);
+ * ```
+ */
+export const SwissLifeOneInstances = {
+  /**
+   * Récupère l'instance SwissLifeOneAuth (avec credentials depuis l'environnement)
+   */
+  getAuth: () =>
+    registry.get('swisslifeone-auth', () => new SwissLifeOneAuth(getSwissLifeOneCredentials())),
+
+  /**
+   * Récupère l'instance SwissLifeNavigationStep
+   */
+  getNavigationStep: () =>
+    registry.get('swisslifeone-navigation', () => new SwissLifeNavigationStep()),
+
+  /**
+   * Réinitialise toutes les instances SwissLife One du registry
+   * Utile pour forcer la recréation des instances entre les tests
+   */
+  reset: () => {
+    registry.reset('swisslifeone-auth');
+    registry.reset('swisslifeone-navigation');
   },
 };
