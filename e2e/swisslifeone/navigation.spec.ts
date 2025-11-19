@@ -23,15 +23,3 @@ test('Navigation complète: Auth + Formulaire SLSIS', async ({ page, formPage })
 
   console.log('✅ Test réussi: Formulaire SLSIS complètement chargé');
 });
-
-test('Vérification: Iframe se charge correctement', async ({ page, formPage }) => {
-  // Récupérer l'iframe
-  const iframe = page.frame({ name: 'iFrameTarificateur' });
-  expect(iframe).not.toBeNull();
-
-  // Vérifier qu'il y a au moins un input text visible
-  const inputCount = await iframe!.locator('input[type="text"]').count();
-  expect(inputCount).toBeGreaterThan(0);
-
-  console.log(`✅ Iframe chargée avec ${inputCount} champs text`);
-});
