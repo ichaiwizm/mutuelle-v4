@@ -12,7 +12,9 @@
       "Bash(sed:*)",
       "Bash(npx tsx:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm install:*)"
     ],
     "deny": [],
     "ask": []

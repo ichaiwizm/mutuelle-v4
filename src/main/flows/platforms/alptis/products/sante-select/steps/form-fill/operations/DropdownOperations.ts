@@ -1,6 +1,7 @@
 import type { Page } from 'playwright';
 import { verifySelectValue } from '../verifiers';
 import { PROFESSION_LABELS, REGIME_LABELS } from '../helpers/form-labels';
+import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
 
 /**
  * Generic function to fill "Catégorie socioprofessionnelle" dropdown field
@@ -26,9 +27,9 @@ export async function fillCategorieSocioprofessionnelleField(
   const textbox = page.getByRole('textbox', { name: /catégorie socioprofessionnelle/i }).nth(fieldIndex);
   await textbox.click();
   await textbox.fill(label);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(AlptisTimeouts.dropdownProfession);
 
-  await page.locator('.totem-select-option__label').filter({ hasText: label }).first().click();
+  await page.locator(AlptisSelectors.dropdownOption).filter({ hasText: label }).first().click();
   await verifySelectValue(page, page.locator(verificationSelector), value);
 }
 
@@ -56,14 +57,14 @@ export async function fillRegimeObligatoireField(
   const textbox = page.getByRole('textbox', { name: /régime obligatoire/i }).nth(fieldIndex);
   await textbox.click();
   await textbox.fill(label);
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(AlptisTimeouts.dropdownRegime);
 
   // Match exact du texte (important: "Sécurité sociale" vs "Sécurité sociale des indépendants")
-  const options = await page.locator('.totem-select-option__label:visible').all();
+  const options = await page.locator(`${AlptisSelectors.dropdownOption}:visible`).all();
   for (const opt of options) {
     if ((await opt.textContent())?.trim() === label) {
       await opt.click();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(AlptisTimeouts.optionClick);
       await verifySelectValue(page, page.locator(verificationSelector), value);
       return;
     }

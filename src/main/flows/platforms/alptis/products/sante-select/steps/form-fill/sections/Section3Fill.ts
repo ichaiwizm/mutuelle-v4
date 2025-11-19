@@ -8,6 +8,7 @@ import {
   fillConjointCadreExercice,
   fillConjointRegimeObligatoire,
 } from '../fill-section3';
+import { AlptisTimeouts } from '../../../../../../../config';
 
 /**
  * Section 3: Conjoint(e)
@@ -41,7 +42,7 @@ export class Section3Fill {
     console.log('--- SECTION: Conjoint(e) - Formulaire ---');
 
     // Wait for form fields to appear after toggle
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(AlptisTimeouts.formFieldsAppear);
 
     await fillConjointDateNaissance(page, data.date_naissance);
     await fillConjointCategorieSocioprofessionnelle(page, data.categorie_socioprofessionnelle);

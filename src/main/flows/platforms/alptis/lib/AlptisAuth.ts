@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
 import { setupAxeptioInterception } from './cookie-interceptor';
+import { AlptisUrls } from '../../../config';
 
 /**
  * Configuration de l'authentification Alptis
@@ -8,13 +9,6 @@ export interface AlptisAuthConfig {
   username: string;
   password: string;
 }
-
-/**
- * URLs de la plateforme Alptis
- */
-export const ALPTIS_URLS = {
-  login: 'https://pro.alptis.org/',
-} as const;
 
 /**
  * Sélecteurs pour la page de connexion Alptis
@@ -40,7 +34,7 @@ export class AlptisAuth {
    * L'URL redirige automatiquement vers la page de login
    */
   async navigateToLogin(page: Page): Promise<void> {
-    await page.goto(ALPTIS_URLS.login);
+    await page.goto(AlptisUrls.login);
   }
 
   /**

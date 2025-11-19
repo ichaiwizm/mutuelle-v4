@@ -3,13 +3,10 @@
  * Permet de réutiliser les étapes communes (auth, navigation, sections)
  */
 import { test as base } from '@playwright/test';
-import { AlptisAuth } from '@/main/flows/platforms/alptis/lib/AlptisAuth';
-import { NavigationStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/navigation';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
-import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
-import type { AlptisFormData } from '@/main/flows/platforms/alptis/products/sante-select/transformers/types';
+import { AlptisInstances } from '../../src/main/flows/registry';
+import { LeadTransformer } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
+import type { AlptisFormData } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/types';
 import type { LeadType } from './types';
-import { getAlptisCredentials } from './helpers/credentials';
 import { loadAllLeads } from './helpers/loadLeads';
 import { selectLead, selectLeadByIndex, getLeadTypeName } from './helpers/leadSelector';
 
@@ -73,7 +70,7 @@ export const test = base.extend<AlptisFixtures>({
    */
   authenticatedPage: async ({ page }, use) => {
     console.log('\n🔐 [FIXTURE] Authentification...');
-    const auth = new AlptisAuth(getAlptisCredentials());
+    const auth = AlptisInstances.getAuth();
     await auth.login(page);
     console.log('✅ [FIXTURE] Authentifié');
     await use();
@@ -85,7 +82,7 @@ export const test = base.extend<AlptisFixtures>({
    */
   formPage: async ({ page, authenticatedPage }, use) => {
     console.log('\n🧭 [FIXTURE] Navigation vers formulaire...');
-    const nav = new NavigationStep();
+    const nav = AlptisInstances.getNavigationStep();
     await nav.execute(page);
     console.log('✅ [FIXTURE] Sur le formulaire');
     await use();
@@ -97,7 +94,7 @@ export const test = base.extend<AlptisFixtures>({
    */
   formWithSection1: async ({ page, formPage, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Section 1...');
-    const step = new FormFillStep();
+    const step = AlptisInstances.getFormFillStep();
     await step.fillMiseEnPlace(page, leadData);
     console.log('✅ [FIXTURE] Section 1 remplie');
     await use();
@@ -109,7 +106,7 @@ export const test = base.extend<AlptisFixtures>({
    */
   formWithSection2: async ({ page, formWithSection1, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Section 2...');
-    const step = new FormFillStep();
+    const step = AlptisInstances.getFormFillStep();
     await step.fillAdherent(page, leadData);
     console.log('✅ [FIXTURE] Section 2 remplie');
     await use();
@@ -121,7 +118,7 @@ export const test = base.extend<AlptisFixtures>({
    */
   formWithSection3: async ({ page, formWithSection2, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Section 3...');
-    const step = new FormFillStep();
+    const step = AlptisInstances.getFormFillStep();
 
     const hasConjoint = !!leadData.conjoint;
 

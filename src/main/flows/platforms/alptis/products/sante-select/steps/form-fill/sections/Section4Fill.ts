@@ -6,6 +6,7 @@ import {
   fillEnfantRegimeObligatoire,
   clickAjouterEnfant,
 } from '../fill-section4';
+import { AlptisTimeouts } from '../../../../../../../config';
 
 /**
  * Section 4: Enfant(s)
@@ -35,7 +36,7 @@ export class Section4Fill {
     console.log('--- SECTION: Enfant(s) - Formulaire ---');
 
     // Wait for form fields to appear after toggle
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(AlptisTimeouts.formFieldsAppear);
 
     // Fill all children
     for (let i = 0; i < enfants.length; i++) {

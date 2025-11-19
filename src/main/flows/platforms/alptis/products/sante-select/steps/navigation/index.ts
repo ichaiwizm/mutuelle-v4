@@ -1,10 +1,6 @@
 import type { Page } from 'playwright';
 import { setupAxeptioInterception } from '../../../../lib/cookie-interceptor';
-
-/**
- * URL du formulaire Alptis Santé Select
- */
-export const ALPTIS_SANTE_SELECT_FORM_URL = 'https://pro.alptis.org/sante-select/informations-projet/';
+import { AlptisUrls } from '../../../../../../config';
 
 /**
  * Étape de navigation vers le formulaire Santé Select
@@ -22,7 +18,7 @@ export class NavigationStep {
    */
   async execute(page: Page): Promise<void> {
     await setupAxeptioInterception(page, { debug: process.env.ALPTIS_DEBUG_COOKIES === '1' });
-    await page.goto(ALPTIS_SANTE_SELECT_FORM_URL);
+    await page.goto(AlptisUrls.santeSelectForm);
     await page.waitForLoadState('networkidle');
   }
 }

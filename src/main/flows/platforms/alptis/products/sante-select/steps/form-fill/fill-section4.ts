@@ -2,6 +2,7 @@ import type { Page } from 'playwright';
 import { expect } from '@playwright/test';
 import { SECTION_4_SELECTORS } from './selectors/section4';
 import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './field-fillers';
+import { AlptisTimeouts, AlptisSelectors } from '../../../../../../config';
 
 /**
  * Section 4 - Toggle Enfants
@@ -33,7 +34,7 @@ export async function fillEnfantDateNaissance(page: Page, dateNaissance: string,
   // - nth(3) = Date naissance enfant (currently open)
 
   // Detect if conjoint toggle is checked by counting visible date fields
-  const dateSelector = "input[placeholder='Ex : 01/01/2020']";
+  const dateSelector = AlptisSelectors.dateInput;
   const visibleDateFields = await page.locator(dateSelector).count();
 
   // If we have 3 date fields visible (date effet + adherent + enfant), no conjoint
@@ -67,7 +68,7 @@ export async function fillEnfantRegimeObligatoire(page: Page, value: string, chi
   // - nth(2) = Régime enfant (currently open)
 
   // Detect if conjoint is present by counting visible regime fields
-  const regimeSelector = "input[placeholder='Sélectionner un régime obligatoire']";
+  const regimeSelector = AlptisSelectors.regimeDropdown;
   const regimeFields = await page.locator(regimeSelector).count();
 
   // 2 fields = without conjoint (adherent, enfant)
@@ -98,20 +99,20 @@ export async function clickAjouterEnfant(page: Page, childNumberToAdd: number): 
   const button = page.getByRole('button', { name: 'Ajouter un enfant' });
 
   // Wait for button to be visible
-  await button.waitFor({ state: 'visible', timeout: 5000 });
+  await button.waitFor({ state: 'visible', timeout: AlptisTimeouts.elementVisible });
 
   // Wait for button to be enabled (disabled initially, enabled after first child is complete)
-  await expect(button).toBeEnabled({ timeout: 10000 });
+  await expect(button).toBeEnabled({ timeout: AlptisTimeouts.buttonEnable });
 
   await button.click();
 
   // Wait for the button to be disabled again (happens immediately after click)
-  await expect(button).toBeDisabled({ timeout: 2000 });
+  await expect(button).toBeDisabled({ timeout: AlptisTimeouts.buttonDisable });
 
   // Wait for the new child accordion title to appear with the correct number
   const newChildText = `Enfant ${childNumberToAdd}`;
-  await page.getByText(newChildText, { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+  await page.getByText(newChildText, { exact: true }).waitFor({ state: 'visible', timeout: AlptisTimeouts.elementVisible });
 
   // Small additional wait for accordion animation to complete and fields to be ready
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(AlptisTimeouts.accordionAnimation);
 }

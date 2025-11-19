@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import { AlptisTimeouts } from '../../../../../../../config';
 
 /**
  * Scroll to a section on the page by keyword
@@ -13,5 +14,5 @@ export async function scrollToSection(page: Page, sectionKeyword: string): Promi
       section.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, sectionKeyword);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(AlptisTimeouts.scroll);
 }

@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
 import { verifyToggleState } from '../verifiers';
+import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
 
 /**
  * Generic function to fill toggle fields
@@ -16,7 +17,7 @@ export async function fillToggleField(
   shouldCheck: boolean,
   fieldIndex: number,
   fieldLabel: string,
-  selector: string = "[class*='totem-toggle__input']"
+  selector: string = AlptisSelectors.toggle
 ): Promise<void> {
   console.log(`${fieldLabel}: ${shouldCheck ? 'Oui' : 'Non'}`);
 
@@ -30,7 +31,7 @@ export async function fillToggleField(
     // Use force: true because the label overlays the input element
     await toggleLocator.click({ force: true });
     console.log(`  ↳ Toggle cliqué (${isCurrentlyChecked ? 'décoché' : 'coché'})`);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(AlptisTimeouts.toggle);
   } else {
     console.log(`  ↳ Déjà dans l'état correct`);
   }

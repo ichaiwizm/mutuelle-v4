@@ -1,6 +1,7 @@
 import type { Page } from 'playwright';
 import { clearAndType, blurField } from '../actions';
 import { verifyDateValue } from '../verifiers';
+import { AlptisSelectors } from '../../../../../../../config';
 
 /**
  * Generic function to fill date fields (date d'effet, date de naissance, etc.)
@@ -19,7 +20,7 @@ export async function fillDateField(
 ): Promise<void> {
   console.log(`${fieldLabel}: ${dateValue}`);
 
-  const dateSelector = "input[placeholder='Ex : 01/01/2020']";
+  const dateSelector = AlptisSelectors.dateInput;
   const locator = page.locator(dateSelector).nth(fieldIndex);
 
   await clearAndType(locator, dateValue);

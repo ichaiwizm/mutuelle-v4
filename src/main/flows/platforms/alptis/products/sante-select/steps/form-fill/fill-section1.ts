@@ -2,6 +2,7 @@ import type { Page } from 'playwright';
 import { SECTION_1_SELECTORS } from './selectors';
 import { verifyToggleState, verifyRadioSelection } from './verifiers';
 import { fillDateField } from './field-fillers';
+import { AlptisTimeouts } from '../../../../../../config';
 
 /**
  * Section 1 - Remplacement d'un contrat
@@ -15,7 +16,7 @@ export async function fillRemplacementContrat(page: Page, shouldCheck: boolean):
   if (isCurrentlyChecked !== shouldCheck) {
     await toggleLocator.click();
     console.log(`  ↳ Toggle cliqué (${isCurrentlyChecked ? 'décoché' : 'coché'})`);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(AlptisTimeouts.toggle);
   } else {
     console.log(`  ↳ Déjà dans l'état correct`);
   }
@@ -31,7 +32,7 @@ export async function fillDemandeResiliation(page: Page, value: 'Oui' | 'Non'): 
   console.log(`  ↳ Champ conditionnel activé`);
 
   const radioSelector = SECTION_1_SELECTORS.demande_resiliation.primary;
-  await page.waitForSelector(radioSelector, { state: 'visible', timeout: 5000 });
+  await page.waitForSelector(radioSelector, { state: 'visible', timeout: AlptisTimeouts.elementVisible });
   console.log(`  ↳ Champ visible`);
 
   const radioLocator = page.locator(SECTION_1_SELECTORS.demande_resiliation.byValue(value));
