@@ -10,6 +10,7 @@ import { NavigationStep } from './platforms/alptis/products/sante-select/steps/n
 import { AlptisAuth } from './platforms/alptis/lib/AlptisAuth';
 import { SwissLifeOneAuth } from './platforms/swisslifeone/lib';
 import { SwissLifeNavigationStep } from './platforms/swisslifeone/products/slsis/steps/navigation';
+import { FormFillOrchestrator as SwissLifeFormFillOrchestrator } from './platforms/swisslifeone/products/slsis/steps/form-fill';
 import { getAlptisCredentials, getSwissLifeOneCredentials } from './config';
 
 /**
@@ -109,6 +110,9 @@ export const AlptisInstances = {
  *
  * const nav = SwissLifeOneInstances.getNavigationStep();
  * await nav.execute(page);
+ *
+ * const formFill = SwissLifeOneInstances.getFormFillStep();
+ * await formFill.fillStep1(frame, data);
  * ```
  */
 export const SwissLifeOneInstances = {
@@ -125,11 +129,18 @@ export const SwissLifeOneInstances = {
     registry.get('swisslifeone-navigation', () => new SwissLifeNavigationStep()),
 
   /**
+   * Récupère l'instance FormFillOrchestrator (alias: FormFillStep)
+   */
+  getFormFillStep: () =>
+    registry.get('swisslifeone-form-fill', () => new SwissLifeFormFillOrchestrator()),
+
+  /**
    * Réinitialise toutes les instances SwissLife One du registry
    * Utile pour forcer la recréation des instances entre les tests
    */
   reset: () => {
     registry.reset('swisslifeone-auth');
     registry.reset('swisslifeone-navigation');
+    registry.reset('swisslifeone-form-fill');
   },
 };

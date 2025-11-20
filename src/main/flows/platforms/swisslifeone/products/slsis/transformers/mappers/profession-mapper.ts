@@ -57,6 +57,38 @@ const PROFESSION_MAPPING: Record<string, SwissLifeProfession> = {
   'sans activite': 'NON_MEDICALE',
   'étudiant': 'NON_MEDICALE',
   'etudiant': 'NON_MEDICALE',
+
+  // Agricole
+  'exploitant agricole': 'NON_MEDICALE',
+  'agriculteur': 'NON_MEDICALE',
+  'agricultrice': 'NON_MEDICALE',
+  'éleveur': 'NON_MEDICALE',
+  'eleveur': 'NON_MEDICALE',
+
+  // Sans emploi
+  'en recherche d\'emploi': 'NON_MEDICALE',
+  'en recherche d emploi': 'NON_MEDICALE',
+  'demandeur d\'emploi': 'NON_MEDICALE',
+  'demandeur d emploi': 'NON_MEDICALE',
+  'sans emploi': 'NON_MEDICALE',
+  'chômeur': 'NON_MEDICALE',
+  'chomeur': 'NON_MEDICALE',
+  'chômeuse': 'NON_MEDICALE',
+  'chomeuse': 'NON_MEDICALE',
+
+  // TNS / Indépendant
+  'tns': 'NON_MEDICALE',
+  'travailleur non salarié': 'NON_MEDICALE',
+  'travailleur non salarie': 'NON_MEDICALE',
+  'indépendant': 'NON_MEDICALE',
+  'independant': 'NON_MEDICALE',
+  'travailleur indépendant': 'NON_MEDICALE',
+  'travailleur independant': 'NON_MEDICALE',
+
+  // Fonctionnaire
+  'fonctionnaire': 'NON_MEDICALE',
+  'agent public': 'NON_MEDICALE',
+  'fonction publique': 'NON_MEDICALE',
 };
 
 const DEFAULT_PROFESSION: SwissLifeProfession = 'NON_MEDICALE';

@@ -8,7 +8,7 @@ import { transformBirthDate, parseDate } from './date-transformer';
 import { extractDepartement } from '../utils/departement-extractor';
 import { mapProfession } from '../mappers/profession-mapper';
 import { mapRegimeSocial } from '../mappers/regime-mapper';
-import { mapStatut } from '../mappers/statut-mapper';
+import { inferStatut } from '../mappers/statut-mapper';
 import { validateSubscriberAge } from '../validators/age-validator';
 import { validateProfessionalDataCompatibility } from '../validators/compatibility-validator';
 
@@ -51,8 +51,12 @@ export function transformSubscriber(lead: Lead): AssurePrincipalData {
   // 5. Mapper profession (DYNAMIC après régime)
   const profession = mapProfession(subscriber.profession as string);
 
-  // 6. Mapper statut (DYNAMIC après profession)
-  const statut = mapStatut(subscriber.statut as string);
+  // 6. Inférer statut depuis statut/profession/régime (DYNAMIC après profession et régime)
+  const statut = inferStatut(
+    subscriber.statut as string,
+    subscriber.profession as string,
+    subscriber.regimeSocial as string
+  );
 
   // 7. Valider la compatibilité profession/régime/statut
   const compatibilityCheck = validateProfessionalDataCompatibility(profession, regimeSocial, statut);

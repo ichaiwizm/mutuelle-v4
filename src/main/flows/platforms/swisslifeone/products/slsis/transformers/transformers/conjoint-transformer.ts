@@ -7,7 +7,7 @@ import type { ConjointData } from '../types';
 import { transformBirthDate, parseDate } from './date-transformer';
 import { mapProfession } from '../mappers/profession-mapper';
 import { mapRegimeSocial } from '../mappers/regime-mapper';
-import { mapStatut } from '../mappers/statut-mapper';
+import { inferStatut } from '../mappers/statut-mapper';
 import { validateSpouseAge } from '../validators/age-validator';
 import { validateProfessionalDataCompatibility } from '../validators/compatibility-validator';
 
@@ -52,8 +52,12 @@ export function transformConjoint(lead: Lead): ConjointData | undefined {
   // 4. Mapper profession (DYNAMIC après régime)
   const profession = mapProfession(conjoint.profession as string);
 
-  // 5. Mapper statut (DYNAMIC après profession)
-  const statut = mapStatut(conjoint.statut as string);
+  // 5. Inférer statut depuis statut/profession/régime (DYNAMIC après profession et régime)
+  const statut = inferStatut(
+    conjoint.statut as string,
+    conjoint.profession as string,
+    conjoint.regimeSocial as string
+  );
 
   // 6. Valider la compatibilité profession/régime/statut
   const compatibilityCheck = validateProfessionalDataCompatibility(profession, regimeSocial, statut);

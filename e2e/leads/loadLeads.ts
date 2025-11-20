@@ -19,8 +19,8 @@ type EmailFixture = {
 export function loadAllLeads(): Lead[] {
   const leads: Lead[] = [];
 
-  // Charger les 15 fichiers email-001.json à email-015.json
-  for (let i = 1; i <= 15; i++) {
+  // Charger les 19 fichiers email-001.json à email-019.json
+  for (let i = 1; i <= 19; i++) {
     const filename = `email-${String(i).padStart(3, '0')}.json`;
 
     try {

@@ -1,0 +1,47 @@
+/**
+ * SwissLife One Form Selectors
+ *
+ * Selector Stability Annotations:
+ * - STABLE: Unlikely to change, uses semantic HTML or ARIA roles
+ * - MODERATE: May change with minor UI updates
+ * - UNSTABLE: Likely to change, uses generated classes or positions
+ */
+
+export const SWISSLIFE_STEP1_SELECTORS = {
+  /**
+   * Section 1: Nom du projet
+   * Position: First field in the form
+   * Stability: MODERATE (relies on position)
+   */
+  section1: {
+    nom_projet: {
+      primary: "input[type='text']",
+      byRole: (nth: number = 0) => `textbox >> nth=${nth}`,
+      fallback: "input[name*='projet']",
+    },
+  },
+
+  /**
+   * Section 2: Vos projets (Besoins)
+   * Radio groups for coverage needs
+   * Stability: UNSTABLE (depends on Angular component structure)
+   */
+  section2: {
+    besoin_couverture_individuelle: {
+      primary: "input[type='radio'][name*='couverture']",
+      byValue: (value: 'oui' | 'non') => `input[type='radio'][value='${value}']`,
+    },
+    besoin_indemnites_journalieres: {
+      primary: "input[type='radio'][name*='indemnites']",
+      byValue: (value: 'oui' | 'non') => `input[type='radio'][value='${value}']`,
+    },
+  },
+} as const;
+
+export const SWISSLIFE_STEP2_SELECTORS = {
+  // Placeholder for future Step 2 selectors
+} as const;
+
+export const SWISSLIFE_STEP3_SELECTORS = {
+  // Placeholder for future Step 3 selectors
+} as const;

@@ -1,0 +1,48 @@
+import type { Frame } from '@playwright/test';
+import { SwissLifeOneTimeouts } from '../../../../../../../config';
+
+export interface TextboxFillOptions {
+  fieldLabel: string;
+  fieldNumber?: number;
+  totalFields?: number;
+  skipVerification?: boolean;
+}
+
+/**
+ * Fill a textbox field with the provided value
+ * @param frame - Playwright frame (SwissLife form is in iframe)
+ * @param selector - CSS selector or Playwright locator method
+ * @param value - Value to fill
+ * @param options - Field metadata for logging
+ */
+export async function fillTextboxField(
+  frame: Frame,
+  selector: string,
+  value: string,
+  options: TextboxFillOptions
+): Promise<void> {
+  const { fieldLabel, fieldNumber, totalFields, skipVerification = false } = options;
+
+  const progressLabel = fieldNumber && totalFields
+    ? `[${fieldNumber}/${totalFields}] ${fieldLabel}`
+    : fieldLabel;
+
+  console.log(`${progressLabel}: ${value}`);
+
+  const textbox = frame.locator(selector).first();
+
+  await textbox.waitFor({ state: 'visible', timeout: SwissLifeOneTimeouts.elementVisible });
+  await textbox.clear();
+  await textbox.fill(value);
+  await textbox.blur();
+  await frame.waitForTimeout(SwissLifeOneTimeouts.afterType);
+
+  if (!skipVerification) {
+    const filledValue = await textbox.inputValue();
+    if (filledValue !== value) {
+      throw new Error(`Verification failed for ${fieldLabel}. Expected: "${value}", Got: "${filledValue}"`);
+    }
+  }
+
+  console.log(`✅ ${fieldLabel} rempli avec succès`);
+}
