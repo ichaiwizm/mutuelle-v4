@@ -1,5 +1,6 @@
 import type { Frame } from '@playwright/test';
 import { fillTextboxField } from '../operations/TextboxOperations';
+import { fillSelectField } from '../operations/SelectOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 import type { AssurePrincipalData } from '../../../transformers/types';
@@ -43,8 +44,27 @@ export async function fillDateNaissanceAssurePrincipal(
 }
 
 /**
+ * Fill "Département de résidence" field for assuré principal (Step 1, Section 4)
+ */
+export async function fillDepartementResidence(
+  frame: Frame,
+  departement: string
+): Promise<void> {
+  await fillSelectField(
+    frame,
+    SWISSLIFE_STEP1_SELECTORS.section4.departement_assure_principal.primary,
+    departement,
+    {
+      fieldLabel: 'Département de résidence',
+      fieldNumber: 2,
+      totalFields: 2,
+    }
+  );
+}
+
+/**
  * Fill complete Section 4: Données de l'assuré principal
- * For now, only fills date_naissance field
+ * Currently fills: date_naissance, departement_residence
  */
 export async function fillSection4(
   frame: Frame,
@@ -53,7 +73,8 @@ export async function fillSection4(
   console.log('\n--- Section 4: Données de l\'assuré principal ---');
 
   await fillDateNaissanceAssurePrincipal(frame, assurePrincipalData.date_naissance);
+  await fillDepartementResidence(frame, assurePrincipalData.departement_residence);
 
-  console.log('✅ Section "Données de l\'assuré principal" complétée (1/1 champ pour l\'instant)');
+  console.log('✅ Section "Données de l\'assuré principal" complétée (2/2 champs pour l\'instant)');
   console.log('---\n');
 }

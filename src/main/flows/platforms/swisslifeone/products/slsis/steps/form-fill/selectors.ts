@@ -57,6 +57,9 @@ export const SWISSLIFE_STEP1_SELECTORS = {
     date_naissance_assure_principal: {
       primary: "#date-naissance-assure-principal",
     },
+    departement_assure_principal: {
+      primary: "#departement-assure-principal",
+    },
   },
 } as const;
 

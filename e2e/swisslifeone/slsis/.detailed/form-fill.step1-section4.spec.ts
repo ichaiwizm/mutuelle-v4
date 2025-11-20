@@ -3,6 +3,7 @@ import { SwissLifeOneInstances } from '@/main/flows/registry';
 
 test.describe('SwissLife One - Form Fill - Step 1 Section 4', () => {
   test('Fill "Données de l\'assuré principal" - Date de naissance field', async ({ page, formWithStep1Section3, leadData }) => {
+    test.setTimeout(60000); // Increase timeout to 60s for this test
     const nav = SwissLifeOneInstances.getNavigationStep();
     const frame = await nav.getIframe(page);
 
