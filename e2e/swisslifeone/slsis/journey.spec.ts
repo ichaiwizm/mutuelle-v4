@@ -18,7 +18,7 @@ test.describe('SwissLife One - Form Fill Journey', () => {
     console.log(`   - Section 1: Nom du projet ✓`);
     console.log(`   - Section 2: Besoins (couverture: ${leadData.besoins.besoin_couverture_individuelle ? 'oui' : 'non'}, indemnités: ${leadData.besoins.besoin_indemnites_journalieres ? 'oui' : 'non'}) ✓`);
     console.log(`   - Section 3: Type simulation (${leadData.type_simulation}) ✓`);
-    console.log(`   - Section 4: Assuré principal (date: ${leadData.assure_principal.date_naissance}, dept: ${leadData.assure_principal.departement_residence}) ✓`);
+    console.log(`   - Section 4: Assuré principal (date: ${leadData.assure_principal.date_naissance}, dept: ${leadData.assure_principal.departement_residence}, régime: ${leadData.assure_principal.regime_social}) ✓`);
     console.log(`   - Errors found: ${errors.length}\n`);
 
     // Note: We may still have validation errors for remaining fields

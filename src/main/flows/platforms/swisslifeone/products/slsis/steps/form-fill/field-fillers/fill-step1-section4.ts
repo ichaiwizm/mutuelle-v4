@@ -3,6 +3,7 @@ import { fillTextboxField } from '../operations/TextboxOperations';
 import { fillSelectField } from '../operations/SelectOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
+import { mapRegimeSocialToFormLabel } from '../mappers/regime-social-form-mapper';
 import type { AssurePrincipalData } from '../../../transformers/types';
 
 /**
@@ -57,14 +58,33 @@ export async function fillDepartementResidence(
     {
       fieldLabel: 'Département de résidence',
       fieldNumber: 2,
-      totalFields: 2,
+      totalFields: 3,
     }
   );
 }
 
 /**
+ * Fill "Régime social" field for assuré principal (Step 1, Section 4)
+ */
+export async function fillRegimeSocial(
+  frame: Frame,
+  regimeSocial: AssurePrincipalData['regime_social']
+): Promise<void> {
+  const label = mapRegimeSocialToFormLabel(regimeSocial);
+
+  // Select by label (visible text) instead of by value
+  const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.regime_social_assure_principal.primary).first();
+  await selectElement.waitFor({ state: 'visible', timeout: 10000 });
+  await selectElement.selectOption({ label });
+  await frame.waitForTimeout(2000);
+
+  console.log(`[3/3] Régime social: ${label}`);
+  console.log(`✅ Régime social sélectionné avec succès`);
+}
+
+/**
  * Fill complete Section 4: Données de l'assuré principal
- * Currently fills: date_naissance, departement_residence
+ * Currently fills: date_naissance, departement_residence, regime_social
  */
 export async function fillSection4(
   frame: Frame,
@@ -74,7 +94,8 @@ export async function fillSection4(
 
   await fillDateNaissanceAssurePrincipal(frame, assurePrincipalData.date_naissance);
   await fillDepartementResidence(frame, assurePrincipalData.departement_residence);
+  await fillRegimeSocial(frame, assurePrincipalData.regime_social);
 
-  console.log('✅ Section "Données de l\'assuré principal" complétée (2/2 champs pour l\'instant)');
+  console.log('✅ Section "Données de l\'assuré principal" complétée (3/3 champs pour l\'instant)');
   console.log('---\n');
 }
