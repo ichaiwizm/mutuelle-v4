@@ -1,20 +1,17 @@
 /**
- * Shared types for SwissLifeOne E2E tests
+ * SwissLife One E2E test types
  *
- * This file centralizes all common types used across the test suite
- * to avoid duplication and maintain consistency.
+ * This file contains SwissLife-specific types and re-exports shared types.
  */
 
-import type { Lead } from '@/shared/types/lead';
+// Re-export shared types from centralized location
+export type {
+  Lead,
+  LeadType,
+  LeadTestResult,
+  BulkTestConfig,
+  BulkTestResults,
+  TestStatistics,
+} from '../../leads/types';
 
-// Re-export Lead type for convenience
-export type { Lead };
-
-/**
- * Note: Additional types can be added here as the test suite grows.
- * Examples from Alptis that could be implemented:
- * - LeadType for filtering (solo/conjoint/children/both)
- * - LeadTestResult for bulk testing
- * - BulkTestConfig for test orchestration
- * - LogLevel enum for logging
- */
+export { LEAD_TYPE_NAMES } from '../../leads/types';

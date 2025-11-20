@@ -1,7 +1,8 @@
 /**
  * Lead statistics helpers
+ * Note: Uses Alptis-specific CategorizedLead type
  */
-import type { CategorizedLead } from './leadCategorization';
+import type { CategorizedLead } from '../alptis/helpers/leadCategorization';
 
 /**
  * Get lead statistics for display

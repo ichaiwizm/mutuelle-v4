@@ -4,20 +4,61 @@
  */
 import { test as base } from '@playwright/test';
 import { SwissLifeOneInstances } from '../../src/main/flows/registry';
+import { SwissLifeOneLeadTransformer } from '../../src/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
 import type { SwissLifeOneFormData } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/types';
+import type { LeadType } from './types';
+import { selectLead, selectLeadByIndex, getLeadTypeName } from '../leads';
 
 type SwissLifeOneFixtures = {
   /** Page authentifiée sur SwissLife One */
   authenticatedPage: void;
   /** Page sur le formulaire SLSIS (iframe chargée) */
   formPage: void;
-  /** Données de test pour le formulaire */
-  testData: SwissLifeOneFormData;
+  /** Données transformées du lead sélectionné */
+  leadData: SwissLifeOneFormData;
   /** Formulaire avec Step 1 - Section 1 remplie */
   formWithStep1Section1: void;
 };
 
 export const test = base.extend<SwissLifeOneFixtures>({
+  /**
+   * Fixture: données du lead transformées selon le titre du test
+   * Détecte le type de lead à partir des emojis dans le nom du test
+   * OU utilise LEAD_INDEX si défini dans les variables d'environnement
+   */
+  leadData: async ({}, use, testInfo) => {
+    let lead;
+    let selectionMethod: string;
+
+    // Priorité 1 : Sélection par index via variable d'environnement
+    const leadIndexEnv = process.env.LEAD_INDEX;
+    if (leadIndexEnv !== undefined) {
+      const leadIndex = parseInt(leadIndexEnv, 10);
+      lead = selectLeadByIndex(leadIndex);
+      selectionMethod = `[INDEX ${leadIndex}]`;
+      console.log(`\n🎯 ${selectionMethod} Lead selected via LEAD_INDEX`);
+    } else {
+      // Priorité 2 : Sélection par type basée sur le titre du test
+      let leadType: LeadType = 'random';
+
+      const title = testInfo.title;
+      if (title.includes('👫') || title.toLowerCase().includes('conjoint')) {
+        leadType = 'conjoint';
+      } else if (title.includes('👶') || title.toLowerCase().includes('enfants')) {
+        leadType = 'children';
+      } else if (title.includes('👨‍👩‍👧') || title.toLowerCase().includes('conjoint + enfants')) {
+        leadType = 'both';
+      }
+
+      lead = selectLead(leadType);
+      selectionMethod = getLeadTypeName(leadType);
+      console.log(`\n${selectionMethod} [LEAD] Selected by type`);
+    }
+
+    const data = SwissLifeOneLeadTransformer.transform(lead);
+    await use(data);
+  },
+
   /**
    * Fixture: page authentifiée
    * Effectue le login SwissLife One (ADFS/SAML)
@@ -44,48 +85,16 @@ export const test = base.extend<SwissLifeOneFixtures>({
   },
 
   /**
-   * Fixture: données de test
-   * Fournit des données minimales pour tester le formulaire
-   */
-  testData: async ({}, use) => {
-    const data: SwissLifeOneFormData = {
-      projet: {
-        nom_projet: 'Projet Test SwissLife',
-      },
-      besoins: {
-        besoin_couverture_individuelle: true,
-        besoin_indemnites_journalieres: false,
-      },
-      type_simulation: 'INDIVIDUEL',
-      assure_principal: {
-        date_naissance: '01/01/1980',
-        departement_residence: '75',
-        regime_social: 'REGIME_GENERAL_CPAM',
-        profession: 'MEDECIN',
-        statut: 'SALARIE',
-      },
-      gammes_options: {
-        gamme: 'SWISSLIFE_SANTE',
-        date_effet: '01/01/2025',
-        loi_madelin: false,
-        reprise_iso_garanties: true,
-        resiliation_a_effectuer: false,
-      },
-    };
-    await use(data);
-  },
-
-  /**
    * Fixture: formulaire avec Step 1 - Section 1 remplie
-   * Dépend de formPage + testData
+   * Dépend de formPage + leadData
    */
-  formWithStep1Section1: async ({ page, formPage, testData }, use) => {
+  formWithStep1Section1: async ({ page, formPage, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 1...');
     const nav = SwissLifeOneInstances.getNavigationStep();
     const frame = await nav.getIframe(page);
 
     const formFill = SwissLifeOneInstances.getFormFillStep();
-    await formFill.fillStep1(frame, testData);
+    await formFill.fillStep1(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 1 remplie');
     await use();
   },
