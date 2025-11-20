@@ -6,9 +6,9 @@
  */
 
 import type { Lead } from '@/shared/types/lead';
-import type { LeadType } from '../types';
-import { LEAD_TYPE_NAMES } from '../types';
-import { loadAllLeads } from '../../shared/helpers';
+import type { LeadType } from '../alptis/types';
+import { LEAD_TYPE_NAMES } from '../alptis/types';
+import { loadAllLeads } from './loadLeads';
 import { hasConjoint, getChildrenCount } from './leadFilters';
 
 /**

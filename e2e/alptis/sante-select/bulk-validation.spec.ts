@@ -10,9 +10,8 @@
 
 import { test, expect } from '@playwright/test';
 import { BulkTestRunner } from '../helpers/BulkTestRunner';
-import { BulkTestLogger } from '../helpers/bulkTestLogger';
+import { BulkTestLogger, loadAllLeads } from '../../leads';
 import { hasAlptisCredentials } from '../helpers/credentials';
-import { loadAllLeads } from '../../shared/helpers';
 import type { BulkTestResults } from '../types';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');

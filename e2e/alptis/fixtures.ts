@@ -7,8 +7,7 @@ import { AlptisInstances } from '../../src/main/flows/registry';
 import { LeadTransformer } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import type { AlptisFormData } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/types';
 import type { LeadType } from './types';
-import { loadAllLeads } from '../shared/helpers';
-import { selectLead, selectLeadByIndex, getLeadTypeName } from './helpers/leadSelector';
+import { loadAllLeads, selectLead, selectLeadByIndex, getLeadTypeName } from '../leads';
 
 type AlptisFixtures = {
   /** Page authentifiée sur Alptis */

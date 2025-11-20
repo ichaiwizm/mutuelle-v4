@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
-import { loadAllLeads } from '../../../shared/helpers';
+import { loadAllLeads } from '../../../leads';
 import { verifyTransformedData } from '../../helpers/transformerVerifiers';
 
 /**

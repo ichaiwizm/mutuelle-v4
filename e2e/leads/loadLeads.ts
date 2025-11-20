@@ -25,7 +25,7 @@ export function loadAllLeads(): Lead[] {
 
     try {
       // Import dynamique du fichier JSON
-      const email = require(`../../../src/main/__tests__/fixtures/emails/${filename}`) as EmailFixture;
+      const email = require(`../../src/main/__tests__/fixtures/emails/${filename}`) as EmailFixture;
 
       // Utiliser parseLeads() qui gère les emails avec plusieurs fiches
       const parsedLeads = parseLeads(

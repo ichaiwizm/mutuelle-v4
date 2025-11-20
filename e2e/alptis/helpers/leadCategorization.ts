@@ -11,7 +11,7 @@ import {
   getRegimeType,
   getSubscriberName,
   getCivilite,
-} from './leadAccessors';
+} from '../../leads';
 
 /**
  * Lead with metadata for display

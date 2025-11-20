@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
-import { loadAllLeads } from '../../../shared/helpers';
+import { loadAllLeads } from '../../../leads';
 import { verifyTransformedData } from '../../helpers/transformerVerifiers';
 
 /**

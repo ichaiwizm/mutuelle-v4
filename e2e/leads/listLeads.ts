@@ -2,8 +2,8 @@
 /**
  * Script to list all available leads with their characteristics
  */
-import { loadAllLeads } from '../../shared/helpers';
-import { categorizeLeads } from './leadCategorization';
+import { loadAllLeads } from './loadLeads';
+import { categorizeLeads } from '../alptis/helpers/leadCategorization';
 
 const leads = loadAllLeads();
 const categorized = categorizeLeads(leads);

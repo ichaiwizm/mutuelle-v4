@@ -16,9 +16,8 @@ import { AlptisAuth } from '@/main/flows/platforms/alptis/lib/AlptisAuth';
 import { NavigationStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/navigation';
 import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
-import { BulkTestLogger } from './bulkTestLogger';
+import { BulkTestLogger, loadAllLeads } from '../../leads';
 import { getAlptisCredentials } from './credentials';
-import { loadAllLeads } from '../../shared/helpers';
 import {
   verifySection1,
   verifySection2,

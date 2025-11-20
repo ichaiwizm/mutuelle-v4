@@ -1,5 +1,6 @@
 /**
  * Lead filtering - Re-exports from modular files
+ * Note: Platform-specific categorization (leadCategorization) is in alptis/helpers/
  */
 
 // Export accessors
@@ -12,15 +13,6 @@ export {
   getSubscriberName,
   getCivilite,
 } from './leadAccessors';
-
-// Export categorization
-export type { CategorizedLead, LeadFilterCriteria } from './leadCategorization';
-export {
-  leadRequiresCadreExercice,
-  categorizeLead,
-  categorizeLeads,
-  filterLeads,
-} from './leadCategorization';
 
 // Export statistics
 export { getLeadStatistics } from './leadStatistics';
