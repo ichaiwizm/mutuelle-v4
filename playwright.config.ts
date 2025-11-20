@@ -10,7 +10,7 @@ import 'dotenv/config';
  */
 export default defineConfig({
   testDir: './e2e',
-  timeout: 60 * 1000, // Increased to 60s for SwissLife tests with fixtures
+  timeout: 180 * 1000, // Increased to 180s (3min) for SwissLife complete Step 1 with all sections and fixtures
   retries: 0,
   workers: 1,
   outputDir: './e2e/test-results',

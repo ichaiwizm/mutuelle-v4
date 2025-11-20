@@ -6,6 +6,7 @@ import { fillSection3 as fillCouvertureSante } from '../field-fillers/fill-step1
 import { fillSection4 as fillDonneesAssurePrincipal } from '../field-fillers/fill-step1-section4';
 import { fillSection5 as fillDonneesConjoint } from '../field-fillers/fill-step1-section5';
 import { fillSection6 as fillEnfants } from '../field-fillers/fill-step1-section6';
+import { fillSection7 as fillGammesOptions } from '../field-fillers/fill-step1-section7';
 
 /**
  * Step 1 Form Filler
@@ -71,8 +72,16 @@ export class Step1Fill {
   }
 
   /**
+   * Fill Step 1 - Section 7: Gammes et Options (final section)
+   * Always called - contains gamme, date_effet, loi_madelin, reprise_iso_garanties, resiliation
+   */
+  async fillSection7(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await fillGammesOptions(frame, data.gammes_options);
+  }
+
+  /**
    * Fill complete Step 1
-   * Currently fills Sections 1, 2, 3, 4, 5 (if conjoint), and 6 (children)
+   * Fills all 7 sections: Projet, Besoins, Type simulation, Assuré principal, Conjoint, Enfants, Gammes
    */
   async fill(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
     console.log('\n═══════════════════════════════════════');
@@ -85,7 +94,8 @@ export class Step1Fill {
     await this.fillSection4(frame, data);
     await this.fillSection5(frame, data);
     await this.fillSection6(frame, data);
+    await this.fillSection7(frame, data);
 
-    console.log('✅ Step 1 complété\n');
+    console.log('✅ Step 1 complété (toutes les 7 sections)\n');
   }
 }

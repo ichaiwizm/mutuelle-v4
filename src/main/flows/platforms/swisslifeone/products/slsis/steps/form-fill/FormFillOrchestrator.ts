@@ -72,6 +72,13 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Fill Step 1 - Section 7 only: Gammes et Options (final section)
+   */
+  async fillStep1Section7(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection7(frame, data);
+  }
+
+  /**
    * Check for form validation errors
    * @returns Array of error messages (empty if no errors)
    */

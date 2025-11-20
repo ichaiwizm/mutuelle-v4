@@ -108,6 +108,35 @@ export const SWISSLIFE_STEP1_SELECTORS = {
     enfant_date_naissance: (index: number) => `#enfants-${index}-dateNaissance`,
     enfant_ayant_droit: (index: number) => `#enfants-${index}-idAyantDroit`,
   },
+
+  /**
+   * Section 7: Gammes et Options (Final section of Step 1)
+   * Stability: MODERATE (mix of ID selectors and role-based selectors)
+   * Note: reprise_iso_garanties field appears dynamically after gamme selection
+   */
+  section7: {
+    gamme: {
+      primary: "#selection-produit-sante",
+    },
+    date_effet: {
+      primary: "#contratSante-dateEffet",
+    },
+    loi_madelin: {
+      byRole: "Loi Madelin", // checkbox, use getByRole('checkbox', { name: 'Loi Madelin' })
+    },
+    // Radio groups - use nth() to distinguish between multiple radio groups
+    reprise_iso_garanties: {
+      // nth(2) because there are 2 radio groups before this one (besoins section)
+      oui: "oui-reprise", // Will use getByText('oui').nth(2)
+      non: "non-reprise", // Will use getByText('non').nth(2)
+    },
+    resiliation_a_effectuer: {
+      primary: "#resiliation-contrat",
+      // nth(3) for the 3rd set of oui/non radios
+      oui: "oui-resiliation", // Will use getByText('oui').nth(3)
+      non: "non-resiliation", // Will use getByText('non').nth(3)
+    },
+  },
 } as const;
 
 export const SWISSLIFE_STEP2_SELECTORS = {

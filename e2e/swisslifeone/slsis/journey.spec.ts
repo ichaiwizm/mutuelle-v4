@@ -2,12 +2,12 @@ import { test, expect } from '../fixtures';
 import { SwissLifeOneInstances } from '@/main/flows/registry';
 
 test.describe('SwissLife One - Form Fill Journey', () => {
-  test('👶 Complete journey: Sections 1-6 (with children)', async ({ page, formWithStep1Section6, leadData }) => {
-    test.setTimeout(120000); // Increase timeout to 120s for this test (fixtures + Section 6 take time)
+  test('🎉 STEP 1 COMPLET: Toutes les 7 sections', async ({ page, formWithStep1Section7, leadData }) => {
+    test.setTimeout(180000); // Increase timeout to 180s (3min) for complete Step 1 with all sections
     const nav = SwissLifeOneInstances.getNavigationStep();
     const frame = await nav.getIframe(page);
 
-    // Sections 1-6 are already filled by the fixture
+    // All 7 sections are filled by the fixture
     // Verify we're still on the form
     expect(page.url()).toContain('/tarification-et-simulation/slsis');
 
@@ -29,6 +29,8 @@ test.describe('SwissLife One - Form Fill Journey', () => {
     } else {
       console.log(`   - Section 6: Pas d'enfants (0 sélectionné) ✓`);
     }
+    console.log(`   - Section 7: Gamme (${leadData.gammes_options.gamme}), Date effet (${leadData.gammes_options.date_effet}), Loi Madelin (${leadData.gammes_options.loi_madelin ? 'oui' : 'non'}) ✓`);
     console.log(`   - Errors found: ${errors.length}\n`);
+    console.log('🎉 STEP 1 COMPLET - TOUTES LES SECTIONS REMPLIES !');
   });
 });
