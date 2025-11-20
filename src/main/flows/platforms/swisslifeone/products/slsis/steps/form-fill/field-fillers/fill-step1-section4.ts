@@ -5,6 +5,7 @@ import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 import { mapRegimeSocialToFormLabel } from '../mappers/regime-social-form-mapper';
 import { mapProfessionToFormLabel } from '../mappers/profession-form-mapper';
+import { mapStatutToFormLabel } from '../mappers/statut-form-mapper';
 import type { AssurePrincipalData } from '../../../transformers/types';
 
 /**
@@ -98,13 +99,44 @@ export async function fillProfession(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[4/4] Profession: ${label}`);
+  console.log(`[4/5] Profession: ${label}`);
   console.log(`✅ Profession sélectionnée avec succès`);
 }
 
 /**
+ * Fill "Statut" field for assuré principal (Step 1, Section 4)
+ * Note: This field loads dynamically after regime_social + profession selection
+ * The available options vary based on the regime_social selected
+ */
+export async function fillStatut(
+  frame: Frame,
+  statut: AssurePrincipalData['statut'],
+  regime: AssurePrincipalData['regime_social']
+): Promise<void> {
+  const label = mapStatutToFormLabel(statut, regime);
+
+  // Wait for the statut field to appear (it loads dynamically after profession)
+  const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.statut_assure_principal.primary).first();
+  await selectElement.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Wait for the specific option we want to select to be loaded and enabled
+  // The options are populated via AJAX after profession selection
+  await frame.locator(`#statut-assure-principal option:has-text("${label}"):not([disabled])`).waitFor({
+    state: 'attached',
+    timeout: 10000
+  });
+
+  // Select by label (visible text) instead of by value
+  await selectElement.selectOption({ label });
+  await frame.waitForTimeout(2000);
+
+  console.log(`[5/5] Statut: ${label}`);
+  console.log(`✅ Statut sélectionné avec succès`);
+}
+
+/**
  * Fill complete Section 4: Données de l'assuré principal
- * Currently fills: date_naissance, departement_residence, regime_social, profession
+ * Fills: date_naissance, departement_residence, regime_social, profession, statut
  */
 export async function fillSection4(
   frame: Frame,
@@ -116,7 +148,8 @@ export async function fillSection4(
   await fillDepartementResidence(frame, assurePrincipalData.departement_residence);
   await fillRegimeSocial(frame, assurePrincipalData.regime_social);
   await fillProfession(frame, assurePrincipalData.profession);
+  await fillStatut(frame, assurePrincipalData.statut, assurePrincipalData.regime_social);
 
-  console.log('✅ Section "Données de l\'assuré principal" complétée (4/4 champs pour l\'instant)');
+  console.log('✅ Section "Données de l\'assuré principal" complétée (5/5 champs)');
   console.log('---\n');
 }
