@@ -51,6 +51,13 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Fill Step 1 - Section 4 only: Données de l'assuré principal (date_naissance)
+   */
+  async fillStep1Section4(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection4(frame, data);
+  }
+
+  /**
    * Check for form validation errors
    * @returns Array of error messages (empty if no errors)
    */

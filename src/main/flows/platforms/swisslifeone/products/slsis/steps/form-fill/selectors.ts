@@ -48,6 +48,16 @@ export const SWISSLIFE_STEP1_SELECTORS = {
       couple: "Pour le couple", // Uses getByText
     },
   },
+
+  /**
+   * Section 4: Données de l'assuré principal
+   * Stability: STABLE (uses semantic ID selectors)
+   */
+  section4: {
+    date_naissance_assure_principal: {
+      primary: "#date-naissance-assure-principal",
+    },
+  },
 } as const;
 
 export const SWISSLIFE_STEP2_SELECTORS = {
