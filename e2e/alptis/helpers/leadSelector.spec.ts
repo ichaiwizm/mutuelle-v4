@@ -8,7 +8,7 @@
 import { test, expect } from '@playwright/test';
 import { selectLead, getLeadTypeName } from './leadSelector';
 import { hasConjoint, getChildrenCount } from './leadFilters';
-import { loadAllLeads } from './loadLeads';
+import { loadAllLeads } from '../../shared/helpers';
 import type { LeadType } from '../types';
 
 test('should select a random lead when type is random', () => {

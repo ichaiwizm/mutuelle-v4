@@ -2,7 +2,7 @@
 /**
  * Script to list all available leads with their characteristics
  */
-import { loadAllLeads } from './loadLeads';
+import { loadAllLeads } from '../../shared/helpers';
 import { categorizeLeads } from './leadCategorization';
 
 const leads = loadAllLeads();

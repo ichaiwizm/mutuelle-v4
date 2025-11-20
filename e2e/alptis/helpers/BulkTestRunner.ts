@@ -18,7 +18,7 @@ import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/san
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import { BulkTestLogger } from './bulkTestLogger';
 import { getAlptisCredentials } from './credentials';
-import { loadAllLeads } from './loadLeads';
+import { loadAllLeads } from '../../shared/helpers';
 import {
   verifySection1,
   verifySection2,

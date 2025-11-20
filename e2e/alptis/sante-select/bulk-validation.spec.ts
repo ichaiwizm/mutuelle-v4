@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 import { BulkTestRunner } from '../helpers/BulkTestRunner';
 import { BulkTestLogger } from '../helpers/bulkTestLogger';
 import { hasAlptisCredentials } from '../helpers/credentials';
-import { loadAllLeads } from '../helpers/loadLeads';
+import { loadAllLeads } from '../../shared/helpers';
 import type { BulkTestResults } from '../types';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');

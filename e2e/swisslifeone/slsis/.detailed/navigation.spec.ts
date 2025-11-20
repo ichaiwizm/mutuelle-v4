@@ -2,8 +2,8 @@
  * Test de navigation vers le formulaire SLSIS
  * Vérifie que l'iframe se charge correctement (45+ secondes)
  */
-import { test, expect } from './fixtures';
-import { hasSwissLifeOneCredentials } from './helpers/credentials';
+import { test, expect } from '../../fixtures';
+import { hasSwissLifeOneCredentials } from '../../helpers/credentials';
 
 test.skip(!hasSwissLifeOneCredentials(), 'Credentials manquants dans .env');
 

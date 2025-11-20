@@ -8,7 +8,7 @@
 import type { Lead } from '@/shared/types/lead';
 import type { LeadType } from '../types';
 import { LEAD_TYPE_NAMES } from '../types';
-import { loadAllLeads } from './loadLeads';
+import { loadAllLeads } from '../../shared/helpers';
 import { hasConjoint, getChildrenCount } from './leadFilters';
 
 /**
