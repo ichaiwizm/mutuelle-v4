@@ -26,6 +26,8 @@ type SwissLifeOneFixtures = {
   formWithStep1Section4: void;
   /** Formulaire avec Step 1 - Sections 1, 2, 3, 4 et 5 remplies (+ Conjoint si présent) */
   formWithStep1Section5: void;
+  /** Formulaire avec Step 1 - Sections 1-6 remplies (+ Enfants si présents) */
+  formWithStep1Section6: void;
 };
 
 export const test = base.extend<SwissLifeOneFixtures>({
@@ -169,6 +171,22 @@ export const test = base.extend<SwissLifeOneFixtures>({
     const formFill = SwissLifeOneInstances.getFormFillStep();
     await formFill.fillStep1Section5(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 5 remplie');
+    await use();
+  },
+
+  /**
+   * Fixture: formulaire avec Step 1 - Sections 1-6 remplies
+   * Dépend de formWithStep1Section5 + leadData
+   * Remplit la Section 6 (Enfants) - sélectionne 0 si pas d'enfants
+   */
+  formWithStep1Section6: async ({ page, formWithStep1Section5, leadData }, use) => {
+    console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 6...');
+    const nav = SwissLifeOneInstances.getNavigationStep();
+    const frame = await nav.getIframe(page);
+
+    const formFill = SwissLifeOneInstances.getFormFillStep();
+    await formFill.fillStep1Section6(frame, leadData);
+    console.log('✅ [FIXTURE] Step 1 - Section 6 remplie');
     await use();
   },
 });

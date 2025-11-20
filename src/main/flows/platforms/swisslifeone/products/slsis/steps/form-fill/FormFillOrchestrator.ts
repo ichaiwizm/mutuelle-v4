@@ -65,6 +65,13 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Fill Step 1 - Section 6 only: Enfants (optional)
+   */
+  async fillStep1Section6(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection6(frame, data);
+  }
+
+  /**
    * Check for form validation errors
    * @returns Array of error messages (empty if no errors)
    */

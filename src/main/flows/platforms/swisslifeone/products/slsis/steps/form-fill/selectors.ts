@@ -93,6 +93,21 @@ export const SWISSLIFE_STEP1_SELECTORS = {
       primary: "#statut-assure-conjoint",
     },
   },
+
+  /**
+   * Section 6: Enfants (Children)
+   * Stability: STABLE (uses semantic ID selectors with index pattern)
+   * Note: Fields are dynamically created when nombre_enfants > 0
+   * Pattern: enfants-{index}-{field} where index is 0-based
+   */
+  section6: {
+    nombre_enfants: {
+      primary: "#sante-nombre-enfant-assures",
+    },
+    // Dynamic selectors (use functions to generate based on child index)
+    enfant_date_naissance: (index: number) => `#enfants-${index}-dateNaissance`,
+    enfant_ayant_droit: (index: number) => `#enfants-${index}-idAyantDroit`,
+  },
 } as const;
 
 export const SWISSLIFE_STEP2_SELECTORS = {

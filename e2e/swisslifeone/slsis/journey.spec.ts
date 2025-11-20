@@ -2,12 +2,12 @@ import { test, expect } from '../fixtures';
 import { SwissLifeOneInstances } from '@/main/flows/registry';
 
 test.describe('SwissLife One - Form Fill Journey', () => {
-  test('👫 Complete journey: Sections 1-5 (with conjoint)', async ({ page, formWithStep1Section5, leadData }) => {
-    test.setTimeout(90000); // Increase timeout to 90s for this test (fixtures + Section 5 take time)
+  test('👶 Complete journey: Sections 1-6 (with children)', async ({ page, formWithStep1Section6, leadData }) => {
+    test.setTimeout(120000); // Increase timeout to 120s for this test (fixtures + Section 6 take time)
     const nav = SwissLifeOneInstances.getNavigationStep();
     const frame = await nav.getIframe(page);
 
-    // Sections 1, 2, 3, 4, and 5 are already filled by the fixture
+    // Sections 1-6 are already filled by the fixture
     // Verify we're still on the form
     expect(page.url()).toContain('/tarification-et-simulation/slsis');
 
@@ -23,6 +23,11 @@ test.describe('SwissLife One - Form Fill Journey', () => {
       console.log(`   - Section 5: Conjoint (date: ${leadData.conjoint.date_naissance}, régime: ${leadData.conjoint.regime_social}) ✓`);
     } else {
       console.log(`   - Section 5: Pas de conjoint (ignorée) ✓`);
+    }
+    if (leadData.enfants && leadData.enfants.nombre_enfants > 0) {
+      console.log(`   - Section 6: ${leadData.enfants.nombre_enfants} enfant${leadData.enfants.nombre_enfants > 1 ? 's' : ''} ✓`);
+    } else {
+      console.log(`   - Section 6: Pas d'enfants (0 sélectionné) ✓`);
     }
     console.log(`   - Errors found: ${errors.length}\n`);
   });
