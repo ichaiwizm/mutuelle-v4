@@ -20,6 +20,8 @@ type SwissLifeOneFixtures = {
   formWithStep1Section1: void;
   /** Formulaire avec Step 1 - Sections 1 et 2 remplies (Nom + Besoins) */
   formWithStep1Section2: void;
+  /** Formulaire avec Step 1 - Sections 1, 2 et 3 remplies (Nom + Besoins + Type simulation) */
+  formWithStep1Section3: void;
 };
 
 export const test = base.extend<SwissLifeOneFixtures>({
@@ -115,6 +117,22 @@ export const test = base.extend<SwissLifeOneFixtures>({
     const formFill = SwissLifeOneInstances.getFormFillStep();
     await formFill.fillStep1Section2(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 2 remplie');
+    await use();
+  },
+
+  /**
+   * Fixture: formulaire avec Step 1 - Sections 1, 2 et 3 remplies
+   * Dépend de formWithStep1Section2 + leadData
+   * Remplit la Section 3 (Couverture santé individuelle / Type simulation)
+   */
+  formWithStep1Section3: async ({ page, formWithStep1Section2, leadData }, use) => {
+    console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 3...');
+    const nav = SwissLifeOneInstances.getNavigationStep();
+    const frame = await nav.getIframe(page);
+
+    const formFill = SwissLifeOneInstances.getFormFillStep();
+    await formFill.fillStep1Section3(frame, leadData);
+    console.log('✅ [FIXTURE] Step 1 - Section 3 remplie');
     await use();
   },
 });

@@ -44,6 +44,13 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Fill Step 1 - Section 3 only: Couverture santé individuelle (type_simulation)
+   */
+  async fillStep1Section3(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection3(frame, data);
+  }
+
+  /**
    * Check for form validation errors
    * @returns Array of error messages (empty if no errors)
    */

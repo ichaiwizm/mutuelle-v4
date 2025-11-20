@@ -36,6 +36,18 @@ export const SWISSLIFE_STEP1_SELECTORS = {
       byValue: (value: 'oui' | 'non') => `input[type='radio'][value='${value}']`,
     },
   },
+
+  /**
+   * Section 3: Couverture santé individuelle
+   * Type de simulation selection
+   * Stability: MODERATE (uses text-based selection)
+   */
+  section3: {
+    type_simulation: {
+      individuel: "Individuel", // Uses getByText with exact: true
+      couple: "Pour le couple", // Uses getByText
+    },
+  },
 } as const;
 
 export const SWISSLIFE_STEP2_SELECTORS = {
