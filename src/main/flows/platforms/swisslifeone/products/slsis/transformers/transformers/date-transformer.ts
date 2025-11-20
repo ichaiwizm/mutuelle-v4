@@ -69,14 +69,14 @@ export function isValidDateEffet(date: Date): boolean {
  */
 export function transformDateEffet(leadDateEffet: string | undefined): string {
   if (!leadDateEffet || !validateDateFormat(leadDateEffet)) {
-    console.warn(`[DATE_EFFET] Invalid or missing date (${leadDateEffet}), using next valid date`);
+    console.warn(`[DATE_EFFET] ⚠️  Invalid or missing date (${leadDateEffet}), using next valid date`);
     const nextValid = getNextValidDateEffet();
     return formatDate(nextValid);
   }
 
   const parsedDate = parseDate(leadDateEffet);
   if (!parsedDate) {
-    console.warn(`[DATE_EFFET] Failed to parse date (${leadDateEffet}), using next valid date`);
+    console.warn(`[DATE_EFFET] ⚠️  Failed to parse date (${leadDateEffet}), using next valid date`);
     const nextValid = getNextValidDateEffet();
     return formatDate(nextValid);
   }
@@ -85,7 +85,7 @@ export function transformDateEffet(leadDateEffet: string | undefined): string {
     return formatDate(parsedDate);
   }
 
-  console.warn(`[DATE_EFFET] Date in past or too soon (${leadDateEffet}), using next valid date`);
+  console.warn(`[DATE_EFFET] ⚠️  Date in past or too soon (${leadDateEffet}), using next valid date`);
   const nextValid = getNextValidDateEffet();
   return formatDate(nextValid);
 }

@@ -23,8 +23,17 @@ export function transformConjoint(lead: Lead): ConjointData | undefined {
 
   // Pas de conjoint
   if (!conjoint || !conjoint.dateNaissance) {
+    console.log('[CONJOINT] No conjoint data, skipping');
     return undefined;
   }
+
+  console.log('[CONJOINT] Transforming conjoint data...');
+  console.log('[CONJOINT] Input:', {
+    dateNaissance: conjoint.dateNaissance,
+    profession: conjoint.profession,
+    regimeSocial: conjoint.regimeSocial,
+    statut: conjoint.statut,
+  });
 
   // 1. Valider et transformer la date de naissance
   const dateNaissance = transformBirthDate(conjoint.dateNaissance as string);
@@ -33,7 +42,7 @@ export function transformConjoint(lead: Lead): ConjointData | undefined {
   const birthDate = parseDate(conjoint.dateNaissance as string);
   if (!birthDate || !validateSpouseAge(birthDate)) {
     throw new Error(
-      `[CONJOINT] Age out of range. Conjoint must be 16-99 years old. Birth date: ${conjoint.dateNaissance}`
+      `Conjoint age out of range (must be 16-99 years): ${conjoint.dateNaissance}`
     );
   }
 
@@ -50,14 +59,18 @@ export function transformConjoint(lead: Lead): ConjointData | undefined {
   const compatibilityCheck = validateProfessionalDataCompatibility(profession, regimeSocial, statut);
   if (!compatibilityCheck.compatible) {
     console.warn(
-      `[CONJOINT] Compatibility warning: ${compatibilityCheck.reason || 'Unknown incompatibility'}`
+      `[CONJOINT] ⚠️  Compatibility warning: ${compatibilityCheck.reason || 'Unknown incompatibility'}`
     );
   }
 
-  return {
+  const transformed = {
     date_naissance: dateNaissance,
     regime_social: regimeSocial,
     profession,
     statut,
   };
+
+  console.log('[CONJOINT] Output:', transformed);
+
+  return transformed;
 }

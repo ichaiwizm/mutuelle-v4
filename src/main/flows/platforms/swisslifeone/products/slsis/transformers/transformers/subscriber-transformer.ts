@@ -22,6 +22,15 @@ import { validateProfessionalDataCompatibility } from '../validators/compatibili
 export function transformSubscriber(lead: Lead): AssurePrincipalData {
   const subscriber = lead.subscriber;
 
+  console.log('[SUBSCRIBER] Transforming subscriber data...');
+  console.log('[SUBSCRIBER] Input:', {
+    dateNaissance: subscriber.dateNaissance,
+    codePostal: subscriber.codePostal,
+    profession: subscriber.profession,
+    regimeSocial: subscriber.regimeSocial,
+    statut: subscriber.statut,
+  });
+
   // 1. Valider et transformer la date de naissance
   const dateNaissance = transformBirthDate(subscriber.dateNaissance as string);
 
@@ -29,7 +38,7 @@ export function transformSubscriber(lead: Lead): AssurePrincipalData {
   const birthDate = parseDate(subscriber.dateNaissance as string);
   if (!birthDate || !validateSubscriberAge(birthDate)) {
     throw new Error(
-      `[SUBSCRIBER] Age out of range. Subscriber must be 18-110 years old. Birth date: ${subscriber.dateNaissance}`
+      `Subscriber age out of range (must be 18-110 years): ${subscriber.dateNaissance}`
     );
   }
 
@@ -49,15 +58,19 @@ export function transformSubscriber(lead: Lead): AssurePrincipalData {
   const compatibilityCheck = validateProfessionalDataCompatibility(profession, regimeSocial, statut);
   if (!compatibilityCheck.compatible) {
     console.warn(
-      `[SUBSCRIBER] Compatibility warning: ${compatibilityCheck.reason || 'Unknown incompatibility'}`
+      `[SUBSCRIBER] ⚠️  Compatibility warning: ${compatibilityCheck.reason || 'Unknown incompatibility'}`
     );
   }
 
-  return {
+  const transformed = {
     date_naissance: dateNaissance,
     departement_residence: departementResidence,
     regime_social: regimeSocial,
     profession,
     statut,
   };
+
+  console.log('[SUBSCRIBER] Output:', transformed);
+
+  return transformed;
 }

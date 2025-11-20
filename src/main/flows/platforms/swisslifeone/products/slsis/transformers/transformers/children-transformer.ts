@@ -20,8 +20,12 @@ export function transformChildren(lead: Lead): EnfantsData | undefined {
 
   // Pas d'enfants
   if (!children || children.length === 0) {
+    console.log('[CHILDREN] No children data, skipping');
     return undefined;
   }
+
+  console.log('[CHILDREN] Transforming children data...');
+  console.log(`[CHILDREN] Input: ${children.length} children`);
 
   // Déterminer si le conjoint existe (pour ayantDroit)
   const hasConjoint = !!lead.project?.conjoint;
@@ -30,11 +34,12 @@ export function transformChildren(lead: Lead): EnfantsData | undefined {
   const validChildren = children
     .map((child, index) => {
       const childDateNaissance = child.dateNaissance as string;
+      console.log(`[CHILDREN] Child ${index + 1}:`, { dateNaissance: childDateNaissance, ayantDroit: child.ayantDroit });
 
       // Vérifier le format de date
       if (!validateDateFormat(childDateNaissance)) {
         console.warn(
-          `[CHILDREN] Child #${index + 1} has invalid date format: "${childDateNaissance}". Skipping.`
+          `[CHILDREN] ⚠️  Child ${index + 1} has invalid date format: "${childDateNaissance}", skipping`
         );
         return null;
       }
@@ -42,14 +47,14 @@ export function transformChildren(lead: Lead): EnfantsData | undefined {
       // Parser la date
       const birthDate = parseDate(childDateNaissance);
       if (!birthDate) {
-        console.warn(`[CHILDREN] Child #${index + 1} has unparseable date: "${childDateNaissance}". Skipping.`);
+        console.warn(`[CHILDREN] ⚠️  Child ${index + 1} has unparseable date: "${childDateNaissance}", skipping`);
         return null;
       }
 
       // Vérifier l'âge (0-27 ans)
       if (!validateChildAge(birthDate)) {
         console.warn(
-          `[CHILDREN] Child #${index + 1} age out of range (must be 0-27 years). Birth date: "${childDateNaissance}". Skipping.`
+          `[CHILDREN] ⚠️  Child ${index + 1} age out of range (must be 0-27 years): "${childDateNaissance}", skipping`
         );
         return null;
       }
@@ -77,9 +82,11 @@ export function transformChildren(lead: Lead): EnfantsData | undefined {
 
   // Si aucun enfant valide, retourner undefined
   if (validChildren.length === 0) {
-    console.warn('[CHILDREN] No valid children after filtering. Returning undefined.');
+    console.log('[CHILDREN] No valid children after validation, skipping');
     return undefined;
   }
+
+  console.log(`[CHILDREN] Output: ${validChildren.length} valid children`);
 
   return {
     nombre_enfants: validChildren.length,

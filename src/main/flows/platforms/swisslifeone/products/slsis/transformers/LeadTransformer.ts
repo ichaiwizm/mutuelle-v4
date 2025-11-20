@@ -31,22 +31,25 @@ export class SwissLifeOneLeadTransformer {
    * @throws Error si la validation échoue ou si des données critiques sont manquantes
    */
   static transform(lead: Lead): SwissLifeOneFormData {
-    console.log('[SWISSLIFEONE] Starting transformation for lead:', lead.id);
+    console.log('\n========================================');
+    console.log('SWISSLIFEONE TRANSFORMATION START');
+    console.log('========================================');
+    console.log('Lead ID:', lead.id);
 
     // 1. Validation du Lead
-    console.log('[SWISSLIFEONE] Step 1/6: Validating lead');
+    console.log('\n[VALIDATION] Validating lead...');
     const validation = validateLead(lead);
     if (!validation.valid) {
       const errorMessage = `Lead validation failed:\n${validation.errors.join('\n')}`;
-      console.error('[SWISSLIFEONE] Validation errors:', validation.errors);
+      console.error('[VALIDATION] ❌ Validation failed:', validation.errors);
       throw new Error(errorMessage);
     }
-    console.log('[SWISSLIFEONE] Lead validation passed');
+    console.log('[VALIDATION] ✓ Lead is valid');
 
     // 2. Transform Assuré Principal
-    console.log('[SWISSLIFEONE] Step 2/6: Transforming subscriber (assuré principal)');
+    console.log('\n[SUBSCRIBER] Transforming subscriber (assuré principal)...');
     const assurePrincipal = transformSubscriber(lead);
-    console.log('[SWISSLIFEONE] Subscriber transformed:', {
+    console.log('[SUBSCRIBER] ✓ Subscriber transformed:', {
       age: assurePrincipal.date_naissance,
       dept: assurePrincipal.departement_residence,
       regime: assurePrincipal.regime_social,
@@ -55,41 +58,41 @@ export class SwissLifeOneLeadTransformer {
     });
 
     // 3. Transform Projet
-    console.log('[SWISSLIFEONE] Step 3/6: Transforming project data');
+    console.log('\n[PROJECT] Transforming project data...');
     const projet = transformProjet(lead);
     const besoins = transformBesoins();
     const typeSimulation = determineTypeSimulation(lead);
-    console.log('[SWISSLIFEONE] Project transformed:', {
+    console.log('[PROJECT] ✓ Project transformed:', {
       nomProjet: projet.nom_projet,
       typeSimulation,
     });
 
     // 4. Transform Conjoint (optionnel)
-    console.log('[SWISSLIFEONE] Step 4/6: Transforming conjoint (if exists)');
+    console.log('\n[CONJOINT] Transforming conjoint...');
     const conjoint = transformConjoint(lead);
     if (conjoint) {
-      console.log('[SWISSLIFEONE] Conjoint transformed:', {
+      console.log('[CONJOINT] ✓ Conjoint transformed:', {
         age: conjoint.date_naissance,
         regime: conjoint.regime_social,
         profession: conjoint.profession,
       });
     } else {
-      console.log('[SWISSLIFEONE] No conjoint data');
+      console.log('[CONJOINT] → No conjoint data, skipping');
     }
 
     // 5. Transform Enfants (optionnel)
-    console.log('[SWISSLIFEONE] Step 5/6: Transforming children (if exist)');
+    console.log('\n[CHILDREN] Transforming children...');
     const enfants = transformChildren(lead);
     if (enfants) {
-      console.log(`[SWISSLIFEONE] ${enfants.nombre_enfants} children transformed`);
+      console.log(`[CHILDREN] ✓ ${enfants.nombre_enfants} children transformed`);
     } else {
-      console.log('[SWISSLIFEONE] No children data');
+      console.log('[CHILDREN] → No children data, skipping');
     }
 
     // 6. Transform Gammes et Options
-    console.log('[SWISSLIFEONE] Step 6/6: Transforming gammes and options');
+    console.log('\n[GAMMES] Transforming gammes and options...');
     const gammesOptions = transformGammesOptions(lead, assurePrincipal.regime_social);
-    console.log('[SWISSLIFEONE] Gammes and options transformed:', {
+    console.log('[GAMMES] ✓ Gammes and options transformed:', {
       gamme: gammesOptions.gamme,
       dateEffet: gammesOptions.date_effet,
       loiMadelin: gammesOptions.loi_madelin,
@@ -106,7 +109,11 @@ export class SwissLifeOneLeadTransformer {
       gammes_options: gammesOptions,
     };
 
-    console.log('[SWISSLIFEONE] Transformation completed successfully');
+    console.log('\n========================================');
+    console.log('SWISSLIFEONE TRANSFORMATION COMPLETE');
+    console.log('========================================');
+    console.log('Final result:', JSON.stringify(result, null, 2));
+
     return result;
   }
 
@@ -129,7 +136,6 @@ export class SwissLifeOneLeadTransformer {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[SWISSLIFEONE] Transformation failed:', errorMessage);
 
       errors.push({
         code: 'TRANSFORM_ERROR',
