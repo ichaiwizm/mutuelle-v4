@@ -22,11 +22,25 @@ export class FormFillOrchestrator {
   }
 
   /**
-   * Fill Step 1: Informations du projet et assurés
-   * Currently only fills Section 1 (nom du projet)
+   * Fill Step 1: Informations du projet et assurés (complete)
+   * Fills all sections of Step 1
    */
   async fillStep1(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
     await this.step1Fill.fill(frame, data);
+  }
+
+  /**
+   * Fill Step 1 - Section 1 only: Nom du projet
+   */
+  async fillStep1Section1(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection1(frame, data);
+  }
+
+  /**
+   * Fill Step 1 - Section 2 only: Vos projets (besoins)
+   */
+  async fillStep1Section2(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection2(frame, data);
   }
 
   /**
