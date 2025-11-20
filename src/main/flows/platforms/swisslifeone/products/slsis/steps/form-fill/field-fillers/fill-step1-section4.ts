@@ -4,6 +4,7 @@ import { fillSelectField } from '../operations/SelectOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 import { mapRegimeSocialToFormLabel } from '../mappers/regime-social-form-mapper';
+import { mapProfessionToFormLabel } from '../mappers/profession-form-mapper';
 import type { AssurePrincipalData } from '../../../transformers/types';
 
 /**
@@ -58,7 +59,7 @@ export async function fillDepartementResidence(
     {
       fieldLabel: 'Département de résidence',
       fieldNumber: 2,
-      totalFields: 3,
+      totalFields: 4,
     }
   );
 }
@@ -78,13 +79,32 @@ export async function fillRegimeSocial(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[3/3] Régime social: ${label}`);
+  console.log(`[3/4] Régime social: ${label}`);
   console.log(`✅ Régime social sélectionné avec succès`);
 }
 
 /**
+ * Fill "Profession" field for assuré principal (Step 1, Section 4)
+ */
+export async function fillProfession(
+  frame: Frame,
+  profession: AssurePrincipalData['profession']
+): Promise<void> {
+  const label = mapProfessionToFormLabel(profession);
+
+  // Select by label (visible text) instead of by value
+  const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.profession_assure_principal.primary).first();
+  await selectElement.waitFor({ state: 'visible', timeout: 10000 });
+  await selectElement.selectOption({ label });
+  await frame.waitForTimeout(2000);
+
+  console.log(`[4/4] Profession: ${label}`);
+  console.log(`✅ Profession sélectionnée avec succès`);
+}
+
+/**
  * Fill complete Section 4: Données de l'assuré principal
- * Currently fills: date_naissance, departement_residence, regime_social
+ * Currently fills: date_naissance, departement_residence, regime_social, profession
  */
 export async function fillSection4(
   frame: Frame,
@@ -95,7 +115,8 @@ export async function fillSection4(
   await fillDateNaissanceAssurePrincipal(frame, assurePrincipalData.date_naissance);
   await fillDepartementResidence(frame, assurePrincipalData.departement_residence);
   await fillRegimeSocial(frame, assurePrincipalData.regime_social);
+  await fillProfession(frame, assurePrincipalData.profession);
 
-  console.log('✅ Section "Données de l\'assuré principal" complétée (3/3 champs pour l\'instant)');
+  console.log('✅ Section "Données de l\'assuré principal" complétée (4/4 champs pour l\'instant)');
   console.log('---\n');
 }

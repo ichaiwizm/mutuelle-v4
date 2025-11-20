@@ -63,6 +63,9 @@ export const SWISSLIFE_STEP1_SELECTORS = {
     regime_social_assure_principal: {
       primary: "#regime-social-assure-principal",
     },
+    profession_assure_principal: {
+      primary: "#profession-assure-principal",
+    },
   },
 } as const;
 
