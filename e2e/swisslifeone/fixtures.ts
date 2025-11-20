@@ -22,8 +22,10 @@ type SwissLifeOneFixtures = {
   formWithStep1Section2: void;
   /** Formulaire avec Step 1 - Sections 1, 2 et 3 remplies (Nom + Besoins + Type simulation) */
   formWithStep1Section3: void;
-  /** Formulaire avec Step 1 - Sections 1, 2, 3 et 4 remplies (Nom + Besoins + Type simulation + Date naissance) */
+  /** Formulaire avec Step 1 - Sections 1, 2, 3 et 4 remplies (Nom + Besoins + Type simulation + Assuré principal) */
   formWithStep1Section4: void;
+  /** Formulaire avec Step 1 - Sections 1, 2, 3, 4 et 5 remplies (+ Conjoint si présent) */
+  formWithStep1Section5: void;
 };
 
 export const test = base.extend<SwissLifeOneFixtures>({
@@ -141,7 +143,7 @@ export const test = base.extend<SwissLifeOneFixtures>({
   /**
    * Fixture: formulaire avec Step 1 - Sections 1, 2, 3 et 4 remplies
    * Dépend de formWithStep1Section3 + leadData
-   * Remplit la Section 4 (Données de l'assuré principal / Date de naissance)
+   * Remplit la Section 4 (Données de l'assuré principal)
    */
   formWithStep1Section4: async ({ page, formWithStep1Section3, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 4...');
@@ -151,6 +153,22 @@ export const test = base.extend<SwissLifeOneFixtures>({
     const formFill = SwissLifeOneInstances.getFormFillStep();
     await formFill.fillStep1Section4(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 4 remplie');
+    await use();
+  },
+
+  /**
+   * Fixture: formulaire avec Step 1 - Sections 1, 2, 3, 4 et 5 remplies
+   * Dépend de formWithStep1Section4 + leadData
+   * Remplit la Section 5 (Données du conjoint) si le lead contient un conjoint
+   */
+  formWithStep1Section5: async ({ page, formWithStep1Section4, leadData }, use) => {
+    console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 5...');
+    const nav = SwissLifeOneInstances.getNavigationStep();
+    const frame = await nav.getIframe(page);
+
+    const formFill = SwissLifeOneInstances.getFormFillStep();
+    await formFill.fillStep1Section5(frame, leadData);
+    console.log('✅ [FIXTURE] Step 1 - Section 5 remplie');
     await use();
   },
 });

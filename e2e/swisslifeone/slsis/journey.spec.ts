@@ -2,12 +2,12 @@ import { test, expect } from '../fixtures';
 import { SwissLifeOneInstances } from '@/main/flows/registry';
 
 test.describe('SwissLife One - Form Fill Journey', () => {
-  test('🎲 Complete journey: Sections 1, 2, 3 and 4', async ({ page, formWithStep1Section4, leadData }) => {
-    test.setTimeout(60000); // Increase timeout to 60s for this test (fixtures take time)
+  test('👫 Complete journey: Sections 1-5 (with conjoint)', async ({ page, formWithStep1Section5, leadData }) => {
+    test.setTimeout(90000); // Increase timeout to 90s for this test (fixtures + Section 5 take time)
     const nav = SwissLifeOneInstances.getNavigationStep();
     const frame = await nav.getIframe(page);
 
-    // Sections 1, 2, 3, and 4 are already filled by the fixture
+    // Sections 1, 2, 3, 4, and 5 are already filled by the fixture
     // Verify we're still on the form
     expect(page.url()).toContain('/tarification-et-simulation/slsis');
 
@@ -19,9 +19,11 @@ test.describe('SwissLife One - Form Fill Journey', () => {
     console.log(`   - Section 2: Besoins (couverture: ${leadData.besoins.besoin_couverture_individuelle ? 'oui' : 'non'}, indemnités: ${leadData.besoins.besoin_indemnites_journalieres ? 'oui' : 'non'}) ✓`);
     console.log(`   - Section 3: Type simulation (${leadData.type_simulation}) ✓`);
     console.log(`   - Section 4: Assuré principal (date: ${leadData.assure_principal.date_naissance}, dept: ${leadData.assure_principal.departement_residence}, régime: ${leadData.assure_principal.regime_social}) ✓`);
+    if (leadData.conjoint) {
+      console.log(`   - Section 5: Conjoint (date: ${leadData.conjoint.date_naissance}, régime: ${leadData.conjoint.regime_social}) ✓`);
+    } else {
+      console.log(`   - Section 5: Pas de conjoint (ignorée) ✓`);
+    }
     console.log(`   - Errors found: ${errors.length}\n`);
-
-    // Note: We may still have validation errors for remaining fields
-    // This is expected as we only filled date_naissance in section 4
   });
 });

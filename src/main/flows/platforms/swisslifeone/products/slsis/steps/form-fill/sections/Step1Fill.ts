@@ -4,6 +4,7 @@ import { fillNomProjet } from '../field-fillers/fill-step1-section1';
 import { fillSection2 as fillVosProjets } from '../field-fillers/fill-step1-section2';
 import { fillSection3 as fillCouvertureSante } from '../field-fillers/fill-step1-section3';
 import { fillSection4 as fillDonneesAssurePrincipal } from '../field-fillers/fill-step1-section4';
+import { fillSection5 as fillDonneesConjoint } from '../field-fillers/fill-step1-section5';
 
 /**
  * Step 1 Form Filler
@@ -42,16 +43,27 @@ export class Step1Fill {
   }
 
   /**
-   * Fill Step 1 - Section 4: Données de l'assuré principal (partial)
-   * Currently only fills date_naissance
+   * Fill Step 1 - Section 4: Données de l'assuré principal
    */
   async fillSection4(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
     await fillDonneesAssurePrincipal(frame, data.assure_principal);
   }
 
   /**
+   * Fill Step 1 - Section 5: Données du conjoint (optional)
+   * Only called if conjoint data is present
+   */
+  async fillSection5(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    if (!data.conjoint) {
+      console.log('ℹ️  Pas de données conjoint, Section 5 ignorée');
+      return;
+    }
+    await fillDonneesConjoint(frame, data.conjoint);
+  }
+
+  /**
    * Fill complete Step 1
-   * Currently fills Sections 1, 2, 3, and 4 (partial)
+   * Currently fills Sections 1, 2, 3, 4, and 5 (if conjoint present)
    */
   async fill(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
     console.log('\n═══════════════════════════════════════');
@@ -62,6 +74,7 @@ export class Step1Fill {
     await this.fillSection2(frame, data);
     await this.fillSection3(frame, data);
     await this.fillSection4(frame, data);
+    await this.fillSection5(frame, data);
 
     console.log('✅ Step 1 complété\n');
   }

@@ -70,6 +70,29 @@ export const SWISSLIFE_STEP1_SELECTORS = {
       primary: "#statut-assure-principal",
     },
   },
+
+  /**
+   * Section 5: Données du conjoint
+   * Stability: STABLE (uses semantic ID selectors)
+   * Note: No departement field for conjoint (only 4 fields vs 5 for assuré principal)
+   */
+  section5: {
+    conjoint_tab: {
+      primary: "Conjoint", // Uses getByRole('link', { name: 'Conjoint' })
+    },
+    date_naissance_conjoint: {
+      primary: "#date-naissance-assure-conjoint",
+    },
+    regime_social_conjoint: {
+      primary: "#regime-social-assure-conjoint",
+    },
+    profession_conjoint: {
+      primary: "#profession-assure-conjoint",
+    },
+    statut_conjoint: {
+      primary: "#statut-assure-conjoint",
+    },
+  },
 } as const;
 
 export const SWISSLIFE_STEP2_SELECTORS = {

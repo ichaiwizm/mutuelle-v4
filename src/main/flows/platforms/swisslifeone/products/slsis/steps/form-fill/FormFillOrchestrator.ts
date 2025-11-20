@@ -51,10 +51,17 @@ export class FormFillOrchestrator {
   }
 
   /**
-   * Fill Step 1 - Section 4 only: Données de l'assuré principal (date_naissance)
+   * Fill Step 1 - Section 4 only: Données de l'assuré principal
    */
   async fillStep1Section4(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
     await this.step1Fill.fillSection4(frame, data);
+  }
+
+  /**
+   * Fill Step 1 - Section 5 only: Données du conjoint (optional)
+   */
+  async fillStep1Section5(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
+    await this.step1Fill.fillSection5(frame, data);
   }
 
   /**
