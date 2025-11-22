@@ -23,7 +23,11 @@ describe('LeadsService', () => {
     expect(id.length).toBeGreaterThanOrEqual(16);
 
     const list = await LeadsService.list();
-    expect(list).toEqual([{ id }]);
+    expect(list).toHaveLength(1);
+    expect(list[0].id).toBe(id);
+    expect(list[0]).toHaveProperty('createdAt');
+    expect(list[0]).toHaveProperty('updatedAt');
+    expect(list[0]).toHaveProperty('data');
 
     const rows = await (db as any).select().from((schema as any).leads);
     expect(rows.length).toBe(1);
