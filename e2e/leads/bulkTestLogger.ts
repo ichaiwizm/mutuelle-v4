@@ -13,9 +13,9 @@
  */
 
 import type { Lead } from '@/shared/types/lead';
-import type { LeadTestResult, TestStatistics } from '../alptis/types';
-import type { ITestLogger } from '../alptis/helpers/logging';
-import { ConsoleTestLogger } from '../alptis/helpers/logging';
+import type { LeadTestResult, TestStatistics } from './types';
+import type { ITestLogger } from './logging';
+import { ConsoleTestLogger } from './logging';
 
 /**
  * Collects and aggregates test results
