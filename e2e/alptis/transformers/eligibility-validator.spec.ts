@@ -3,8 +3,8 @@ import {
   calculateAge,
   isEligibleAsMainSubscriber,
   determineEligibility,
-} from '../eligibility-validator';
-import type { Lead } from '../../../../../../types/lead.types';
+} from '@/main/flows/platforms/alptis/products/sante-select/transformers/validators/eligibility-validator';
+import type { Lead } from '@/shared/types/lead';
 
 describe('eligibility-validator', () => {
   describe('calculateAge', () => {

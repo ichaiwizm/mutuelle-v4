@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LeadTransformer } from '../LeadTransformer';
+import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import type { Lead } from '@/shared/types/lead';
 
 describe('LeadTransformer - Eligibility and Swap Logic', () => {
