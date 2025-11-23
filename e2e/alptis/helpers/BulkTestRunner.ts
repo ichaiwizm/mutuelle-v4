@@ -1,22 +1,23 @@
 /**
- * Bulk Test Runner
+ * Bulk Test Runner for Alptis
  *
  * Orchestrates bulk validation of multiple leads through the complete form workflow.
  * Handles:
  * - Authentication (one-time setup)
  * - Navigation to form for each lead
- * - Form filling and verification
+ * - Form filling and verification (4 sections)
  * - Error handling and result tracking
  */
 
 import type { Page } from '@playwright/test';
 import type { Lead } from '@/shared/types/lead';
-import type { BulkTestConfig, BulkTestResults } from '../types';
+import type { BulkTestConfig } from '../types';
+import { BaseBulkTestRunner } from '../../shared/BaseBulkTestRunner';
 import { AlptisAuth } from '@/main/flows/platforms/alptis/lib/AlptisAuth';
 import { NavigationStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/navigation';
 import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
-import { BulkTestLogger, loadAllLeads } from '../../leads';
+import { BulkTestLogger } from '../../leads';
 import { getAlptisCredentials } from './credentials';
 import {
   verifySection1,
@@ -28,16 +29,16 @@ import {
 } from './verification';
 
 /**
- * Default configuration for bulk tests
+ * Default configuration for Alptis bulk tests
  */
-const DEFAULT_CONFIG: Required<BulkTestConfig> = {
+const DEFAULT_CONFIG = {
   timeout: 30000,
   continueOnFailure: true,
   maxConcurrent: 1,
-};
+} as const;
 
 /**
- * Orchestrates bulk validation testing of leads
+ * Orchestrates bulk validation testing of leads for Alptis
  *
  * Example usage:
  * ```typescript
@@ -49,21 +50,13 @@ const DEFAULT_CONFIG: Required<BulkTestConfig> = {
  * logger.printSummary();
  * ```
  */
-export class BulkTestRunner {
-  private readonly logger: BulkTestLogger;
-  private readonly config: Required<BulkTestConfig>;
-
+export class BulkTestRunner extends BaseBulkTestRunner {
   /**
    * @param logger - Optional logger instance (creates default if not provided)
    * @param config - Optional configuration (uses defaults if not provided)
    */
   constructor(logger?: BulkTestLogger, config: BulkTestConfig = {}) {
-    this.logger = logger ?? new BulkTestLogger();
-    this.config = {
-      timeout: config.timeout ?? DEFAULT_CONFIG.timeout,
-      continueOnFailure: config.continueOnFailure ?? DEFAULT_CONFIG.continueOnFailure,
-      maxConcurrent: config.maxConcurrent ?? DEFAULT_CONFIG.maxConcurrent,
-    };
+    super(logger, config, DEFAULT_CONFIG);
   }
 
   /**
@@ -78,65 +71,18 @@ export class BulkTestRunner {
   }
 
   /**
-   * Run bulk validation on all available leads
+   * Extract lead metadata for result recording
    *
-   * @param page - Playwright page instance
-   * @returns Test results summary
+   * @param lead - Lead to extract metadata from
+   * @returns Tuple of [subscriberName, hasConjoint, childrenCount]
    */
-  async runAll(page: Page): Promise<BulkTestResults> {
-    const startTime = Date.now();
-    const allLeads = loadAllLeads();
+  protected extractLeadMetadata(lead: Lead): [string, boolean, number] {
+    const formData = LeadTransformer.transform(lead);
+    const subscriberName = `${formData.adherent.prenom} ${formData.adherent.nom}`;
+    const hasConjoint = !!formData.conjoint;
+    const childrenCount = formData.enfants?.length || 0;
 
-    for (let i = 0; i < allLeads.length; i++) {
-      const lead = allLeads[i];
-      await this.validateSingleLead(page, lead, i + 1, allLeads.length);
-    }
-
-    const duration = Date.now() - startTime;
-    const results = this.logger.getResults();
-
-    return {
-      total: results.length,
-      passed: results.filter((r) => r.success).length,
-      failed: results.filter((r) => !r.success).length,
-      duration,
-    };
-  }
-
-  /**
-   * Validate a single lead through the complete form workflow
-   *
-   * @param page - Playwright page instance
-   * @param lead - Lead to validate
-   * @param leadNumber - Sequential number of this lead
-   * @param totalLeads - Total number of leads being tested
-   */
-  private async validateSingleLead(
-    page: Page,
-    lead: Lead,
-    leadNumber: number,
-    totalLeads: number
-  ): Promise<void> {
-    this.logger.startTest(leadNumber, totalLeads, lead);
-
-    try {
-      await this.executeValidation(page, lead);
-
-      // Extract lead info for result recording
-      const formData = LeadTransformer.transform(lead);
-      const subscriberName = `${formData.adherent.prenom} ${formData.adherent.nom}`;
-      const hasConjoint = !!formData.conjoint;
-      const childrenCount = formData.enfants?.length || 0;
-
-      this.logger.recordSuccess(lead, subscriberName, hasConjoint, childrenCount);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.recordFailure(lead, errorMsg);
-
-      if (!this.config.continueOnFailure) {
-        throw error;
-      }
-    }
+    return [subscriberName, hasConjoint, childrenCount];
   }
 
   /**
@@ -145,7 +91,7 @@ export class BulkTestRunner {
    * @param page - Playwright page instance
    * @param lead - Lead to validate
    */
-  private async executeValidation(page: Page, lead: Lead): Promise<void> {
+  protected async executeValidation(page: Page, lead: Lead): Promise<void> {
     // Step 1: Navigate to form
     this.logger.logStep('Navigation', 'vers le formulaire');
     const nav = new NavigationStep();
@@ -216,13 +162,5 @@ export class BulkTestRunner {
     }
 
     this.logger.logStepSuccess('Aucune erreur de validation');
-  }
-
-  /**
-   * Get the logger instance
-   * Useful for accessing results or customizing logging behavior
-   */
-  getLogger(): BulkTestLogger {
-    return this.logger;
   }
 }

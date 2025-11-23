@@ -1,12 +1,12 @@
 import { test, expect } from '../../fixtures';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../../helpers/credentials';
 import { expectValidationError, verifyNoErrors, getAllErrorMessages } from '../../helpers/errorHelpers';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 
 test('Should show error for invalid date format', async ({ page, formPage }) => {
-    const step = new FormFillStep();
+    const step = new FormFillOrchestrator();
 
     // Try to fill with invalid date format
     const invalidData = {
@@ -35,7 +35,7 @@ test('Should show error for invalid date format', async ({ page, formPage }) => 
   });
 
   test('Should show error for empty required fields', async ({ page, formPage }) => {
-    const step = new FormFillStep();
+    const step = new FormFillOrchestrator();
 
     // Try to navigate without filling required fields
     const emptyData = {
@@ -67,7 +67,7 @@ test('Should show error for invalid date format', async ({ page, formPage }) => 
   });
 
   test('Should validate code postal format', async ({ page, formPage, leadData }) => {
-    const step = new FormFillStep();
+    const step = new FormFillOrchestrator();
 
     // Fill Section 1
     await step.fillMiseEnPlace(page, leadData);
@@ -94,7 +94,7 @@ test('Should show error for invalid date format', async ({ page, formPage }) => 
   });
 
   test('Should handle form submission with errors', async ({ page, formWithSection2, leadData }) => {
-    const step = new FormFillStep();
+    const step = new FormFillOrchestrator();
 
     // Verify we're on the form and previous sections are filled correctly
     expect(page.url()).toContain('/sante-select/informations-projet/');

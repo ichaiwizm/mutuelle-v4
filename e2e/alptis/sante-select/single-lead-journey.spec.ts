@@ -10,7 +10,7 @@
  *   pnpm lead-test (qui lance ce test automatiquement)
  */
 import { test, expect } from '../fixtures';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../helpers/credentials';
 import { verifySection4Toggle, verifySection4Enfant } from '../helpers/verification';
 
@@ -20,7 +20,7 @@ test('Complete journey with selected lead', async ({ page, formWithSection3, lea
   // Les fixtures ont déjà fait : Auth + Nav + Sections 1-3
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
 
   // Section 4: Enfants (si le lead en a)
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;

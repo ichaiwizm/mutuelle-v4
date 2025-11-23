@@ -7,18 +7,17 @@
  * - Navigation to form for each lead (with iframe loading)
  * - Form filling and verification (7 sections)
  * - Error handling and result tracking
- *
- * Adapted from Alptis BulkTestRunner for SwissLife One's iframe structure and 7-section flow
  */
 
-import type { Page, Frame } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import type { Lead } from '@/shared/types/lead';
-import type { BulkTestConfig, BulkTestResults } from '../types';
+import type { BulkTestConfig } from '../types';
+import { BaseBulkTestRunner } from '../../shared/BaseBulkTestRunner';
 import { SwissLifeOneAuth } from '@/main/flows/platforms/swisslifeone/lib/SwissLifeOneAuth';
 import { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
 import { FormFillOrchestrator } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/form-fill';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
-import { BulkTestLogger, loadAllLeads } from '../../leads';
+import { BulkTestLogger } from '../../leads';
 import { getSwissLifeOneCredentials } from './credentials';
 import {
   verifyStep1Section1,
@@ -31,14 +30,14 @@ import {
 } from './verification';
 
 /**
- * Default configuration for bulk tests
+ * Default configuration for SwissLife One bulk tests
  * Note: SwissLife One needs longer timeouts due to iframe loading (~45s)
  */
-const DEFAULT_CONFIG: Required<BulkTestConfig> = {
+const DEFAULT_CONFIG = {
   timeout: 180000, // 3 minutes per lead (iframe is SLOW)
   continueOnFailure: true,
   maxConcurrent: 1,
-};
+} as const;
 
 /**
  * Orchestrates bulk validation testing of leads for SwissLife One
@@ -53,21 +52,13 @@ const DEFAULT_CONFIG: Required<BulkTestConfig> = {
  * logger.printSummary();
  * ```
  */
-export class BulkTestRunner {
-  private readonly logger: BulkTestLogger;
-  private readonly config: Required<BulkTestConfig>;
-
+export class BulkTestRunner extends BaseBulkTestRunner {
   /**
    * @param logger - Optional logger instance (creates default if not provided)
    * @param config - Optional configuration (uses defaults if not provided)
    */
   constructor(logger?: BulkTestLogger, config: BulkTestConfig = {}) {
-    this.logger = logger ?? new BulkTestLogger();
-    this.config = {
-      timeout: config.timeout ?? DEFAULT_CONFIG.timeout,
-      continueOnFailure: config.continueOnFailure ?? DEFAULT_CONFIG.continueOnFailure,
-      maxConcurrent: config.maxConcurrent ?? DEFAULT_CONFIG.maxConcurrent,
-    };
+    super(logger, config, DEFAULT_CONFIG);
   }
 
   /**
@@ -82,65 +73,18 @@ export class BulkTestRunner {
   }
 
   /**
-   * Run bulk validation on all available leads
+   * Extract lead metadata for result recording
    *
-   * @param page - Playwright page instance
-   * @returns Test results summary
+   * @param lead - Lead to extract metadata from
+   * @returns Tuple of [subscriberName, hasConjoint, childrenCount]
    */
-  async runAll(page: Page): Promise<BulkTestResults> {
-    const startTime = Date.now();
-    const allLeads = loadAllLeads();
+  protected extractLeadMetadata(lead: Lead): [string, boolean, number] {
+    const formData = SwissLifeOneLeadTransformer.transform(lead);
+    const subscriberName = `${formData.assure_principal.date_naissance}`;
+    const hasConjoint = !!formData.conjoint;
+    const childrenCount = formData.enfants?.nombre_enfants || 0;
 
-    for (let i = 0; i < allLeads.length; i++) {
-      const lead = allLeads[i];
-      await this.validateSingleLead(page, lead, i + 1, allLeads.length);
-    }
-
-    const duration = Date.now() - startTime;
-    const results = this.logger.getResults();
-
-    return {
-      total: results.length,
-      passed: results.filter((r) => r.success).length,
-      failed: results.filter((r) => !r.success).length,
-      duration,
-    };
-  }
-
-  /**
-   * Validate a single lead through the complete form workflow
-   *
-   * @param page - Playwright page instance
-   * @param lead - Lead to validate
-   * @param leadNumber - Sequential number of this lead
-   * @param totalLeads - Total number of leads being tested
-   */
-  private async validateSingleLead(
-    page: Page,
-    lead: Lead,
-    leadNumber: number,
-    totalLeads: number
-  ): Promise<void> {
-    this.logger.startTest(leadNumber, totalLeads, lead);
-
-    try {
-      await this.executeValidation(page, lead);
-
-      // Extract lead info for result recording
-      const formData = SwissLifeOneLeadTransformer.transform(lead);
-      const subscriberName = `${formData.assure_principal.date_naissance}`;
-      const hasConjoint = !!formData.conjoint;
-      const childrenCount = formData.enfants?.nombre_enfants || 0;
-
-      this.logger.recordSuccess(lead, subscriberName, hasConjoint, childrenCount);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.recordFailure(lead, errorMsg);
-
-      if (!this.config.continueOnFailure) {
-        throw error;
-      }
-    }
+    return [subscriberName, hasConjoint, childrenCount];
   }
 
   /**
@@ -150,7 +94,7 @@ export class BulkTestRunner {
    * @param page - Playwright page instance
    * @param lead - Lead to validate
    */
-  private async executeValidation(page: Page, lead: Lead): Promise<void> {
+  protected async executeValidation(page: Page, lead: Lead): Promise<void> {
     // Step 1: Navigate to form and get iframe
     this.logger.logStep('Navigation', 'vers le formulaire (iframe loading...)');
     const nav = new SwissLifeNavigationStep();
@@ -232,13 +176,5 @@ export class BulkTestRunner {
     }
 
     this.logger.logStepSuccess('Aucune erreur de validation');
-  }
-
-  /**
-   * Get the logger instance
-   * Useful for accessing results or customizing logging behavior
-   */
-  getLogger(): BulkTestLogger {
-    return this.logger;
   }
 }

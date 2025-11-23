@@ -14,7 +14,7 @@
 
 import prompts from 'prompts';
 import { spawn } from 'child_process';
-import { loadAllLeads } from '../e2e/alptis/helpers/loadLeads';
+import { loadAllLeads } from '../e2e/leads/loadLeads';
 import { categorizeLeads, type CategorizedLead } from '../e2e/alptis/helpers/leadCategorization';
 
 /**

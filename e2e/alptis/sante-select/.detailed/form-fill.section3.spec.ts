@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../../helpers/credentials';
 import { verifySection3Toggle, verifySection3Conjoint } from '../../helpers/verification';
 
@@ -8,7 +8,7 @@ test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 test('Section 3 - Conjoint complet (après Sections 1 et 2)', async ({ page, formWithSection2, leadData }: any) => {
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
 
   // Only fill conjoint section if there is conjoint data
   const hasConjoint = !!leadData.conjoint;

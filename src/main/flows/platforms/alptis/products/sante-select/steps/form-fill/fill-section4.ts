@@ -1,7 +1,7 @@
 import type { Page } from 'playwright';
 import { expect } from '@playwright/test';
 import { SECTION_4_SELECTORS } from './selectors/section4';
-import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './field-fillers';
+import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './operations';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../config';
 
 /**

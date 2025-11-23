@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../../helpers/credentials';
 import { verifySection4Toggle, verifySection4Enfant } from '../../helpers/verification';
 
@@ -8,7 +8,7 @@ test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 test('Section 4 - Enfants complet (après Sections 1, 2 et 3)', async ({ page, formWithSection3, leadData }: any) => {
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
 
   // Only toggle enfants section if there are children
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;

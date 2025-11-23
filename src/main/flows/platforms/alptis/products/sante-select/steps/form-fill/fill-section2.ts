@@ -7,7 +7,7 @@ import {
   fillCadreExerciceField,
   fillCategorieSocioprofessionnelleField,
   fillRegimeObligatoireField,
-} from './field-fillers';
+} from './operations';
 
 // Champs Section 2
 export async function fillCivilite(page: Page, civilite: 'monsieur' | 'madame'): Promise<void> {

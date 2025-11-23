@@ -4,7 +4,7 @@
  * Les fixtures gèrent automatiquement les sections 1-3
  */
 import { test, expect } from '../fixtures';
-import { FormFillStep } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
 import { hasAlptisCredentials } from '../helpers/credentials';
 import { verifySection4Toggle, verifySection4Enfant } from '../helpers/verification';
 
@@ -14,7 +14,7 @@ test('🎲 Random', async ({ page, formWithSection3, leadData }) => {
   // Les fixtures ont déjà fait : Auth + Nav + Sections 1-3
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
   if (hasEnfants) {
@@ -37,7 +37,7 @@ test('🎲 Random', async ({ page, formWithSection3, leadData }) => {
 test('👫 Avec conjoint', async ({ page, formWithSection3, leadData }) => {
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
   if (hasEnfants) {
@@ -60,7 +60,7 @@ test('👫 Avec conjoint', async ({ page, formWithSection3, leadData }) => {
 test('👶 Avec enfants', async ({ page, formWithSection3, leadData }) => {
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
   if (hasEnfants) {
@@ -83,7 +83,7 @@ test('👶 Avec enfants', async ({ page, formWithSection3, leadData }) => {
 test('👨‍👩‍👧 Conjoint + Enfants', async ({ page, formWithSection3, leadData }) => {
   expect(page.url()).toContain('/sante-select/informations-projet/');
 
-  const step = new FormFillStep();
+  const step = new FormFillOrchestrator();
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
   if (hasEnfants) {
