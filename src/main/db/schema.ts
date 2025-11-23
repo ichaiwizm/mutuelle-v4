@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, uniqueIndex, primaryKey } from "drizzle-orm/sqlite-core";
 
 // Users/credentials (1 compte/plateforme)
 export const credentials = sqliteTable(
@@ -60,4 +60,19 @@ export const oauthTokens = sqliteTable(
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (t) => ({ uniquePair: uniqueIndex("oauth_tokens_provider_email_unique").on(t.provider, t.accountEmail) })
+);
+
+// Product status (lifecycle management)
+export const productStatus = sqliteTable(
+  "product_status",
+  {
+    platform: text("platform").notNull(),          // "alptis" | "swisslife"
+    product: text("product").notNull(),            // "sante_select" | "slsis"
+    status: text("status").notNull().default("active"), // "active" | "inactive" | "beta" | "deprecated"
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    updatedBy: text("updated_by"),                 // optional until user management
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.platform, t.product] }),
+  })
 );
