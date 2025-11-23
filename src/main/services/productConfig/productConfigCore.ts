@@ -3,15 +3,23 @@
  * Basic methods for accessing product configurations (code-based)
  */
 
-import { getProductConfig, getProductsByCategory, getProductsByPlatform, PRODUCT_CONFIGS } from "../../flows/config/products";
+import { getProductConfig as getConfigFromProducts, getProductsByCategory, getProductsByPlatform, PRODUCT_CONFIGS } from "../../flows/config/products";
 import type { ProductConfiguration, ProductCategory, StepDefinition } from "../../../shared/types/product";
+
+/**
+ * Get configuration for a specific product by flow key
+ * Standalone function for convenience
+ */
+export function getProductConfig(flowKey: string): ProductConfiguration | undefined {
+  return getConfigFromProducts(flowKey);
+}
 
 export const ProductConfigCore = {
   /**
    * Get configuration for a specific product by flow key
    */
   getProductConfig(flowKey: string): ProductConfiguration | undefined {
-    return getProductConfig(flowKey);
+    return getConfigFromProducts(flowKey);
   },
 
   /**
@@ -39,7 +47,7 @@ export const ProductConfigCore = {
    * Get all steps for a specific product
    */
   getProductSteps(flowKey: string): StepDefinition[] | undefined {
-    const config = getProductConfig(flowKey);
+    const config = getConfigFromProducts(flowKey);
     return config?.steps;
   },
 
@@ -47,7 +55,7 @@ export const ProductConfigCore = {
    * Get a specific step by ID within a product
    */
   getStep(flowKey: string, stepId: string): StepDefinition | undefined {
-    const config = getProductConfig(flowKey);
+    const config = getConfigFromProducts(flowKey);
     return config?.steps.find((step) => step.id === stepId);
   },
 
@@ -55,7 +63,7 @@ export const ProductConfigCore = {
    * Get required steps only (excludes optional conditional steps)
    */
   getRequiredSteps(flowKey: string): StepDefinition[] {
-    const config = getProductConfig(flowKey);
+    const config = getConfigFromProducts(flowKey);
     return config?.steps.filter((step) => step.required) || [];
   },
 
@@ -63,7 +71,7 @@ export const ProductConfigCore = {
    * Get conditional steps only
    */
   getConditionalSteps(flowKey: string): StepDefinition[] {
-    const config = getProductConfig(flowKey);
+    const config = getConfigFromProducts(flowKey);
     return config?.steps.filter((step) => step.conditional) || [];
   },
 
