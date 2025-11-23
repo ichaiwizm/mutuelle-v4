@@ -268,6 +268,6 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
     console.log(`   Emails vides: ${emptyEmails}`);
     console.log(`   Total leads parsés: ${totalLeads}\n`);
 
-    expect(totalLeads).toBe(22);
+    expect(totalLeads).toBe(25);
   });
 });

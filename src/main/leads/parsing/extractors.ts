@@ -3,6 +3,7 @@
  */
 
 import type { ExtractedContact, ExtractedPerson, ExtractedChild, ExtractedBesoin, SectionMap } from './types';
+import { normalizeText } from './normalizers';
 
 const FIELD_PATTERN = /^(.+?)\s*:\s*(.+)$/;
 
@@ -14,8 +15,7 @@ const FIELD_PATTERN = /^(.+?)\s*:\s*(.+)$/;
  */
 export function splitEmailIntoLeadBlocks(text: string): string[] {
   // Remove email quote markers (> at start of lines)
-  let normalized = text.replace(/\r\n/g, '\n');
-  normalized = normalized.replace(/^>\s?/gm, '');
+  const normalized = normalizeText(text, { removeEmailQuotes: true });
   const transmissionPattern = /Transmission d['']une fiche/gi;
 
   const matches: Array<{ index: number }> = [];
@@ -45,8 +45,7 @@ export function splitEmailIntoLeadBlocks(text: string): string[] {
  */
 export function splitIntoSections(text: string): SectionMap {
   // Remove email quote markers (> at start of lines)
-  let normalized = text.replace(/\r\n/g, '\n');
-  normalized = normalized.replace(/^>\s?/gm, '');
+  const normalized = normalizeText(text, { removeEmailQuotes: true });
   const startMatch = normalized.match(/Transmission d['']une fiche/i);
   if (!startMatch || startMatch.index === undefined) return {};
 

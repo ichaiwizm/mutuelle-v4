@@ -1,0 +1,5 @@
+{
+  "id": "text-001",
+  "type": "text",
+  "text": "Transmission d'une fiche\nVoici les éléments de la fiche trio :\n\nContact\n\nCivilité : M.\nNom : Dupont\nPrénom : Jean\nAdresse : 15 rue de la Paix\nCode postal : 75002\nVille : PARIS\nTéléphone : 06.12.34.56.78\nEmail : jean.dupont@example.com\n\nSouscripteur\n\nDate de naissance : 20/05/1985\nProfession : Cadre\nRégime Social : Salarié du privé\nNombre d'enfants : 0\n\nBesoin\n\nDate d'effet : 01/01/2026\nSouscripteur actuellement assuré : Non\nSoins médicaux : 3\nHospitalisation : 3\nOptique : 2\nDentaire : 2\n\nA très bientôt sur AssurProspect.fr\n"
+}
