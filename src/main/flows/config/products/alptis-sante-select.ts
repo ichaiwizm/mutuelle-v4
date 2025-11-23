@@ -4,8 +4,9 @@
  */
 
 import type { ProductConfiguration } from "../../../../shared/types/product";
+import type { AlptisFormData } from "../../platforms/alptis/products/sante-select/transformers/types";
 
-export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
+export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
   platform: "alptis",
   product: "sante_select",
   flowKey: "alptis_sante_select",
@@ -21,6 +22,10 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       type: "auth",
       required: true,
       method: "login",
+      stepClass: "AlptisAuthStep",
+      needsCredentials: true,
+      needsLead: false,
+      maxRetries: 2,
       estimatedDuration: 5000,
     },
     {
@@ -30,6 +35,10 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       type: "navigation",
       required: true,
       method: "execute",
+      stepClass: "AlptisNavigationStep",
+      needsCredentials: false,
+      needsLead: false,
+      maxRetries: 1,
       estimatedDuration: 3000,
     },
     {
@@ -39,6 +48,10 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillMiseEnPlace",
+      stepClass: "AlptisFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 2000,
     },
     {
@@ -48,6 +61,10 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillAdherent",
+      stepClass: "AlptisFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 5000,
     },
     {
@@ -58,6 +75,10 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       required: false,
       conditional: "hasConjoint",
       method: "fillConjoint",
+      stepClass: "AlptisFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 3000,
     },
     {
@@ -68,9 +89,19 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration = {
       required: false,
       conditional: "hasEnfants",
       method: "fillEnfants",
+      stepClass: "AlptisFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 4000,
     },
   ],
+
+  // Conditional rules to evaluate step conditions
+  conditionalRules: {
+    hasConjoint: (data: AlptisFormData) => !!data.conjoint,
+    hasEnfants: (data: AlptisFormData) => (data.enfants?.length ?? 0) > 0,
+  },
 
   metadata: {
     formUrl: "https://pro.alptis.org/sante-select/informations-projet/",
