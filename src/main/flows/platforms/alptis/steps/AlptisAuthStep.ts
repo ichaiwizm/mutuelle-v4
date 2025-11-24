@@ -18,6 +18,6 @@ export class AlptisAuthStep extends BaseStep {
     const auth = AlptisInstances.getAuth();
 
     // Execute login
-    await auth.login(page, credentials.login, credentials.password);
+    await auth.login(page, context.logger);
   }
 }

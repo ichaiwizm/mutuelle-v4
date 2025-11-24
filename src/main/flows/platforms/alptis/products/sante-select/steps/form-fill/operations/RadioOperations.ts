@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 
 /**
  * Cadre d'exercice label mappings
@@ -15,14 +16,16 @@ const CADRE_EXERCICE_LABELS: Record<string, string> = {
  * @param value - The cadre d'exercice value
  * @param fieldIndex - Position (0 for adherent, 1 for conjoint)
  * @param fieldLabel - Label for logging purposes
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillCadreExerciceField(
   page: Page,
   value: 'SALARIE' | 'INDEPENDANT_PRESIDENT_SASU_SAS',
   fieldIndex: number,
-  fieldLabel: string
+  fieldLabel: string,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`${fieldLabel}: ${value}`);
+  logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, value, fieldIndex });
 
   const labelText = CADRE_EXERCICE_LABELS[value];
   if (!labelText) throw new Error(`Label inconnu pour cadre d'exercice: ${value}`);
@@ -34,5 +37,5 @@ export async function fillCadreExerciceField(
 
   await label.waitFor({ state: 'visible', timeout: 5000 });
   await label.click();
-  console.log(`  ↳ Option "${labelText}" sélectionnée`);
+  logger?.debug(`Radio option selected`, { fieldLabel, labelText });
 }

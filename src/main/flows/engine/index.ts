@@ -5,6 +5,7 @@
 export { FlowEngine } from "./FlowEngine";
 export { StepRegistry } from "./StepRegistry";
 export { BaseStep } from "./BaseStep";
+export { FlowLogger } from "./FlowLogger";
 export type {
   IStep,
   ExecutionContext,
@@ -13,3 +14,4 @@ export type {
   FlowExecutionResult,
   PlatformCredentials,
 } from "./types";
+export type { LogLevel, LogEntry } from "./FlowLogger";

@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { fillTextboxField } from '../operations/TextboxOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
@@ -13,7 +14,8 @@ import type { ConjointData } from '../../../transformers/types';
  */
 export async function fillDateNaissanceConjoint(
   frame: Frame,
-  dateNaissance: string
+  dateNaissance: string,
+  logger?: FlowLogger
 ): Promise<void> {
   await fillTextboxField(
     frame,
@@ -23,7 +25,8 @@ export async function fillDateNaissanceConjoint(
       fieldLabel: 'Date de naissance conjoint',
       fieldNumber: 1,
       totalFields: 4,
-    }
+    },
+    logger
   );
 
   // Close the datepicker by clicking elsewhere on the page
@@ -37,11 +40,11 @@ export async function fillDateNaissanceConjoint(
 
     // Wait for the datepicker to actually disappear
     await datepicker.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      console.log('⚠️  Datepicker still visible after click');
+      logger?.warn('Datepicker still visible after click');
     });
 
     await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
-    console.log('✅ Datepicker fermé');
+    logger?.debug('Datepicker closed');
   }
 }
 
@@ -50,9 +53,12 @@ export async function fillDateNaissanceConjoint(
  */
 export async function fillRegimeSocialConjoint(
   frame: Frame,
-  regimeSocial: ConjointData['regime_social']
+  regimeSocial: ConjointData['regime_social'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapRegimeSocialToFormLabel(regimeSocial);
+
+  logger?.debug('Filling régime social conjoint', { label, field: '2/4' });
 
   // Select by label (visible text) instead of by value
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section5.regime_social_conjoint.primary).first();
@@ -60,8 +66,7 @@ export async function fillRegimeSocialConjoint(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[2/4] Régime social conjoint: ${label}`);
-  console.log(`✅ Régime social conjoint sélectionné avec succès`);
+  logger?.debug('Régime social conjoint selected', { label });
 }
 
 /**
@@ -69,9 +74,12 @@ export async function fillRegimeSocialConjoint(
  */
 export async function fillProfessionConjoint(
   frame: Frame,
-  profession: ConjointData['profession']
+  profession: ConjointData['profession'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapProfessionToFormLabel(profession);
+
+  logger?.debug('Filling profession conjoint', { label, field: '3/4' });
 
   // Select by label (visible text) instead of by value
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section5.profession_conjoint.primary).first();
@@ -79,8 +87,7 @@ export async function fillProfessionConjoint(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[3/4] Profession conjoint: ${label}`);
-  console.log(`✅ Profession conjoint sélectionnée avec succès`);
+  logger?.debug('Profession conjoint selected', { label });
 }
 
 /**
@@ -90,9 +97,12 @@ export async function fillProfessionConjoint(
 export async function fillStatutConjoint(
   frame: Frame,
   statut: ConjointData['statut'],
-  regime: ConjointData['regime_social']
+  regime: ConjointData['regime_social'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapStatutToFormLabel(statut, regime);
+
+  logger?.debug('Filling statut conjoint', { label, field: '4/4' });
 
   // Wait for the statut field to be visible
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section5.statut_conjoint.primary).first();
@@ -109,8 +119,7 @@ export async function fillStatutConjoint(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[4/4] Statut conjoint: ${label}`);
-  console.log(`✅ Statut conjoint sélectionné avec succès`);
+  logger?.debug('Statut conjoint selected', { label });
 }
 
 /**
@@ -120,21 +129,21 @@ export async function fillStatutConjoint(
  */
 export async function fillSection5(
   frame: Frame,
-  conjointData: ConjointData
+  conjointData: ConjointData,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log('\n--- Section 5: Données du conjoint ---');
+  logger?.debug('Starting Section 5: Données du conjoint');
 
   // First, click on the "Conjoint" tab to switch from "Assuré principal"
-  console.log('🔄 Passage à l\'onglet Conjoint...');
+  logger?.debug('Switching to Conjoint tab');
   await frame.getByRole('link', { name: SWISSLIFE_STEP1_SELECTORS.section5.conjoint_tab.primary }).click();
   await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
-  console.log('✅ Onglet Conjoint activé');
+  logger?.debug('Conjoint tab activated');
 
-  await fillDateNaissanceConjoint(frame, conjointData.date_naissance);
-  await fillRegimeSocialConjoint(frame, conjointData.regime_social);
-  await fillProfessionConjoint(frame, conjointData.profession);
-  await fillStatutConjoint(frame, conjointData.statut, conjointData.regime_social);
+  await fillDateNaissanceConjoint(frame, conjointData.date_naissance, logger);
+  await fillRegimeSocialConjoint(frame, conjointData.regime_social, logger);
+  await fillProfessionConjoint(frame, conjointData.profession, logger);
+  await fillStatutConjoint(frame, conjointData.statut, conjointData.regime_social, logger);
 
-  console.log('✅ Section "Données du conjoint" complétée (4/4 champs)');
-  console.log('---\n');
+  logger?.info('Section "Données du conjoint" completed', { section: 'conjoint', fieldsCount: 4 });
 }

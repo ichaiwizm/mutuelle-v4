@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { fillTextboxField } from '../operations/TextboxOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
@@ -10,26 +11,26 @@ import type { GammesOptionsData } from '../../../transformers/types';
  */
 export async function fillGamme(
   frame: Frame,
-  gamme: GammesOptionsData['gamme']
+  gamme: GammesOptionsData['gamme'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapGammeToFormLabel(gamme);
 
-  console.log(`[1/5] Gamme: ${label}`);
-  console.log(`[DEBUG] Selector: ${SWISSLIFE_STEP1_SELECTORS.section7.gamme.primary}`);
+  logger?.debug('Filling gamme', { label, field: '1/5', selector: SWISSLIFE_STEP1_SELECTORS.section7.gamme.primary });
 
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section7.gamme.primary).first();
   await selectElement.waitFor({ state: 'visible', timeout: 10000 });
 
-  console.log(`[DEBUG] Element visible, attempting to select option: ${label}`);
+  logger?.debug('Element visible, selecting option', { label });
   await selectElement.selectOption({ label });
 
   // Verify selection
   const selectedValue = await selectElement.inputValue();
-  console.log(`[DEBUG] Selected value after selection: ${selectedValue}`);
+  logger?.debug('Option selected', { label, selectedValue });
 
   await frame.waitForTimeout(2000); // Wait for conditional fields to appear
 
-  console.log(`✅ Gamme sélectionnée: ${label}`);
+  logger?.debug('Gamme selected successfully', { label });
 }
 
 /**
@@ -38,9 +39,10 @@ export async function fillGamme(
  */
 export async function fillDateEffet(
   frame: Frame,
-  dateEffet: string
+  dateEffet: string,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`[2/5] Date d'effet: ${dateEffet}`);
+  logger?.debug('Filling date effet', { dateEffet, field: '2/5' });
 
   await fillTextboxField(
     frame,
@@ -50,7 +52,8 @@ export async function fillDateEffet(
       fieldLabel: 'Date d\'effet',
       fieldNumber: 2,
       totalFields: 5,
-    }
+    },
+    logger
   );
 
   // Close the datepicker if it's open
@@ -60,12 +63,12 @@ export async function fillDateEffet(
   if (isVisible) {
     await frame.locator('body').click({ position: { x: 10, y: 10 } });
     await datepicker.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      console.log('⚠️  Datepicker still visible after click');
+      logger?.warn('Datepicker still visible after click');
     });
     await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
   }
 
-  console.log(`✅ Date d'effet remplie: ${dateEffet}`);
+  logger?.debug('Date effet filled', { dateEffet });
 }
 
 /**
@@ -74,16 +77,20 @@ export async function fillDateEffet(
  */
 export async function fillLoiMadelin(
   frame: Frame,
-  loiMadelin: boolean
+  loiMadelin: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`[3/5] Loi Madelin: ${loiMadelin ? 'oui (coché)' : 'non (décoché)'}`);
-  console.log(`[DEBUG] Searching for checkbox with name: ${SWISSLIFE_STEP1_SELECTORS.section7.loi_madelin.byRole}`);
+  logger?.debug('Filling Loi Madelin', {
+    loiMadelin: loiMadelin ? 'checked' : 'unchecked',
+    field: '3/5',
+    checkboxName: SWISSLIFE_STEP1_SELECTORS.section7.loi_madelin.byRole
+  });
 
   const checkbox = frame.getByRole('checkbox', { name: SWISSLIFE_STEP1_SELECTORS.section7.loi_madelin.byRole });
   await checkbox.waitFor({ state: 'visible', timeout: 10000 });
 
-  console.log(`[DEBUG] Checkbox found and visible, current state: ${await checkbox.isChecked()}`);
-  console.log(`[DEBUG] Setting checkbox to: ${loiMadelin}`);
+  const currentState = await checkbox.isChecked();
+  logger?.debug('Checkbox found and visible', { currentState, targetState: loiMadelin });
 
   // Use JavaScript to set checkbox state directly (bypasses viewport issues)
   await checkbox.evaluate((el: HTMLInputElement, value: boolean) => {
@@ -94,10 +101,10 @@ export async function fillLoiMadelin(
 
   // Verify checkbox state after setting
   const isCheckedAfter = await checkbox.isChecked();
-  console.log(`[DEBUG] Checkbox state after setting: ${isCheckedAfter}`);
+  logger?.debug('Checkbox state updated', { isCheckedAfter });
 
   await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
-  console.log(`✅ Loi Madelin ${loiMadelin ? 'cochée' : 'décochée'}`);
+  logger?.debug('Loi Madelin filled', { loiMadelin });
 }
 
 /**
@@ -106,33 +113,34 @@ export async function fillLoiMadelin(
  */
 export async function fillRepriseIsoGaranties(
   frame: Frame,
-  repriseIsoGaranties: boolean
+  repriseIsoGaranties: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
   const value = repriseIsoGaranties ? 'oui' : 'non';
-  console.log(`[4/5] Reprise iso garanties: ${value}`);
+  logger?.debug('Filling reprise iso garanties', { value, field: '4/5' });
 
   // Wait for the radio group to appear (it's conditional on gamme selection)
-  console.log('⏳ Attente du chargement du champ "Reprise iso garanties"...');
+  logger?.debug('Waiting for reprise iso garanties field to load...');
 
   // Wait a bit longer for the field to fully load after gamme selection
   await frame.waitForTimeout(3000);
 
-  console.log(`[DEBUG] Using getByText approach with nth(2) for third oui/non group`);
+  logger?.debug('Using getByText approach with nth(2) for third oui/non group');
 
   // Use nth(2) to select the correct radio group (3rd set of oui/non radios on the page)
   // First set: besoin_couverture_individuelle, Second set: besoin_indemnites_journalieres, Third set: reprise_iso_garanties
   const radioLabel = frame.getByText(value, { exact: true }).nth(2);
   const count = await frame.getByText(value, { exact: true }).count();
-  console.log(`[DEBUG] Total "${value}" text elements found: ${count}`);
+  logger?.debug('Text elements found', { value, count });
 
   await radioLabel.waitFor({ state: 'visible', timeout: 10000 });
-  console.log(`[DEBUG] Radio label found and visible, clicking...`);
+  logger?.debug('Radio label found and visible, clicking...');
 
   await radioLabel.click();
 
   await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
 
-  console.log(`✅ Reprise iso garanties: ${value}`);
+  logger?.debug('Reprise iso garanties filled', { value });
 }
 
 /**
@@ -140,26 +148,27 @@ export async function fillRepriseIsoGaranties(
  */
 export async function fillResiliationAEffectuer(
   frame: Frame,
-  resiliationAEffectuer: boolean
+  resiliationAEffectuer: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
   const value = resiliationAEffectuer ? 'oui' : 'non';
-  console.log(`[5/5] Résiliation à effectuer: ${value}`);
+  logger?.debug('Filling résiliation à effectuer', { value, field: '5/5' });
 
-  console.log(`[DEBUG] Using getByText approach with nth(3) for fourth oui/non group`);
+  logger?.debug('Using getByText approach with nth(3) for fourth oui/non group');
 
   // Use nth(3) to select the correct radio group (4th set of oui/non radios)
   const radioLabel = frame.getByText(value, { exact: true }).nth(3);
   const count = await frame.getByText(value, { exact: true }).count();
-  console.log(`[DEBUG] Total "${value}" text elements found: ${count}`);
+  logger?.debug('Text elements found', { value, count });
 
   await radioLabel.waitFor({ state: 'visible', timeout: 10000 });
-  console.log(`[DEBUG] Radio label found and visible, clicking...`);
+  logger?.debug('Radio label found and visible, clicking...');
 
   await radioLabel.click();
 
   await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
 
-  console.log(`✅ Résiliation à effectuer: ${value}`);
+  logger?.debug('Résiliation à effectuer filled', { value });
 }
 
 /**
@@ -169,12 +178,13 @@ export async function fillResiliationAEffectuer(
  */
 export async function fillSection7(
   frame: Frame,
-  gammesOptions: GammesOptionsData
+  gammesOptions: GammesOptionsData,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log('\n--- Section 7: Gammes et Options ---');
+  logger?.debug('Starting Section 7: Gammes et Options');
 
-  await fillGamme(frame, gammesOptions.gamme);
-  await fillDateEffet(frame, gammesOptions.date_effet);
+  await fillGamme(frame, gammesOptions.gamme, logger);
+  await fillDateEffet(frame, gammesOptions.date_effet, logger);
 
   // Loi Madelin checkbox only appears for TNS regimes
   // Check if the checkbox exists before trying to fill it
@@ -182,30 +192,29 @@ export async function fillSection7(
   const loiMadelinExists = await loiMadelinCheckbox.count() > 0;
 
   if (loiMadelinExists) {
-    console.log(`[DEBUG] Loi Madelin checkbox found, filling...`);
-    await fillLoiMadelin(frame, gammesOptions.loi_madelin);
+    logger?.debug('Loi Madelin checkbox found, filling...');
+    await fillLoiMadelin(frame, gammesOptions.loi_madelin, logger);
   } else {
-    console.log(`ℹ️  Loi Madelin checkbox not present (non-TNS regime), skipping`);
+    logger?.debug('Loi Madelin checkbox not present (non-TNS regime), skipping');
   }
 
-  await fillRepriseIsoGaranties(frame, gammesOptions.reprise_iso_garanties);
-  await fillResiliationAEffectuer(frame, gammesOptions.resiliation_a_effectuer);
+  await fillRepriseIsoGaranties(frame, gammesOptions.reprise_iso_garanties, logger);
+  await fillResiliationAEffectuer(frame, gammesOptions.resiliation_a_effectuer, logger);
 
-  console.log('\n[VERIFICATION] Vérification finale des champs de la Section 7...');
+  logger?.debug('Verification: Final checks for Section 7');
 
   // Verify gamme
   const gammeValue = await frame.locator(SWISSLIFE_STEP1_SELECTORS.section7.gamme.primary).first().inputValue();
-  console.log(`[VERIFICATION] Gamme value: "${gammeValue}"`);
+  logger?.debug('Verification: Gamme value', { gammeValue });
 
   // Verify date effet
   const dateEffetValue = await frame.locator(SWISSLIFE_STEP1_SELECTORS.section7.date_effet.primary).inputValue();
-  console.log(`[VERIFICATION] Date effet value: "${dateEffetValue}"`);
+  logger?.debug('Verification: Date effet value', { dateEffetValue });
 
   // Verify loi madelin checkbox
   const loiMadelinChecked = await frame.getByRole('checkbox', { name: SWISSLIFE_STEP1_SELECTORS.section7.loi_madelin.byRole }).isChecked();
-  console.log(`[VERIFICATION] Loi Madelin checked: ${loiMadelinChecked}`);
+  logger?.debug('Verification: Loi Madelin checked', { loiMadelinChecked });
 
-  console.log('✅ Section "Gammes et Options" complétée (5/5 champs)');
-  console.log('---\n');
-  console.log('🎉 STEP 1 COMPLET - Toutes les sections remplies !');
+  logger?.info('Section "Gammes et Options" completed', { section: 'gammes_options', fieldsCount: 5 });
+  logger?.info('STEP 1 COMPLETE - All sections filled!');
 }

@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
 import type { AlptisFormData } from '../../../transformers/types';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { scrollToSection } from '../helpers/scroll-helpers';
 import {
   fillToggleConjoint,
@@ -19,43 +20,48 @@ export class Section3Fill {
   /**
    * Fill Section 3: Conjoint(e) - Toggle only
    */
-  async fillToggle(page: Page, hasConjoint: boolean): Promise<void> {
-    console.log('--- SECTION: Conjoint(e) ---');
+  async fillToggle(page: Page, hasConjoint: boolean, logger?: FlowLogger): Promise<void> {
+    logger?.debug('Starting Section 3: Conjoint(e) - Toggle', { hasConjoint });
 
-    await scrollToSection(page, 'Conjoint');
-    await fillToggleConjoint(page, hasConjoint);
+    await scrollToSection(page, 'Conjoint', logger);
+    await fillToggleConjoint(page, hasConjoint, logger);
 
-    console.log(`✅ Section "Conjoint(e)" toggle complétée (1/5 champs)`);
-    console.log('---');
+    logger?.info('Section "Conjoint(e)" toggle completed', {
+      section: 'conjoint_toggle',
+      hasConjoint,
+    });
   }
 
   /**
    * Fill Section 3: Conjoint(e) - Complete form
    * Note: Should be called AFTER fillToggle when hasConjoint is true
    */
-  async fill(page: Page, data: AlptisFormData['conjoint']): Promise<void> {
+  async fill(page: Page, data: AlptisFormData['conjoint'], logger?: FlowLogger): Promise<void> {
     if (!data) {
-      console.log('⏭️ Pas de données conjoint, remplissage ignoré');
+      logger?.debug('No conjoint data, skipping form fill');
       return;
     }
 
-    console.log('--- SECTION: Conjoint(e) - Formulaire ---');
+    logger?.debug('Starting Section 3: Conjoint(e) - Form');
 
     // Wait for form fields to appear after toggle
     await page.waitForTimeout(AlptisTimeouts.formFieldsAppear);
 
-    await fillConjointDateNaissance(page, data.date_naissance);
-    await fillConjointCategorieSocioprofessionnelle(page, data.categorie_socioprofessionnelle);
+    await fillConjointDateNaissance(page, data.date_naissance, logger);
+    await fillConjointCategorieSocioprofessionnelle(page, data.categorie_socioprofessionnelle, logger);
 
     // Cadre d'exercice is conditional - only appears for certain professions
     if (data.cadre_exercice) {
-      await fillConjointCadreExercice(page, data.cadre_exercice);
+      await fillConjointCadreExercice(page, data.cadre_exercice, logger);
     }
 
-    await fillConjointRegimeObligatoire(page, data.regime_obligatoire);
+    await fillConjointRegimeObligatoire(page, data.regime_obligatoire, logger);
 
-    const fieldCount = data.cadre_exercice ? '4/4' : '3/3';
-    console.log(`✅ Section "Conjoint(e)" formulaire complété (${fieldCount} champs)`);
-    console.log('---');
+    const fieldCount = data.cadre_exercice ? 4 : 3;
+    logger?.info('Section "Conjoint(e)" form completed', {
+      section: 'conjoint_form',
+      fieldsCount: fieldCount,
+      hasCadreExercice: !!data.cadre_exercice,
+    });
   }
 }

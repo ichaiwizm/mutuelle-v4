@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { verifySelectValue } from '../verifiers';
 import { PROFESSION_LABELS, REGIME_LABELS } from '../helpers/form-labels';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
@@ -11,15 +12,17 @@ import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
  * @param fieldIndex - Position (0 for adherent, 1 for conjoint)
  * @param fieldLabel - Label for logging purposes
  * @param verificationSelector - CSS selector for verification
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillCategorieSocioprofessionnelleField(
   page: Page,
   value: string,
   fieldIndex: number,
   fieldLabel: string,
-  verificationSelector: string
+  verificationSelector: string,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`${fieldLabel}: ${value}`);
+  logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, value, fieldIndex });
 
   const label = PROFESSION_LABELS[value as any];
   if (!label) throw new Error(`Label inconnu: ${value}`);
@@ -41,15 +44,17 @@ export async function fillCategorieSocioprofessionnelleField(
  * @param fieldIndex - Position (0 for adherent, 1 for conjoint)
  * @param fieldLabel - Label for logging purposes
  * @param verificationSelector - CSS selector for verification
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillRegimeObligatoireField(
   page: Page,
   value: string,
   fieldIndex: number,
   fieldLabel: string,
-  verificationSelector: string
+  verificationSelector: string,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`${fieldLabel}: ${value}`);
+  logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, value, fieldIndex });
 
   const label = REGIME_LABELS[value];
   if (!label) throw new Error(`Label inconnu: ${value}`);

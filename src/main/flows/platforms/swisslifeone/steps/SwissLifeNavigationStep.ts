@@ -15,7 +15,7 @@ export class SwissLifeNavigationStep extends BaseStep {
     const navigationStep = SwissLifeOneInstances.getNavigationStep();
 
     // Execute navigation (this loads the iframe)
-    await navigationStep.execute(page);
+    await navigationStep.execute(page, context.logger);
 
     // Verify iframe is ready
     const isReady = await navigationStep.isFormReady(page);

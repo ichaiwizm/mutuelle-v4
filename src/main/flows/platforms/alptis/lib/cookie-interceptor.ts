@@ -28,10 +28,7 @@ export async function setupAxeptioInterception(page: Page, options?: Interceptio
   const context = page.context();
 
   const abortAndMaybeLog = async (route: Route, tag: string): Promise<void> => {
-    if (options?.debug) {
-      const req = route.request();
-      console.log(`[COOKIES][ABORT ${tag}] ${req.method()} ${req.url()}`);
-    }
+    // Debug logging removed - not needed in production
     await route.abort();
   };
 

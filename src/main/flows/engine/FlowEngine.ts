@@ -8,6 +8,7 @@ import type { StepDefinition, ProductConfiguration } from "../../../shared/types
 import { StepRegistry } from "./StepRegistry";
 import { getProductConfig } from "../../services/productConfig/productConfigCore";
 import { getEnvironment, getAlptisEnvironmentBehaviors } from "../config/alptis.config";
+import { FlowLogger } from "./FlowLogger";
 
 /**
  * Main Flow Execution Engine
@@ -43,10 +44,13 @@ export class FlowEngine {
    */
   async execute<T = any>(
     flowKey: string,
-    context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey">
+    context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger">
   ): Promise<FlowExecutionResult> {
     const startTime = Date.now();
     const stepResults: StepResult[] = [];
+
+    // Initialize logger
+    const logger = new FlowLogger(flowKey, context.lead?.id, this.config.verbose);
 
     try {
       // Get product configuration
@@ -55,50 +59,55 @@ export class FlowEngine {
         throw new Error(`Product configuration not found for flowKey: ${flowKey}`);
       }
 
-      this.log(`Starting flow execution: ${flowKey}`);
-      this.log(`Total steps configured: ${productConfig.steps.length}`);
+      logger.info(`Starting flow execution: ${flowKey}`);
+      logger.info(`Total steps configured: ${productConfig.steps.length}`);
 
       // Execute each step in order
       for (const stepDef of productConfig.steps) {
         // Skip auth if configured
         if (this.config.skipAuth && stepDef.type === "auth") {
-          this.log(`Skipping auth step: ${stepDef.id}`);
+          logger.info(`Skipping auth step: ${stepDef.id}`);
           continue;
         }
 
         // Skip navigation if configured
         if (this.config.skipNavigation && stepDef.type === "navigation") {
-          this.log(`Skipping navigation step: ${stepDef.id}`);
+          logger.info(`Skipping navigation step: ${stepDef.id}`);
           continue;
         }
 
         // Evaluate conditional
-        if (stepDef.conditional && !this.evaluateConditional(stepDef.conditional, context.transformedData, productConfig)) {
-          this.log(`Skipping conditional step: ${stepDef.id} (condition: ${stepDef.conditional})`);
+        if (stepDef.conditional && !this.evaluateConditional(stepDef.conditional, context.transformedData, productConfig, logger)) {
+          logger.info(`Skipping conditional step: ${stepDef.id} (condition: ${stepDef.conditional})`);
           continue;
         }
 
         // Execute step with retry logic
-        this.log(`Executing step: ${stepDef.id} (${stepDef.name})`);
+        logger.info(`Executing step: ${stepDef.id} (${stepDef.name})`);
         const stepResult = await this.executeStepWithRetry(stepDef, {
           ...context,
           flowKey,
           stepDefinition: stepDef,
+          logger: logger.child({ stepId: stepDef.id }),
         });
 
         stepResults.push(stepResult);
 
         if (!stepResult.success) {
-          this.log(`Step failed: ${stepDef.id} - ${stepResult.error?.message}`);
+          logger.error(`Step failed: ${stepDef.id}`, stepResult.error, {
+            stepId: stepDef.id,
+            duration: stepResult.duration,
+            retries: stepResult.retries,
+          });
 
           // Take screenshot on error if configured
           if (this.config.screenshotOnError && context.page) {
             try {
               const screenshotPath = `${context.artifactsDir || "."}/error-${stepDef.id}-${Date.now()}.png`;
               await context.page.screenshot({ path: screenshotPath, fullPage: true });
-              this.log(`Screenshot saved: ${screenshotPath}`);
+              logger.info(`Screenshot saved: ${screenshotPath}`, { screenshotPath });
             } catch (err) {
-              this.log(`Failed to take screenshot: ${err}`);
+              logger.warn(`Failed to take screenshot: ${err}`);
             }
           }
 
@@ -107,16 +116,20 @@ export class FlowEngine {
             throw stepResult.error || new Error(`Step ${stepDef.id} failed`);
           }
         } else {
-          this.log(`Step completed: ${stepDef.id} (${stepResult.duration}ms)`);
+          logger.info(`Step completed: ${stepDef.id}`, {
+            stepId: stepDef.id,
+            duration: stepResult.duration,
+            retries: stepResult.retries,
+          });
 
           // Take screenshot on success if configured
           if (this.config.screenshotOnSuccess && context.page) {
             try {
               const screenshotPath = `${context.artifactsDir || "."}/success-${stepDef.id}-${Date.now()}.png`;
               await context.page.screenshot({ path: screenshotPath, fullPage: true });
-              this.log(`Success screenshot saved: ${screenshotPath}`);
+              logger.info(`Success screenshot saved: ${screenshotPath}`, { screenshotPath });
             } catch (err) {
-              this.log(`Failed to take success screenshot: ${err}`);
+              logger.warn(`Failed to take success screenshot: ${err}`);
             }
           }
         }
@@ -167,7 +180,11 @@ export class FlowEngine {
     // Try executing with retries
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       if (attempt > 0) {
-        this.log(`Retrying step ${stepDef.id}, attempt ${attempt}/${maxRetries}`);
+        context.logger?.info(`Retrying step ${stepDef.id}`, {
+          attempt,
+          maxRetries,
+          stepId: stepDef.id,
+        });
       }
 
       lastResult = await step.execute(context);
@@ -180,6 +197,7 @@ export class FlowEngine {
       // Wait before retry (exponential backoff)
       if (attempt < maxRetries) {
         const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+        context.logger?.debug(`Waiting ${delay}ms before retry`, { delay, attempt });
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -199,7 +217,8 @@ export class FlowEngine {
   private evaluateConditional<T>(
     conditionalName: string,
     transformedData: T | undefined,
-    productConfig: ProductConfiguration<T>
+    productConfig: ProductConfiguration<T>,
+    logger: FlowLogger
   ): boolean {
     if (!transformedData) {
       return false;
@@ -207,20 +226,14 @@ export class FlowEngine {
 
     const conditionalRules = productConfig.conditionalRules;
     if (!conditionalRules || !conditionalRules[conditionalName]) {
-      console.warn(`Conditional rule not found: ${conditionalName}`);
+      logger.warn(`Conditional rule not found: ${conditionalName}`, {
+        conditionalName,
+        availableRules: conditionalRules ? Object.keys(conditionalRules) : [],
+      });
       return false;
     }
 
     const rule = conditionalRules[conditionalName];
     return rule(transformedData);
-  }
-
-  /**
-   * Log message if verbose mode is enabled
-   */
-  private log(message: string): void {
-    if (this.config.verbose) {
-      console.log(`[FlowEngine] ${message}`);
-    }
   }
 }

@@ -57,17 +57,17 @@ export abstract class BaseStep<T = any> implements IStep<T> {
    * Default validation - checks that required dependencies are present
    */
   validate(context: ExecutionContext<T>): boolean {
-    const { stepDefinition, lead, credentials } = context;
+    const { stepDefinition, lead, credentials, logger } = context;
 
     // Check if lead is required and present
     if (stepDefinition.needsLead && !lead) {
-      console.error(`Step ${stepDefinition.id} requires lead data but none provided`);
+      logger?.error(`Step ${stepDefinition.id} requires lead data but none provided`);
       return false;
     }
 
     // Check if credentials are required and present
     if (stepDefinition.needsCredentials && !credentials) {
-      console.error(`Step ${stepDefinition.id} requires credentials but none provided`);
+      logger?.error(`Step ${stepDefinition.id} requires credentials but none provided`);
       return false;
     }
 

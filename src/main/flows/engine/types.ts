@@ -1,6 +1,7 @@
 import type { Page } from "playwright";
 import type { Lead } from "../../db/schema";
 import type { StepDefinition } from "../../../shared/types/product";
+import type { FlowLogger } from "./FlowLogger";
 
 /**
  * Credentials for platform authentication
@@ -22,6 +23,7 @@ export type ExecutionContext<T = any> = {
   artifactsDir?: string;               // Directory for screenshots/videos
   flowKey: string;                     // Flow identifier
   stepDefinition: StepDefinition;      // Current step definition
+  logger?: FlowLogger;                 // Structured logger for this step
 };
 
 /**

@@ -14,6 +14,6 @@ export class AlptisNavigationStep extends BaseStep {
     const navigationStep = AlptisInstances.getNavigationStep();
 
     // Execute navigation
-    await navigationStep.execute(page);
+    await navigationStep.execute(page, context.logger);
   }
 }

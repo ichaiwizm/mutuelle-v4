@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
 import type { AlptisFormData } from '../../transformers/types';
+import type { FlowLogger } from '../../../../../engine/FlowLogger';
 import { ERROR_SELECTORS } from './selectors';
 import { Section1Fill, Section2Fill, Section3Fill, Section4Fill } from './sections';
 
@@ -28,58 +29,58 @@ export class FormFillOrchestrator {
   /**
    * Fill Section 1: Mise en place du contrat
    */
-  async fillMiseEnPlace(page: Page, data: AlptisFormData): Promise<void> {
-    await this.section1.fill(page, data);
+  async fillMiseEnPlace(page: Page, data: AlptisFormData, logger?: FlowLogger): Promise<void> {
+    await this.section1.fill(page, data, logger);
   }
 
   /**
    * Fill Section 2: Adhérent(e)
    */
-  async fillAdherent(page: Page, data: AlptisFormData): Promise<void> {
-    await this.section2.fill(page, data);
+  async fillAdherent(page: Page, data: AlptisFormData, logger?: FlowLogger): Promise<void> {
+    await this.section2.fill(page, data, logger);
   }
 
   /**
    * Fill Section 3: Conjoint(e) - Toggle only
    */
-  async fillConjointToggle(page: Page, hasConjoint: boolean): Promise<void> {
-    await this.section3.fillToggle(page, hasConjoint);
+  async fillConjointToggle(page: Page, hasConjoint: boolean, logger?: FlowLogger): Promise<void> {
+    await this.section3.fillToggle(page, hasConjoint, logger);
   }
 
   /**
    * Fill Section 3: Conjoint(e) - Complete form
    * Note: Should be called AFTER fillConjointToggle when hasConjoint is true
    */
-  async fillConjoint(page: Page, data: AlptisFormData['conjoint']): Promise<void> {
-    await this.section3.fill(page, data);
+  async fillConjoint(page: Page, data: AlptisFormData['conjoint'], logger?: FlowLogger): Promise<void> {
+    await this.section3.fill(page, data, logger);
   }
 
   /**
    * Fill Section 4: Enfant(s) - Toggle only
    */
-  async fillEnfantsToggle(page: Page, hasEnfants: boolean): Promise<void> {
-    await this.section4.fillToggle(page, hasEnfants);
+  async fillEnfantsToggle(page: Page, hasEnfants: boolean, logger?: FlowLogger): Promise<void> {
+    await this.section4.fillToggle(page, hasEnfants, logger);
   }
 
   /**
    * Fill Section 4: Enfant(s) - All children
    * Note: Should be called AFTER fillEnfantsToggle when hasEnfants is true
    */
-  async fillEnfants(page: Page, enfants: AlptisFormData['enfants']): Promise<void> {
-    await this.section4.fill(page, enfants);
+  async fillEnfants(page: Page, enfants: AlptisFormData['enfants'], logger?: FlowLogger): Promise<void> {
+    await this.section4.fill(page, enfants, logger);
   }
 
   /**
    * Check for validation errors on the page
    * @returns Array of error messages (empty if no errors)
    */
-  async checkForErrors(page: Page): Promise<string[]> {
+  async checkForErrors(page: Page, logger?: FlowLogger): Promise<string[]> {
     const errorLocator = page.locator(ERROR_SELECTORS.generic);
     const errorCount = await errorLocator.count();
 
     if (errorCount > 0) {
       const errors = await errorLocator.allTextContents();
-      console.error('❌ Erreurs de validation trouvées:', errors);
+      logger?.error('Validation errors found', undefined, { errors, errorCount });
       return errors;
     }
 

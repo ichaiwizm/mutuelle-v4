@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { verifyToggleState } from '../verifiers';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
 
@@ -11,15 +12,17 @@ import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
  * @param fieldIndex - Position of the toggle on the page (0 = first, 1 = second, etc.)
  * @param fieldLabel - Label for logging purposes
  * @param selector - CSS selector for the toggle
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillToggleField(
   page: Page,
   shouldCheck: boolean,
   fieldIndex: number,
   fieldLabel: string,
-  selector: string = AlptisSelectors.toggle
+  selector: string = AlptisSelectors.toggle,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log(`${fieldLabel}: ${shouldCheck ? 'Oui' : 'Non'}`);
+  logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, shouldCheck, fieldIndex });
 
   const toggleLocator = fieldIndex === 0
     ? page.locator(selector).first()
@@ -30,10 +33,10 @@ export async function fillToggleField(
   if (isCurrentlyChecked !== shouldCheck) {
     // Use force: true because the label overlays the input element
     await toggleLocator.click({ force: true });
-    console.log(`  ↳ Toggle cliqué (${isCurrentlyChecked ? 'décoché' : 'coché'})`);
+    logger?.debug(`Toggle clicked`, { fieldLabel, wasChecked: isCurrentlyChecked, nowChecked: shouldCheck });
     await page.waitForTimeout(AlptisTimeouts.toggle);
   } else {
-    console.log(`  ↳ Déjà dans l'état correct`);
+    logger?.debug(`Toggle already in correct state`, { fieldLabel, shouldCheck });
   }
 
   await verifyToggleState(page, toggleLocator, shouldCheck);

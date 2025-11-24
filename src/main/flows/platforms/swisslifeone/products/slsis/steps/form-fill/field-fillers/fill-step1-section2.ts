@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { fillRadioField } from '../operations/RadioOperations';
 
 /**
@@ -7,14 +8,15 @@ import { fillRadioField } from '../operations/RadioOperations';
  */
 export async function fillBesoinCouvertureIndividuelle(
   frame: Frame,
-  value: boolean
+  value: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
   await fillRadioField(frame, value, {
     fieldLabel: 'Besoin couverture individuelle',
     fieldNumber: 1,
     totalFields: 2,
     nthIndex: 0,
-  });
+  }, logger);
 }
 
 /**
@@ -23,14 +25,15 @@ export async function fillBesoinCouvertureIndividuelle(
  */
 export async function fillBesoinIndemnitesJournalieres(
   frame: Frame,
-  value: boolean
+  value: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
   await fillRadioField(frame, value, {
     fieldLabel: 'Besoin indemnités journalières',
     fieldNumber: 2,
     totalFields: 2,
     nthIndex: 1,
-  });
+  }, logger);
 }
 
 /**
@@ -39,13 +42,13 @@ export async function fillBesoinIndemnitesJournalieres(
 export async function fillSection2(
   frame: Frame,
   besoinCouvertureIndividuelle: boolean,
-  besoinIndemnitesJournalieres: boolean
+  besoinIndemnitesJournalieres: boolean,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log('\n--- Section 2: Vos projets (Besoins) ---');
+  logger?.debug('Starting Section 2: Vos projets (Besoins)');
 
-  await fillBesoinCouvertureIndividuelle(frame, besoinCouvertureIndividuelle);
-  await fillBesoinIndemnitesJournalieres(frame, besoinIndemnitesJournalieres);
+  await fillBesoinCouvertureIndividuelle(frame, besoinCouvertureIndividuelle, logger);
+  await fillBesoinIndemnitesJournalieres(frame, besoinIndemnitesJournalieres, logger);
 
-  console.log('✅ Section "Vos projets" complétée (2/2 champs)');
-  console.log('---\n');
+  logger?.info('Section "Vos projets" completed', { section: 'vos_projets', fieldsCount: 2 });
 }

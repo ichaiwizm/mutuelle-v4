@@ -32,7 +32,8 @@
       "Bash(xargs ls:*)",
       "Bash(ls:*)",
       "Bash(test:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

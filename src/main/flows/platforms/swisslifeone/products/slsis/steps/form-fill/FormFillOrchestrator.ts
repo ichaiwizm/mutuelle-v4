@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../engine/FlowLogger';
 import type { SwissLifeOneFormData } from '../../transformers/types';
 import { Step1Fill } from './sections/Step1Fill';
 
@@ -25,57 +26,57 @@ export class FormFillOrchestrator {
    * Fill Step 1: Informations du projet et assurés (complete)
    * Fills all sections of Step 1
    */
-  async fillStep1(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fill(frame, data);
+  async fillStep1(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fill(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 1 only: Nom du projet
    */
-  async fillStep1Section1(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection1(frame, data);
+  async fillStep1Section1(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection1(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 2 only: Vos projets (besoins)
    */
-  async fillStep1Section2(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection2(frame, data);
+  async fillStep1Section2(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection2(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 3 only: Couverture santé individuelle (type_simulation)
    */
-  async fillStep1Section3(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection3(frame, data);
+  async fillStep1Section3(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection3(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 4 only: Données de l'assuré principal
    */
-  async fillStep1Section4(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection4(frame, data);
+  async fillStep1Section4(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection4(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 5 only: Données du conjoint (optional)
    */
-  async fillStep1Section5(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection5(frame, data);
+  async fillStep1Section5(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection5(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 6 only: Enfants (optional)
    */
-  async fillStep1Section6(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection6(frame, data);
+  async fillStep1Section6(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection6(frame, data, logger);
   }
 
   /**
    * Fill Step 1 - Section 7 only: Gammes et Options (final section)
    */
-  async fillStep1Section7(frame: Frame, data: SwissLifeOneFormData): Promise<void> {
-    await this.step1Fill.fillSection7(frame, data);
+  async fillStep1Section7(frame: Frame, data: SwissLifeOneFormData, logger?: FlowLogger): Promise<void> {
+    await this.step1Fill.fillSection7(frame, data, logger);
   }
 
   /**

@@ -1,4 +1,5 @@
 import type { Page, Frame } from 'playwright';
+import type { FlowLogger } from '../../../../../engine/FlowLogger';
 import {
   SwissLifeOneUrls,
   SwissLifeOneSelectors,
@@ -11,7 +12,10 @@ import { setupCookieInterception } from '../../../../lib/cookie-interceptor';
  * Note: L'iframe prend 45+ secondes à charger (backend très lent)
  */
 export class SwissLifeNavigationStep {
-  async execute(page: Page): Promise<void> {
+  private logger?: FlowLogger;
+
+  async execute(page: Page, logger?: FlowLogger): Promise<void> {
+    this.logger = logger;
     // Note: Le bandeau de cookies (OneTrust) doit être bloqué dans le test avant le login pour persister pendant toute la session
     await setupCookieInterception(page, { debug: process.env.SWISSLIFE_DEBUG_COOKIES === '1' });
     await this.navigateToForm(page);
@@ -33,11 +37,11 @@ export class SwissLifeNavigationStep {
 
     const frame = await this.getIframe(page);
 
-    console.log(`[DEBUG] Iframe URL: ${frame.url()}`);
+    this.logger?.debug('Iframe attached', { url: frame.url() });
 
     // Vérifier que l'iframe a une URL réelle (pas about:blank)
     if (frame.url() === 'about:blank' || frame.url() === '') {
-      console.log('[DEBUG] Iframe is blank, waiting for content...');
+      this.logger?.debug('Iframe is blank, waiting for content...');
       await page.waitForTimeout(2000);
     }
 
@@ -46,7 +50,7 @@ export class SwissLifeNavigationStep {
       timeout: SwissLifeOneTimeouts.iframeReady,
     });
 
-    console.log(`[DEBUG] Iframe loaded, URL: ${frame.url()}`);
+    this.logger?.debug('Iframe loaded', { url: frame.url() });
 
     await this.waitForLoaderToDisappear(frame);
   }

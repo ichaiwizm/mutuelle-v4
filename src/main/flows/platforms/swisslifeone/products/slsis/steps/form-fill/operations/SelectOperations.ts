@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 
 export interface SelectFillOptions {
@@ -14,20 +15,22 @@ export interface SelectFillOptions {
  * @param selector - CSS selector for the select element
  * @param value - Value to select (option value attribute)
  * @param options - Field metadata for logging
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillSelectField(
   frame: Frame,
   selector: string,
   value: string,
-  options: SelectFillOptions
+  options: SelectFillOptions,
+  logger?: FlowLogger
 ): Promise<void> {
   const { fieldLabel, fieldNumber, totalFields, skipVerification = false } = options;
 
-  const progressLabel = fieldNumber && totalFields
-    ? `[${fieldNumber}/${totalFields}] ${fieldLabel}`
-    : fieldLabel;
+  const progressInfo = fieldNumber && totalFields
+    ? { field: `${fieldNumber}/${totalFields}` }
+    : {};
 
-  console.log(`${progressLabel}: ${value}`);
+  logger?.debug(`Filling ${fieldLabel}`, { ...progressInfo, value });
 
   const selectElement = frame.locator(selector).first();
 
@@ -42,5 +45,5 @@ export async function fillSelectField(
     }
   }
 
-  console.log(`✅ ${fieldLabel} sélectionné avec succès`);
+  logger?.debug(`${fieldLabel} selected successfully`, { value });
 }

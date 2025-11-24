@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { setupAxeptioInterception } from '../../../../lib/cookie-interceptor';
 import { AlptisUrls } from '../../../../../../config';
 
@@ -16,9 +17,12 @@ export class NavigationStep {
   /**
    * Exécute la navigation vers le formulaire
    */
-  async execute(page: Page): Promise<void> {
+  async execute(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.info('Starting navigation to Alptis Santé Select form');
     await setupAxeptioInterception(page, { debug: process.env.ALPTIS_DEBUG_COOKIES === '1' });
+    logger?.debug('Navigating to form URL', { url: AlptisUrls.santeSelectForm });
     await page.goto(AlptisUrls.santeSelectForm);
     await page.waitForLoadState('networkidle');
+    logger?.info('Navigation completed - Form page loaded');
   }
 }

@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../engine/FlowLogger';
 import { setupAxeptioInterception } from './cookie-interceptor';
 import { AlptisUrls } from '../../../config';
 
@@ -33,7 +34,8 @@ export class AlptisAuth {
    * Navigue vers la page de connexion Alptis
    * L'URL redirige automatiquement vers la page de login
    */
-  async navigateToLogin(page: Page): Promise<void> {
+  async navigateToLogin(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.debug('Navigating to Alptis login page', { url: AlptisUrls.login });
     await page.goto(AlptisUrls.login);
   }
 
@@ -41,15 +43,18 @@ export class AlptisAuth {
    * Vérifie que les champs de connexion sont accessibles
    * Attend que les champs username et password soient visibles
    */
-  async waitForLoginFields(page: Page): Promise<void> {
+  async waitForLoginFields(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.debug('Waiting for login fields to be visible');
     await page.waitForSelector(ALPTIS_LOGIN_SELECTORS.username, { state: 'visible' });
     await page.waitForSelector(ALPTIS_LOGIN_SELECTORS.password, { state: 'visible' });
+    logger?.debug('Login fields are now visible');
   }
 
   /**
    * Remplit les champs de connexion avec les credentials
    */
-  async fillCredentials(page: Page): Promise<void> {
+  async fillCredentials(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.debug('Filling login credentials', { username: this.config.username });
     await page.fill(ALPTIS_LOGIN_SELECTORS.username, this.config.username);
     await page.fill(ALPTIS_LOGIN_SELECTORS.password, this.config.password);
   }
@@ -57,7 +62,8 @@ export class AlptisAuth {
   /**
    * Soumet le formulaire de connexion en cliquant sur le bouton
    */
-  async submitLogin(page: Page): Promise<void> {
+  async submitLogin(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.debug('Submitting login form');
     await page.click(ALPTIS_LOGIN_SELECTORS.submitButton);
   }
 
@@ -69,11 +75,13 @@ export class AlptisAuth {
    * 4. Remplit les credentials
    * 5. Clique sur le bouton de connexion
    */
-  async login(page: Page): Promise<void> {
+  async login(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.info('Starting Alptis authentication');
     await setupAxeptioInterception(page, { debug: process.env.ALPTIS_DEBUG_COOKIES === '1' });
-    await this.navigateToLogin(page);
-    await this.waitForLoginFields(page);
-    await this.fillCredentials(page);
-    await this.submitLogin(page);
+    await this.navigateToLogin(page, logger);
+    await this.waitForLoginFields(page, logger);
+    await this.fillCredentials(page, logger);
+    await this.submitLogin(page, logger);
+    logger?.info('Alptis authentication completed');
   }
 }

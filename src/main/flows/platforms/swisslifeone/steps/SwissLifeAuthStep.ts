@@ -18,6 +18,6 @@ export class SwissLifeAuthStep extends BaseStep {
     const auth = SwissLifeOneInstances.getAuth();
 
     // Execute login (ADFS/SAML flow)
-    await auth.login(page, credentials.login, credentials.password);
+    await auth.login(page, context.logger);
   }
 }

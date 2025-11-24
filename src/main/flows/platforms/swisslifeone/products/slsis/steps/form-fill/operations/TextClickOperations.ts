@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 
 export interface TextClickOptions {
@@ -13,19 +14,21 @@ export interface TextClickOptions {
  * @param frame - Playwright frame (SwissLife form is in iframe)
  * @param text - Text to click on
  * @param options - Field metadata for logging and selection options
+ * @param logger - Optional FlowLogger instance
  */
 export async function clickTextElement(
   frame: Frame,
   text: string,
-  options: TextClickOptions
+  options: TextClickOptions,
+  logger?: FlowLogger
 ): Promise<void> {
   const { fieldLabel, fieldNumber, totalFields, exact = false } = options;
 
-  const progressLabel = fieldNumber && totalFields
-    ? `[${fieldNumber}/${totalFields}] ${fieldLabel}`
-    : fieldLabel;
+  const progressInfo = fieldNumber && totalFields
+    ? { field: `${fieldNumber}/${totalFields}` }
+    : {};
 
-  console.log(`${progressLabel}: ${text}`);
+  logger?.debug(`Clicking ${fieldLabel}`, { ...progressInfo, text });
 
   const element = exact
     ? frame.getByText(text, { exact: true })
@@ -35,5 +38,5 @@ export async function clickTextElement(
   await element.click();
   await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
 
-  console.log(`✅ ${fieldLabel} sélectionné: ${text}`);
+  logger?.debug(`${fieldLabel} selected`, { text });
 }

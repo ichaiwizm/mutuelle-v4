@@ -23,28 +23,28 @@ export class AlptisFormFillStep extends BaseStep<AlptisFormData> {
 
     switch (method) {
       case "fillMiseEnPlace":
-        await formFiller.fillMiseEnPlace(page, transformedData);
+        await formFiller.fillMiseEnPlace(page, transformedData, context.logger);
         break;
 
       case "fillAdherent":
-        await formFiller.fillAdherent(page, transformedData);
+        await formFiller.fillAdherent(page, transformedData, context.logger);
         break;
 
       case "fillConjoint":
         // First toggle, then fill if data exists
         const hasConjoint = !!transformedData.conjoint;
-        await formFiller.fillConjointToggle(page, hasConjoint);
+        await formFiller.fillConjointToggle(page, hasConjoint, context.logger);
         if (hasConjoint && transformedData.conjoint) {
-          await formFiller.fillConjoint(page, transformedData.conjoint);
+          await formFiller.fillConjoint(page, transformedData.conjoint, context.logger);
         }
         break;
 
       case "fillEnfants":
         // First toggle, then fill if data exists
         const hasEnfants = (transformedData.enfants?.length ?? 0) > 0;
-        await formFiller.fillEnfantsToggle(page, hasEnfants);
+        await formFiller.fillEnfantsToggle(page, hasEnfants, context.logger);
         if (hasEnfants && transformedData.enfants) {
-          await formFiller.fillEnfants(page, transformedData.enfants);
+          await formFiller.fillEnfants(page, transformedData.enfants, context.logger);
         }
         break;
 
@@ -53,7 +53,7 @@ export class AlptisFormFillStep extends BaseStep<AlptisFormData> {
     }
 
     // Check for errors after filling
-    const errors = await formFiller.checkForErrors(page);
+    const errors = await formFiller.checkForErrors(page, context.logger);
     if (errors && errors.length > 0) {
       throw new Error(`Form validation errors: ${errors.join(", ")}`);
     }

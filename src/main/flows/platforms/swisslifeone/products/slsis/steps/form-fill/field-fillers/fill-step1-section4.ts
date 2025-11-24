@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { fillTextboxField } from '../operations/TextboxOperations';
 import { fillSelectField } from '../operations/SelectOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
@@ -14,7 +15,8 @@ import type { AssurePrincipalData } from '../../../transformers/types';
  */
 export async function fillDateNaissanceAssurePrincipal(
   frame: Frame,
-  dateNaissance: string
+  dateNaissance: string,
+  logger?: FlowLogger
 ): Promise<void> {
   await fillTextboxField(
     frame,
@@ -24,7 +26,8 @@ export async function fillDateNaissanceAssurePrincipal(
       fieldLabel: 'Date de naissance assuré principal',
       fieldNumber: 1,
       totalFields: 1,
-    }
+    },
+    logger
   );
 
   // Close the datepicker by clicking elsewhere on the page
@@ -38,11 +41,11 @@ export async function fillDateNaissanceAssurePrincipal(
 
     // Wait for the datepicker to actually disappear
     await datepicker.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-      console.log('⚠️  Datepicker still visible after click');
+      logger?.warn('Datepicker still visible after click');
     });
 
     await frame.waitForTimeout(SwissLifeOneTimeouts.afterClick);
-    console.log('✅ Datepicker fermé');
+    logger?.debug('Datepicker closed');
   }
 }
 
@@ -51,7 +54,8 @@ export async function fillDateNaissanceAssurePrincipal(
  */
 export async function fillDepartementResidence(
   frame: Frame,
-  departement: string
+  departement: string,
+  logger?: FlowLogger
 ): Promise<void> {
   await fillSelectField(
     frame,
@@ -61,7 +65,8 @@ export async function fillDepartementResidence(
       fieldLabel: 'Département de résidence',
       fieldNumber: 2,
       totalFields: 4,
-    }
+    },
+    logger
   );
 }
 
@@ -70,9 +75,12 @@ export async function fillDepartementResidence(
  */
 export async function fillRegimeSocial(
   frame: Frame,
-  regimeSocial: AssurePrincipalData['regime_social']
+  regimeSocial: AssurePrincipalData['regime_social'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapRegimeSocialToFormLabel(regimeSocial);
+
+  logger?.debug('Filling régime social', { label, field: '3/4' });
 
   // Select by label (visible text) instead of by value
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.regime_social_assure_principal.primary).first();
@@ -80,8 +88,7 @@ export async function fillRegimeSocial(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[3/4] Régime social: ${label}`);
-  console.log(`✅ Régime social sélectionné avec succès`);
+  logger?.debug('Régime social selected', { label });
 }
 
 /**
@@ -89,9 +96,12 @@ export async function fillRegimeSocial(
  */
 export async function fillProfession(
   frame: Frame,
-  profession: AssurePrincipalData['profession']
+  profession: AssurePrincipalData['profession'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapProfessionToFormLabel(profession);
+
+  logger?.debug('Filling profession', { label, field: '4/5' });
 
   // Select by label (visible text) instead of by value
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.profession_assure_principal.primary).first();
@@ -99,8 +109,7 @@ export async function fillProfession(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[4/5] Profession: ${label}`);
-  console.log(`✅ Profession sélectionnée avec succès`);
+  logger?.debug('Profession selected', { label });
 }
 
 /**
@@ -111,9 +120,12 @@ export async function fillProfession(
 export async function fillStatut(
   frame: Frame,
   statut: AssurePrincipalData['statut'],
-  regime: AssurePrincipalData['regime_social']
+  regime: AssurePrincipalData['regime_social'],
+  logger?: FlowLogger
 ): Promise<void> {
   const label = mapStatutToFormLabel(statut, regime);
+
+  logger?.debug('Filling statut', { label, field: '5/5' });
 
   // Wait for the statut field to appear (it loads dynamically after profession)
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.statut_assure_principal.primary).first();
@@ -130,8 +142,7 @@ export async function fillStatut(
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 
-  console.log(`[5/5] Statut: ${label}`);
-  console.log(`✅ Statut sélectionné avec succès`);
+  logger?.debug('Statut selected', { label });
 }
 
 /**
@@ -140,16 +151,19 @@ export async function fillStatut(
  */
 export async function fillSection4(
   frame: Frame,
-  assurePrincipalData: AssurePrincipalData
+  assurePrincipalData: AssurePrincipalData,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log('\n--- Section 4: Données de l\'assuré principal ---');
+  logger?.debug('Starting Section 4: Données de l\'assuré principal');
 
-  await fillDateNaissanceAssurePrincipal(frame, assurePrincipalData.date_naissance);
-  await fillDepartementResidence(frame, assurePrincipalData.departement_residence);
-  await fillRegimeSocial(frame, assurePrincipalData.regime_social);
-  await fillProfession(frame, assurePrincipalData.profession);
-  await fillStatut(frame, assurePrincipalData.statut, assurePrincipalData.regime_social);
+  await fillDateNaissanceAssurePrincipal(frame, assurePrincipalData.date_naissance, logger);
+  await fillDepartementResidence(frame, assurePrincipalData.departement_residence, logger);
+  await fillRegimeSocial(frame, assurePrincipalData.regime_social, logger);
+  await fillProfession(frame, assurePrincipalData.profession, logger);
+  await fillStatut(frame, assurePrincipalData.statut, assurePrincipalData.regime_social, logger);
 
-  console.log('✅ Section "Données de l\'assuré principal" complétée (5/5 champs)');
-  console.log('---\n');
+  logger?.info('Section "Données de l\'assuré principal" completed', {
+    section: 'assure_principal',
+    fieldsCount: 5
+  });
 }

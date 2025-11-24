@@ -27,10 +27,7 @@ export async function setupCookieInterception(page: Page, options?: Interception
   const context = page.context();
 
   const abortAndMaybeLog = async (route: Route, tag: string): Promise<void> => {
-    if (options?.debug) {
-      const req = route.request();
-      console.log(`[COOKIES][ABORT ${tag}] ${req.method()} ${req.url()}`);
-    }
+    // Debug logging removed - not needed in production
     await route.abort();
   };
 

@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { fillTextboxField } from '../operations/TextboxOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
 
@@ -6,8 +7,8 @@ import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';
  * Fill "Nom du projet" field (Step 1, Section 1)
  * This is the first field in the SwissLife One form
  */
-export async function fillNomProjet(frame: Frame, nomProjet: string): Promise<void> {
-  console.log('\n--- Section 1: Nom du projet ---');
+export async function fillNomProjet(frame: Frame, nomProjet: string, logger?: FlowLogger): Promise<void> {
+  logger?.debug('Starting Section 1: Nom du projet');
 
   await fillTextboxField(
     frame,
@@ -17,9 +18,9 @@ export async function fillNomProjet(frame: Frame, nomProjet: string): Promise<vo
       fieldLabel: 'Nom du projet',
       fieldNumber: 1,
       totalFields: 1,
-    }
+    },
+    logger
   );
 
-  console.log('✅ Section "Nom du projet" complétée (1/1 champs)');
-  console.log('---\n');
+  logger?.info('Section "Nom du projet" completed', { section: 'nom_projet', fieldsCount: 1 });
 }

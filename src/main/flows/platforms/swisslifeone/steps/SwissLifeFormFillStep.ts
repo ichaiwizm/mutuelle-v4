@@ -28,33 +28,33 @@ export class SwissLifeFormFillStep extends BaseStep<SwissLifeOneFormData> {
 
     switch (method) {
       case "fillStep1Section1":
-        await formFiller.fillStep1Section1(frame, transformedData);
+        await formFiller.fillStep1Section1(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section2":
-        await formFiller.fillStep1Section2(frame, transformedData);
+        await formFiller.fillStep1Section2(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section3":
-        await formFiller.fillStep1Section3(frame, transformedData);
+        await formFiller.fillStep1Section3(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section4":
-        await formFiller.fillStep1Section4(frame, transformedData);
+        await formFiller.fillStep1Section4(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section5":
         // Section 5 handles its own conditional logic (conjoint)
-        await formFiller.fillStep1Section5(frame, transformedData);
+        await formFiller.fillStep1Section5(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section6":
         // Section 6 handles its own conditional logic (enfants)
-        await formFiller.fillStep1Section6(frame, transformedData);
+        await formFiller.fillStep1Section6(frame, transformedData, context.logger);
         break;
 
       case "fillStep1Section7":
-        await formFiller.fillStep1Section7(frame, transformedData);
+        await formFiller.fillStep1Section7(frame, transformedData, context.logger);
         break;
 
       default:

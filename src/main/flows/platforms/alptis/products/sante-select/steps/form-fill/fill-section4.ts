@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { FlowLogger } from '../../../../../engine/FlowLogger';
 import { expect } from '@playwright/test';
 import { SECTION_4_SELECTORS } from './selectors/section4';
 import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './operations';
@@ -7,8 +8,8 @@ import { AlptisTimeouts, AlptisSelectors } from '../../../../../../config';
 /**
  * Section 4 - Toggle Enfants
  */
-export async function fillToggleEnfants(page: Page, shouldCheck: boolean): Promise<void> {
-  await fillToggleField(page, shouldCheck, 2, '[1/1] Toggle enfants', SECTION_4_SELECTORS.toggle_enfants.primary);
+export async function fillToggleEnfants(page: Page, shouldCheck: boolean, logger?: FlowLogger): Promise<void> {
+  await fillToggleField(page, shouldCheck, 2, '[1/1] Toggle enfants', SECTION_4_SELECTORS.toggle_enfants.primary, logger);
 }
 
 /**
@@ -21,7 +22,7 @@ export async function fillToggleEnfants(page: Page, shouldCheck: boolean): Promi
  * so their fields are not visible. Only the currently open child's fields are counted.
  * Therefore, the date field index is ALWAYS the same for the active child.
  */
-export async function fillEnfantDateNaissance(page: Page, dateNaissance: string, childIndex: number): Promise<void> {
+export async function fillEnfantDateNaissance(page: Page, dateNaissance: string, childIndex: number, logger?: FlowLogger): Promise<void> {
   // Date field index for the CURRENTLY OPEN child (previous children are closed):
   // WITHOUT conjoint:
   // - nth(0) = Date d'effet
@@ -44,7 +45,7 @@ export async function fillEnfantDateNaissance(page: Page, dateNaissance: string,
   // FIXED index: always the same for the currently open child
   const dateFieldIndex = hasConjoint ? 3 : 2;
 
-  await fillDateField(page, dateNaissance, dateFieldIndex, `[1/2] Date de naissance enfant ${childIndex + 1}`);
+  await fillDateField(page, dateNaissance, dateFieldIndex, `[1/2] Date de naissance enfant ${childIndex + 1}`, logger);
 }
 
 /**
@@ -57,7 +58,7 @@ export async function fillEnfantDateNaissance(page: Page, dateNaissance: string,
  * so their fields are not visible. Only the currently open child's fields are counted.
  * Therefore, the regime field index is ALWAYS the same for the active child.
  */
-export async function fillEnfantRegimeObligatoire(page: Page, value: string, childIndex: number): Promise<void> {
+export async function fillEnfantRegimeObligatoire(page: Page, value: string, childIndex: number, logger?: FlowLogger): Promise<void> {
   // Regime field index for the CURRENTLY OPEN child (previous children are closed):
   // WITHOUT conjoint:
   // - nth(0) = Régime adhérent
@@ -86,7 +87,8 @@ export async function fillEnfantRegimeObligatoire(page: Page, value: string, chi
     value,
     regimeFieldIndex,
     `[2/2] Régime enfant ${childIndex + 1}`,
-    verificationSelector
+    verificationSelector,
+    logger
   );
 }
 
@@ -95,7 +97,9 @@ export async function fillEnfantRegimeObligatoire(page: Page, value: string, chi
  * This button becomes enabled after the first child's data is filled
  * @param childNumberToAdd - The number of the child being added (2 for second child, 3 for third, etc.)
  */
-export async function clickAjouterEnfant(page: Page, childNumberToAdd: number): Promise<void> {
+export async function clickAjouterEnfant(page: Page, childNumberToAdd: number, logger?: FlowLogger): Promise<void> {
+  logger?.debug('Clicking "Ajouter un enfant" button', { childNumberToAdd });
+
   const button = page.getByRole('button', { name: 'Ajouter un enfant' });
 
   // Wait for button to be visible
@@ -105,6 +109,7 @@ export async function clickAjouterEnfant(page: Page, childNumberToAdd: number): 
   await expect(button).toBeEnabled({ timeout: AlptisTimeouts.buttonEnable });
 
   await button.click();
+  logger?.debug('Button clicked, waiting for new child accordion', { childNumberToAdd });
 
   // Wait for the button to be disabled again (happens immediately after click)
   await expect(button).toBeDisabled({ timeout: AlptisTimeouts.buttonDisable });
@@ -115,4 +120,6 @@ export async function clickAjouterEnfant(page: Page, childNumberToAdd: number): 
 
   // Small additional wait for accordion animation to complete and fields to be ready
   await page.waitForTimeout(AlptisTimeouts.accordionAnimation);
+
+  logger?.debug('New child accordion ready', { childNumberToAdd });
 }

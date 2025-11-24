@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { clickTextElement } from '../operations/TextClickOperations';
 import type { TypeSimulation } from '../../../transformers/types';
 
@@ -8,7 +9,8 @@ import type { TypeSimulation } from '../../../transformers/types';
  */
 export async function fillTypeSimulation(
   frame: Frame,
-  typeSimulation: TypeSimulation
+  typeSimulation: TypeSimulation,
+  logger?: FlowLogger
 ): Promise<void> {
   const text = typeSimulation === 'INDIVIDUEL' ? 'Individuel' : 'Pour le couple';
   const exact = typeSimulation === 'INDIVIDUEL'; // Only 'Individuel' needs exact match
@@ -18,7 +20,7 @@ export async function fillTypeSimulation(
     fieldNumber: 1,
     totalFields: 1,
     exact,
-  });
+  }, logger);
 }
 
 /**
@@ -26,12 +28,12 @@ export async function fillTypeSimulation(
  */
 export async function fillSection3(
   frame: Frame,
-  typeSimulation: TypeSimulation
+  typeSimulation: TypeSimulation,
+  logger?: FlowLogger
 ): Promise<void> {
-  console.log('\n--- Section 3: Couverture santé individuelle ---');
+  logger?.debug('Starting Section 3: Couverture santé individuelle');
 
-  await fillTypeSimulation(frame, typeSimulation);
+  await fillTypeSimulation(frame, typeSimulation, logger);
 
-  console.log('✅ Section "Couverture santé individuelle" complétée (1/1 champs)');
-  console.log('---\n');
+  logger?.info('Section "Couverture santé individuelle" completed', { section: 'couverture_sante', fieldsCount: 1 });
 }

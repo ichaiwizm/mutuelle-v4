@@ -1,4 +1,5 @@
 import type { Frame } from '@playwright/test';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 
 export interface TextboxFillOptions {
@@ -14,20 +15,22 @@ export interface TextboxFillOptions {
  * @param selector - CSS selector or Playwright locator method
  * @param value - Value to fill
  * @param options - Field metadata for logging
+ * @param logger - Optional FlowLogger instance
  */
 export async function fillTextboxField(
   frame: Frame,
   selector: string,
   value: string,
-  options: TextboxFillOptions
+  options: TextboxFillOptions,
+  logger?: FlowLogger
 ): Promise<void> {
   const { fieldLabel, fieldNumber, totalFields, skipVerification = false } = options;
 
-  const progressLabel = fieldNumber && totalFields
-    ? `[${fieldNumber}/${totalFields}] ${fieldLabel}`
-    : fieldLabel;
+  const progressInfo = fieldNumber && totalFields
+    ? { field: `${fieldNumber}/${totalFields}` }
+    : {};
 
-  console.log(`${progressLabel}: ${value}`);
+  logger?.debug(`Filling ${fieldLabel}`, { ...progressInfo, value });
 
   const textbox = frame.locator(selector).first();
 
@@ -44,5 +47,5 @@ export async function fillTextboxField(
     }
   }
 
-  console.log(`✅ ${fieldLabel} rempli avec succès`);
+  logger?.debug(`${fieldLabel} filled successfully`, { value });
 }
