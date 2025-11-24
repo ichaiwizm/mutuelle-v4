@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, uniqueIndex, primaryKey } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, uniqueIndex, primaryKey, index } from "drizzle-orm/sqlite-core";
 
 // Users/credentials (1 compte/plateforme)
 export const credentials = sqliteTable(
@@ -74,5 +74,30 @@ export const productStatus = sqliteTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.platform, t.product] }),
+  })
+);
+
+// Flow states (pause/resume functionality)
+export const flowStates = sqliteTable(
+  "flow_states",
+  {
+    id: text("id").primaryKey(),                           // nanoid
+    flowKey: text("flow_key").notNull(),                   // e.g. "alptis_sante_select"
+    leadId: text("lead_id"),                               // FK leads.id (optional)
+    currentStepIndex: integer("current_step_index").notNull().default(0),
+    completedSteps: text("completed_steps").notNull().default("[]"),    // JSON array of step IDs
+    stepStates: text("step_states").default("{}"),                      // JSON object for intermediate state
+    status: text("status").notNull().default("running"),   // "running" | "paused" | "completed" | "failed"
+    startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
+    pausedAt: integer("paused_at", { mode: "timestamp_ms" }),
+    resumedAt: integer("resumed_at", { mode: "timestamp_ms" }),
+    completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({
+    statusIdx: index("flow_states_status_idx").on(t.status),
+    flowKeyIdx: index("flow_states_flow_key_idx").on(t.flowKey),
+    leadIdIdx: index("flow_states_lead_id_idx").on(t.leadId),
   })
 );
