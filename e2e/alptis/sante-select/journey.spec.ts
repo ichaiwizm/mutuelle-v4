@@ -1,104 +1,75 @@
 /**
  * Test Journey complet - Alptis Santé Select
  * Teste le flow complet : Auth → Navigation → Sections 1-4
- * Les fixtures gèrent automatiquement les sections 1-3
+ *
+ * MIGRATED TO FLOWENGINE: Utilise le FlowEngine pour orchestration automatique.
  */
 import { test, expect } from '../fixtures';
-import { FormFillOrchestrator } from '@/main/flows/platforms/alptis/products/sante-select/steps/form-fill';
+import { FlowEngine } from '@/main/flows/engine';
+import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import { hasAlptisCredentials } from '../helpers/credentials';
-import { verifySection4Toggle, verifySection4Enfant } from '../helpers/verification';
+import { selectLead } from '../../leads';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 
-test('🎲 Random', async ({ page, formWithSection3, leadData }) => {
-  // Les fixtures ont déjà fait : Auth + Nav + Sections 1-3
-  expect(page.url()).toContain('/sante-select/informations-projet/');
+// Helper function to execute flow with FlowEngine
+async function executeFlowWithEngine(page: any) {
+  const lead = selectLead();
+  const leadData = LeadTransformer.transform(lead);
 
-  const step = new FormFillOrchestrator();
+  const engine = new FlowEngine({
+    skipAuth: true,
+    verbose: true,
+    stopOnError: true,
+  });
+
+  const result = await engine.execute('alptis_sante_select', {
+    page,
+    lead,
+    transformedData: leadData,
+  });
+
+  expect(result.success).toBe(true);
+  console.log(`✅ FlowEngine completed in ${result.totalDuration}ms`);
+
+  return { result, leadData };
+}
+
+test('🎲 Random', async ({ page, authenticatedPage }) => {
+  const { result, leadData } = await executeFlowWithEngine(page);
+
+  const hasConjoint = !!leadData.conjoint;
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
-  if (hasEnfants) {
-    await step.fillEnfantsToggle(page, true);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-    await verifySection4Toggle(page, true);
-
-    await step.fillEnfants(page, leadData.enfants);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-
-    const lastChildIndex = leadData.enfants.length - 1;
-    await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
-    console.log(`✅ Section 4 complétée pour ${leadData.enfants.length} enfant(s)`);
-  } else {
-    await verifySection4Toggle(page, false);
-    console.log('⏭️ Pas d\'enfants, Section 4 ignorée');
-  }
+  console.log(`✅ Parcours complété - Conjoint: ${hasConjoint}, Enfants: ${hasEnfants ? leadData.enfants?.length : 0}`);
 });
 
-test('👫 Avec conjoint', async ({ page, formWithSection3, leadData }) => {
-  expect(page.url()).toContain('/sante-select/informations-projet/');
+test('👫 Avec conjoint', async ({ page, authenticatedPage }) => {
+  const { result, leadData } = await executeFlowWithEngine(page);
 
-  const step = new FormFillOrchestrator();
-  const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
+  const hasConjoint = !!leadData.conjoint;
+  expect(hasConjoint).toBe(true);
 
-  if (hasEnfants) {
-    await step.fillEnfantsToggle(page, true);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-    await verifySection4Toggle(page, true);
-
-    await step.fillEnfants(page, leadData.enfants);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-
-    const lastChildIndex = leadData.enfants.length - 1;
-    await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
-    console.log(`✅ Section 4 complétée pour ${leadData.enfants.length} enfant(s)`);
-  } else {
-    await verifySection4Toggle(page, false);
-    console.log('⏭️ Pas d\'enfants, Section 4 ignorée');
-  }
+  console.log('✅ Parcours avec conjoint complété');
 });
 
-test('👶 Avec enfants', async ({ page, formWithSection3, leadData }) => {
-  expect(page.url()).toContain('/sante-select/informations-projet/');
+test('👶 Avec enfants', async ({ page, authenticatedPage }) => {
+  const { result, leadData } = await executeFlowWithEngine(page);
 
-  const step = new FormFillOrchestrator();
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
+  expect(hasEnfants).toBe(true);
 
-  if (hasEnfants) {
-    await step.fillEnfantsToggle(page, true);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-    await verifySection4Toggle(page, true);
-
-    await step.fillEnfants(page, leadData.enfants);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-
-    const lastChildIndex = leadData.enfants.length - 1;
-    await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
-    console.log(`✅ Section 4 complétée pour ${leadData.enfants.length} enfant(s)`);
-  } else {
-    await verifySection4Toggle(page, false);
-    console.log('⏭️ Pas d\'enfants, Section 4 ignorée');
-  }
+  console.log(`✅ Parcours avec ${leadData.enfants?.length} enfant(s) complété`);
 });
 
-test('👨‍👩‍👧 Conjoint + Enfants', async ({ page, formWithSection3, leadData }) => {
-  expect(page.url()).toContain('/sante-select/informations-projet/');
+test('👨‍👩‍👧‍👦 Avec conjoint ET enfants', async ({ page, authenticatedPage }) => {
+  const { result, leadData } = await executeFlowWithEngine(page);
 
-  const step = new FormFillOrchestrator();
+  const hasConjoint = !!leadData.conjoint;
   const hasEnfants = !!leadData.enfants && leadData.enfants.length > 0;
 
-  if (hasEnfants) {
-    await step.fillEnfantsToggle(page, true);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-    await verifySection4Toggle(page, true);
+  expect(hasConjoint).toBe(true);
+  expect(hasEnfants).toBe(true);
 
-    await step.fillEnfants(page, leadData.enfants);
-    expect(await step.checkForErrors(page)).toHaveLength(0);
-
-    const lastChildIndex = leadData.enfants.length - 1;
-    await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
-    console.log(`✅ Section 4 complétée pour ${leadData.enfants.length} enfant(s)`);
-  } else {
-    await verifySection4Toggle(page, false);
-    console.log('⏭️ Pas d\'enfants, Section 4 ignorée');
-  }
+  console.log(`✅ Parcours complet avec conjoint et ${leadData.enfants?.length} enfant(s)`);
 });

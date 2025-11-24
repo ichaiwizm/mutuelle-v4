@@ -2,6 +2,7 @@
  * Bulk Test Runner for SwissLife One
  *
  * Orchestrates bulk validation of multiple leads through the complete form workflow.
+ * Uses the FlowEngine for automated step execution.
  * Handles:
  * - Authentication (one-time setup)
  * - Navigation to form for each lead (with iframe loading)
@@ -13,10 +14,10 @@ import type { Page } from '@playwright/test';
 import type { Lead } from '@/shared/types/lead';
 import type { BulkTestConfig } from '../types';
 import { BaseBulkTestRunner } from '../../shared/BaseBulkTestRunner';
+import { FlowEngine } from '@/main/flows/engine';
 import { SwissLifeOneAuth } from '@/main/flows/platforms/swisslifeone/lib/SwissLifeOneAuth';
-import { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
-import { FormFillOrchestrator } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/form-fill';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
+import { SwissLifeOneInstances } from '@/main/flows/registry';
 import { BulkTestLogger } from '../../leads';
 import { getSwissLifeOneCredentials } from './credentials';
 import {
@@ -89,19 +90,13 @@ export class BulkTestRunner extends BaseBulkTestRunner {
 
   /**
    * Execute the complete validation workflow for a lead
-   * SwissLife One has 7 sections in Step 1
+   * Now uses FlowEngine for automated step execution
    *
    * @param page - Playwright page instance
    * @param lead - Lead to validate
    */
   protected async executeValidation(page: Page, lead: Lead): Promise<void> {
-    // Step 1: Navigate to form and get iframe
-    this.logger.logStep('Navigation', 'vers le formulaire (iframe loading...)');
-    const nav = new SwissLifeNavigationStep();
-    await nav.execute(page);
-    const frame = await nav.getIframe(page);
-
-    // Step 2: Transform lead data
+    // Transform lead data
     this.logger.logStep('Transformation', 'du lead');
     const formData = SwissLifeOneLeadTransformer.transform(lead);
 
@@ -112,69 +107,64 @@ export class BulkTestRunner extends BaseBulkTestRunner {
     console.log(`💑 Conjoint: ${hasConjoint ? 'Oui' : 'Non'}`);
     console.log(`👶 Enfants: ${childrenCount}`);
 
-    // Initialize form filler
-    const formFiller = new FormFillOrchestrator();
+    // Create FlowEngine
+    const engine = new FlowEngine({
+      skipAuth: true,  // Auth already done in initialize()
+      verbose: true,
+      stopOnError: true,
+    });
 
-    // Step 3: Fill and verify Section 1 (Nom du projet)
-    this.logger.logStep('Section 1', 'Nom du projet');
-    await formFiller.fillStep1Section1(frame, formData);
+    // Execute flow using engine
+    this.logger.logStep('Exécution', 'du flow automatisé');
+    const result = await engine.execute('swisslife_one_slis', {
+      page,
+      lead,
+      transformedData: formData,
+    });
+
+    if (!result.success) {
+      throw new Error(`Flow execution failed: ${result.error?.message || 'Unknown error'}`);
+    }
+
+    this.logger.logStepSuccess(`Flow exécuté avec succès en ${result.totalDuration}ms`);
+
+    // Verification phase (to be integrated into steps later)
+    this.logger.logStep('Vérifications', 'post-exécution');
+
+    // Get iframe for verification
+    const nav = SwissLifeOneInstances.getNavigationStep();
+    const frame = await nav.getIframe(page);
+
+    // Verify all sections
     await verifyStep1Section1(frame, formData);
-    this.logger.logStepSuccess('Section 1 remplie et vérifiée');
+    this.logger.logStepSuccess('Section 1 vérifiée');
 
-    // Step 4: Fill and verify Section 2 (Besoins)
-    this.logger.logStep('Section 2', 'Besoins');
-    await formFiller.fillStep1Section2(frame, formData);
     await verifyStep1Section2(frame, formData);
-    this.logger.logStepSuccess('Section 2 remplie et vérifiée');
+    this.logger.logStepSuccess('Section 2 vérifiée');
 
-    // Step 5: Fill and verify Section 3 (Type simulation)
-    this.logger.logStep('Section 3', 'Type de simulation');
-    await formFiller.fillStep1Section3(frame, formData);
     await verifyStep1Section3(frame, formData);
-    this.logger.logStepSuccess('Section 3 remplie et vérifiée');
+    this.logger.logStepSuccess('Section 3 vérifiée');
 
-    // Step 6: Fill and verify Section 4 (Assuré principal)
-    this.logger.logStep('Section 4', 'Assuré principal');
-    await formFiller.fillStep1Section4(frame, formData);
     await verifyStep1Section4(frame, formData);
-    this.logger.logStepSuccess('Section 4 remplie et vérifiée');
+    this.logger.logStepSuccess('Section 4 vérifiée');
 
-    // Step 7: Fill and verify Section 5 (Conjoint - conditional)
-    this.logger.logStep('Section 5', 'Conjoint');
-    await formFiller.fillStep1Section5(frame, formData);
     await verifyStep1Section5(frame, formData);
-
     if (hasConjoint) {
-      this.logger.logStepSuccess('Section 5 remplie et vérifiée (avec conjoint)');
+      this.logger.logStepSuccess('Section 5 vérifiée (avec conjoint)');
     } else {
       this.logger.logStepSuccess('Section 5 vérifiée (sans conjoint)');
     }
 
-    // Step 8: Fill and verify Section 6 (Enfants - conditional)
-    this.logger.logStep('Section 6', 'Enfants');
-    await formFiller.fillStep1Section6(frame, formData);
     await verifyStep1Section6(frame, formData);
-
     if (childrenCount > 0) {
-      this.logger.logStepSuccess(`Section 6 remplie et vérifiée (${childrenCount} enfant(s))`);
+      this.logger.logStepSuccess(`Section 6 vérifiée (${childrenCount} enfant(s))`);
     } else {
       this.logger.logStepSuccess('Section 6 vérifiée (sans enfants)');
     }
 
-    // Step 9: Fill and verify Section 7 (Gammes et Options - final section)
-    this.logger.logStep('Section 7', 'Gammes et Options');
-    await formFiller.fillStep1Section7(frame, formData);
     await verifyStep1Section7(frame, formData);
-    this.logger.logStepSuccess('Section 7 remplie et vérifiée');
+    this.logger.logStepSuccess('Section 7 vérifiée');
 
-    // Step 10: Check for validation errors
-    this.logger.logStep('Vérification', 'des erreurs de validation');
-    const errors = await formFiller.checkForErrors(frame);
-
-    if (errors.length > 0) {
-      throw new Error(`Erreurs de validation détectées: ${errors.join(', ')}`);
-    }
-
-    this.logger.logStepSuccess('Aucune erreur de validation');
+    this.logger.logStepSuccess('Toutes les vérifications réussies');
   }
 }

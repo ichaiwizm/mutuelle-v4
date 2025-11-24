@@ -2,6 +2,9 @@ import type { IStep } from "./types";
 import { AlptisAuthStep } from "../platforms/alptis/steps/AlptisAuthStep";
 import { AlptisNavigationStep } from "../platforms/alptis/steps/AlptisNavigationStep";
 import { AlptisFormFillStep } from "../platforms/alptis/steps/AlptisFormFillStep";
+import { SwissLifeAuthStep } from "../platforms/swisslifeone/steps/SwissLifeAuthStep";
+import { SwissLifeNavigationStep } from "../platforms/swisslifeone/steps/SwissLifeNavigationStep";
+import { SwissLifeFormFillStep } from "../platforms/swisslifeone/steps/SwissLifeFormFillStep";
 
 /**
  * Registry for Step implementations
@@ -35,9 +38,10 @@ export class StepRegistry {
     this.register("AlptisNavigationStep", new AlptisNavigationStep());
     this.register("AlptisFormFillStep", new AlptisFormFillStep());
 
-    // SwissLife steps would go here
-    // this.register("SwissLifeAuthStep", new SwissLifeAuthStep());
-    // etc.
+    // SwissLife steps
+    this.register("SwissLifeAuthStep", new SwissLifeAuthStep());
+    this.register("SwissLifeNavigationStep", new SwissLifeNavigationStep());
+    this.register("SwissLifeFormFillStep", new SwissLifeFormFillStep());
   }
 
   /**

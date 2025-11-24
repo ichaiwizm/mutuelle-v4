@@ -4,8 +4,9 @@
  */
 
 import type { ProductConfiguration } from "../../../../shared/types/product";
+import type { SwissLifeOneFormData } from "../../platforms/swisslifeone/products/slsis/transformers/types";
 
-export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
+export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
   platform: "swisslife",
   product: "slsis",
   flowKey: "swisslife_one_slis",
@@ -17,20 +18,28 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
     {
       id: "auth",
       name: "Authentification",
-      description: "Connexion à SwissLife One",
+      description: "Connexion à SwissLife One (ADFS/SAML)",
       type: "auth",
       required: true,
       method: "login",
-      estimatedDuration: 5000,
+      stepClass: "SwissLifeAuthStep",
+      needsCredentials: true,
+      needsLead: false,
+      maxRetries: 2,
+      estimatedDuration: 10000,
     },
     {
       id: "navigation",
       name: "Navigation",
-      description: "Accès au formulaire SLSIS (iframe)",
+      description: "Accès au formulaire SLSIS (iframe loading ~45s)",
       type: "navigation",
       required: true,
       method: "execute",
-      estimatedDuration: 3000,
+      stepClass: "SwissLifeNavigationStep",
+      needsCredentials: false,
+      needsLead: false,
+      maxRetries: 1,
+      estimatedDuration: 45000,
     },
     {
       id: "form-step1-section1",
@@ -39,7 +48,11 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillStep1Section1",
-      estimatedDuration: 2000,
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
+      estimatedDuration: 1000,
     },
     {
       id: "form-step1-section2",
@@ -48,6 +61,10 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillStep1Section2",
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 2000,
     },
     {
@@ -57,7 +74,11 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillStep1Section3",
-      estimatedDuration: 2000,
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
+      estimatedDuration: 1000,
     },
     {
       id: "form-step1-section4",
@@ -66,6 +87,10 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       type: "form-fill",
       required: true,
       method: "fillStep1Section4",
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 4000,
     },
     {
@@ -76,6 +101,10 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       required: false,
       conditional: "hasConjoint",
       method: "fillStep1Section5",
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 3000,
     },
     {
@@ -86,18 +115,32 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration = {
       required: false,
       conditional: "hasEnfants",
       method: "fillStep1Section6",
-      estimatedDuration: 3000,
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
+      estimatedDuration: 4000,
     },
     {
       id: "form-step1-section7",
       name: "Gammes et Options",
-      description: "Step 1 Section 7 : Sélection gammes et options (2 champs)",
+      description: "Step 1 Section 7 : Sélection gammes et options (5 champs)",
       type: "form-fill",
       required: true,
       method: "fillStep1Section7",
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 1,
       estimatedDuration: 3000,
     },
   ],
+
+  // Conditional rules to evaluate step conditions
+  conditionalRules: {
+    hasConjoint: (data: SwissLifeOneFormData) => !!data.conjoint,
+    hasEnfants: (data: SwissLifeOneFormData) => (data.enfants?.nombre_enfants ?? 0) > 0,
+  },
 
   metadata: {
     formUrl: "https://swisslife-one.fr/slsis",
