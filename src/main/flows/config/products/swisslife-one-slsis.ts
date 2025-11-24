@@ -151,7 +151,7 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
     // Technical capabilities
     requiresBrowser: true,           // Requires Playwright browser automation
     supportsScreenshots: true,       // Can capture screenshots during execution
-    supportsPauseResume: false,      // Pause/resume not yet implemented
+    supportsPauseResume: true,       // Supports pause/resume with state persistence
 
     // Tags & categorization
     tags: ["sante", "collectif", "famille", "swisslife"],

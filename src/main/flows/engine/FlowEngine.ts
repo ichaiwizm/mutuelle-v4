@@ -46,6 +46,13 @@ export class FlowEngine extends EventEmitter {
       const productConfig = getProductConfig(flowKey) as ProductConfiguration<T> | undefined;
       if (!productConfig) throw new Error(`Product configuration not found: ${flowKey}`);
 
+      // Validate all step classes exist in registry before starting
+      for (const stepDef of productConfig.steps) {
+        if (stepDef.stepClass && !this.registry.has(stepDef.stepClass)) {
+          throw new Error(`Step class "${stepDef.stepClass}" not found in registry for step "${stepDef.id}"`);
+        }
+      }
+
       const startIndex = await this.pauseManager.initialize(flowKey, context.lead?.id, logger);
       if (this.config.stateId) await this.hooksManager.flowResumed(flowKey, context.lead?.id, this.pauseManager.state?.id);
 

@@ -112,7 +112,7 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
     // Technical capabilities
     requiresBrowser: true,           // Requires Playwright browser automation
     supportsScreenshots: true,       // Can capture screenshots during execution
-    supportsPauseResume: false,      // Pause/resume not yet implemented
+    supportsPauseResume: true,       // Supports pause/resume with state persistence
 
     // Tags & categorization
     tags: ["sante", "famille", "mutuelle", "alptis"],

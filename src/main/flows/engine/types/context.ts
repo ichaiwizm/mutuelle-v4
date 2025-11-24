@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { Lead } from "../../../db/schema";
+import type { Lead } from "../../../../shared/types/lead";
 import type { StepDefinition } from "../../../../shared/types/product";
 import type { FlowLogger } from "../FlowLogger";
 import type { PlatformCredentials } from "./credentials";

@@ -33,7 +33,8 @@
       "Bash(ls:*)",
       "Bash(test:*)",
       "Bash(sqlite3:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

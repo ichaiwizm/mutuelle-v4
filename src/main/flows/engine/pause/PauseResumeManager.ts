@@ -23,8 +23,9 @@ export class PauseResumeManager {
     return this.config.enabled;
   }
 
-  get state(): FlowState | undefined {
-    return this.currentState;
+  get state(): Readonly<FlowState> | undefined {
+    // Return a shallow copy to prevent external mutations
+    return this.currentState ? { ...this.currentState } : undefined;
   }
 
   get isPauseRequested(): boolean {
@@ -43,10 +44,11 @@ export class PauseResumeManager {
     if (!this.config.enabled) return 0;
 
     if (this.config.stateId) {
-      this.currentState = await this.stateService.getState(this.config.stateId);
-      if (!this.currentState) {
+      const loadedState = await this.stateService.getState(this.config.stateId);
+      if (!loadedState) {
         throw new Error(`Flow state not found: ${this.config.stateId}`);
       }
+      this.currentState = loadedState;
       if (this.currentState.flowKey !== flowKey) {
         throw new Error(`State flowKey mismatch: expected ${flowKey}, got ${this.currentState.flowKey}`);
       }
@@ -66,13 +68,22 @@ export class PauseResumeManager {
   async checkpoint(stepIndex: number, stepId: string): Promise<void> {
     if (!this.config.enabled || !this.currentState) return;
 
-    this.currentState.completedSteps.push(stepId);
-    this.currentState.currentStepIndex = stepIndex + 1;
+    // Prepare updated state (don't mutate current state yet)
+    const newCompletedSteps = [...this.currentState.completedSteps, stepId];
+    const newStepIndex = stepIndex + 1;
 
+    // Persist to DB first (atomic operation)
     await this.stateService.updateState(this.currentState.id, {
-      currentStepIndex: stepIndex + 1,
-      completedSteps: this.currentState.completedSteps,
+      currentStepIndex: newStepIndex,
+      completedSteps: newCompletedSteps,
     });
+
+    // Only update local state after successful DB write
+    this.currentState = {
+      ...this.currentState,
+      completedSteps: newCompletedSteps,
+      currentStepIndex: newStepIndex,
+    };
   }
 
   async markPaused(): Promise<void> {
