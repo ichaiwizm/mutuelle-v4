@@ -4,6 +4,58 @@
  * Produit: SLSIS (Santé Individuelle et Confort Hospitalisation)
  */
 
+/**
+ * Environment types
+ */
+export type Environment = 'development' | 'staging' | 'production';
+
+/**
+ * Environment-specific behaviors configuration
+ */
+export type EnvironmentBehaviors = {
+  verbose: boolean;              // Enable detailed logging
+  screenshotOnError: boolean;    // Capture screenshots on errors
+  screenshotOnSuccess: boolean;  // Capture screenshots on successful completions
+};
+
+/**
+ * Get current environment from NODE_ENV
+ * Defaults to 'development' if not set
+ */
+export function getEnvironment(): Environment {
+  const env = process.env.NODE_ENV as Environment;
+  return ['development', 'staging', 'production'].includes(env) ? env : 'development';
+}
+
+/**
+ * Environment-specific behaviors for each environment
+ */
+export const SwissLifeOneEnvironmentBehaviors: Record<Environment, EnvironmentBehaviors> = {
+  development: {
+    verbose: true,
+    screenshotOnError: true,
+    screenshotOnSuccess: true,
+  },
+  staging: {
+    verbose: true,
+    screenshotOnError: true,
+    screenshotOnSuccess: false,
+  },
+  production: {
+    verbose: false,
+    screenshotOnError: false,
+    screenshotOnSuccess: false,
+  },
+};
+
+/**
+ * Get environment behaviors for current environment
+ */
+export function getSwissLifeOneEnvironmentBehaviors(env?: Environment): EnvironmentBehaviors {
+  const currentEnv = env ?? getEnvironment();
+  return SwissLifeOneEnvironmentBehaviors[currentEnv];
+}
+
 export const SwissLifeOneTimeouts = {
   redirections: 10000,
   dashboardLoad: 15000,

@@ -69,6 +69,7 @@ export type FlowExecutionConfig = {
   skipNavigation?: boolean;            // Skip navigation step
   stopOnError?: boolean;               // Stop execution on first error (default: true)
   screenshotOnError?: boolean;         // Take screenshot on error (default: true)
+  screenshotOnSuccess?: boolean;       // Take screenshot on successful step completion (default: false)
   verbose?: boolean;                   // Verbose logging (default: false)
 };
 

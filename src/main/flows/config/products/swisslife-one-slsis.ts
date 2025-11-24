@@ -143,8 +143,19 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
   },
 
   metadata: {
+    // Basic info
     formUrl: "https://swisslife-one.fr/slsis",
     totalSections: 7,
     supportsPartialFill: true,
+
+    // Technical capabilities
+    requiresBrowser: true,           // Requires Playwright browser automation
+    supportsScreenshots: true,       // Can capture screenshots during execution
+    supportsPauseResume: false,      // Pause/resume not yet implemented
+
+    // Tags & categorization
+    tags: ["sante", "collectif", "famille", "swisslife"],
+    complexity: "complex",           // 9 steps with iframe, long load times, 2 conditional branches
+    priority: "high",                // High priority product
   },
 };

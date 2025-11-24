@@ -104,8 +104,19 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
   },
 
   metadata: {
+    // Basic info
     formUrl: "https://pro.alptis.org/sante-select/informations-projet/",
     totalSections: 4,
     supportsPartialFill: true,
+
+    // Technical capabilities
+    requiresBrowser: true,           // Requires Playwright browser automation
+    supportsScreenshots: true,       // Can capture screenshots during execution
+    supportsPauseResume: false,      // Pause/resume not yet implemented
+
+    // Tags & categorization
+    tags: ["sante", "famille", "mutuelle", "alptis"],
+    complexity: "medium",            // 6 steps with 2 conditional branches
+    priority: "high",                // High priority product
   },
 };

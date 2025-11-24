@@ -5,42 +5,50 @@
 
 import { getProductConfig as getConfigFromProducts, getProductsByCategory, getProductsByPlatform, PRODUCT_CONFIGS } from "../../flows/config/products";
 import type { ProductConfiguration, ProductCategory, StepDefinition } from "../../../shared/types/product";
+import { enrichProductConfig } from "../../../shared/types/product";
 
 /**
  * Get configuration for a specific product by flow key
  * Standalone function for convenience
+ * Automatically enriches the configuration with calculated metadata
  */
 export function getProductConfig(flowKey: string): ProductConfiguration | undefined {
-  return getConfigFromProducts(flowKey);
+  const config = getConfigFromProducts(flowKey);
+  return config ? enrichProductConfig(config) : undefined;
 }
 
 export const ProductConfigCore = {
   /**
    * Get configuration for a specific product by flow key
+   * Automatically enriches the configuration with calculated metadata
    */
   getProductConfig(flowKey: string): ProductConfiguration | undefined {
-    return getConfigFromProducts(flowKey);
+    const config = getConfigFromProducts(flowKey);
+    return config ? enrichProductConfig(config) : undefined;
   },
 
   /**
    * List all available product configurations
+   * Automatically enriches all configurations with calculated metadata
    */
   listAllProducts(): ProductConfiguration[] {
-    return Object.values(PRODUCT_CONFIGS);
+    return Object.values(PRODUCT_CONFIGS).map(config => enrichProductConfig(config));
   },
 
   /**
    * List products filtered by category
+   * Automatically enriches all configurations with calculated metadata
    */
   listProductsByCategory(category: ProductCategory): ProductConfiguration[] {
-    return getProductsByCategory(category);
+    return getProductsByCategory(category).map(config => enrichProductConfig(config));
   },
 
   /**
    * List products filtered by platform
+   * Automatically enriches all configurations with calculated metadata
    */
   listProductsByPlatform(platform: string): ProductConfiguration[] {
-    return getProductsByPlatform(platform);
+    return getProductsByPlatform(platform).map(config => enrichProductConfig(config));
   },
 
   /**

@@ -7,6 +7,7 @@ import type {
 import type { StepDefinition, ProductConfiguration } from "../../../shared/types/product";
 import { StepRegistry } from "./StepRegistry";
 import { getProductConfig } from "../../services/productConfig/productConfigCore";
+import { getEnvironment, getAlptisEnvironmentBehaviors } from "../config/alptis.config";
 
 /**
  * Main Flow Execution Engine
@@ -18,12 +19,23 @@ export class FlowEngine {
 
   constructor(config?: FlowExecutionConfig) {
     this.registry = StepRegistry.getInstance();
+
+    // Auto-detect environment and apply appropriate behaviors
+    const env = getEnvironment();
+    const envBehaviors = getAlptisEnvironmentBehaviors(env);
+
     this.config = {
       stopOnError: true,
-      screenshotOnError: true,
-      verbose: false,
-      ...config,
+      screenshotOnError: envBehaviors.screenshotOnError,
+      screenshotOnSuccess: envBehaviors.screenshotOnSuccess,
+      verbose: envBehaviors.verbose,
+      ...config, // Allow explicit overrides
     };
+
+    if (this.config.verbose) {
+      console.log(`[FlowEngine] Initialized with environment: ${env}`);
+      console.log(`[FlowEngine] Behaviors: verbose=${envBehaviors.verbose}, screenshotOnError=${envBehaviors.screenshotOnError}, screenshotOnSuccess=${envBehaviors.screenshotOnSuccess}`);
+    }
   }
 
   /**
@@ -96,6 +108,17 @@ export class FlowEngine {
           }
         } else {
           this.log(`Step completed: ${stepDef.id} (${stepResult.duration}ms)`);
+
+          // Take screenshot on success if configured
+          if (this.config.screenshotOnSuccess && context.page) {
+            try {
+              const screenshotPath = `${context.artifactsDir || "."}/success-${stepDef.id}-${Date.now()}.png`;
+              await context.page.screenshot({ path: screenshotPath, fullPage: true });
+              this.log(`Success screenshot saved: ${screenshotPath}`);
+            } catch (err) {
+              this.log(`Failed to take success screenshot: ${err}`);
+            }
+          }
         }
       }
 

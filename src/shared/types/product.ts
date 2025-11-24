@@ -47,8 +47,55 @@ export type ProductConfiguration<T = any> = {
   steps: StepDefinition[];       // Ordered list of steps
   conditionalRules?: ConditionalRules<T>;  // Rules to evaluate step conditionals
   metadata?: {                   // Additional metadata
+    // Basic info
     formUrl?: string;
     totalSections?: number;
     supportsPartialFill?: boolean;
+
+    // Calculated metrics (auto-computed by enrichProductConfig)
+    estimatedTotalDuration?: number;     // Total estimated duration in ms (sum of all steps)
+    requiredStepsCount?: number;         // Number of required steps
+    conditionalStepsCount?: number;      // Number of conditional steps
+
+    // Technical capabilities
+    supportsPauseResume?: boolean;       // Whether flow supports pause/resume
+    supportsScreenshots?: boolean;       // Whether flow can take screenshots
+    requiresBrowser?: boolean;           // Whether flow requires a browser (vs API-only)
+
+    // Tags & categorization
+    tags?: string[];                     // Tags for filtering/categorization (e.g., ["medical", "family"])
+    complexity?: 'simple' | 'medium' | 'complex';  // Flow complexity level
+    priority?: 'low' | 'medium' | 'high';          // Flow priority
   };
 };
+
+/**
+ * Enriches a ProductConfiguration with auto-calculated metadata.
+ * Computes metrics like total duration, step counts, etc.
+ *
+ * @param config The product configuration to enrich
+ * @returns The enriched configuration with calculated metadata
+ */
+export function enrichProductConfig<T>(config: ProductConfiguration<T>): ProductConfiguration<T> {
+  const calculatedMetadata = {
+    // Calculate total estimated duration (sum of all steps with estimatedDuration)
+    estimatedTotalDuration: config.steps.reduce(
+      (sum, step) => sum + (step.estimatedDuration || 0),
+      0
+    ),
+
+    // Count required steps
+    requiredStepsCount: config.steps.filter(step => step.required).length,
+
+    // Count conditional steps
+    conditionalStepsCount: config.steps.filter(step => step.conditional).length,
+  };
+
+  return {
+    ...config,
+    metadata: {
+      ...config.metadata,
+      ...calculatedMetadata,
+    },
+  };
+}
