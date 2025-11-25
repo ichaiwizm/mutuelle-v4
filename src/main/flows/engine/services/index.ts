@@ -14,8 +14,13 @@ export type {
 
 export { hasIframeSupport } from "./types";
 
-export { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
-export { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
+// Import pour utilisation locale
+import { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
+import { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
+
+// Export pour les autres modules
+export { createAlptisServices, resetAlptisServices };
+export { createSwissLifeServices, resetSwissLifeServices };
 
 /**
  * Get platform services by flow key
