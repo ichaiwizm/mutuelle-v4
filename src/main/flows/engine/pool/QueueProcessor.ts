@@ -1,0 +1,130 @@
+import type { QueuedTask, FlowPoolConfig } from "./types";
+import type { FlowExecutionResult } from "../types";
+import type { BrowserManager } from "./BrowserManager";
+import { FlowWorker } from "./FlowWorker";
+import type { EventEmitter } from "events";
+
+type ProcessorDeps = {
+  browserManager: BrowserManager;
+  config: FlowPoolConfig;
+  emitter: EventEmitter;
+  activeWorkers: Map<string, FlowWorker>;
+};
+
+/**
+ * Handles the queue processing logic for FlowPool.
+ * Manages concurrency control and task execution.
+ */
+export class QueueProcessor {
+  private deps: ProcessorDeps;
+  private maxConcurrent: number;
+  private isPaused = false;
+
+  constructor(deps: ProcessorDeps, maxConcurrent: number) {
+    this.deps = deps;
+    this.maxConcurrent = maxConcurrent;
+  }
+
+  pause(): void {
+    this.isPaused = true;
+  }
+
+  resume(): void {
+    this.isPaused = false;
+  }
+
+  /**
+   * Process all tasks in the queue with concurrency control.
+   */
+  async process(
+    queue: QueuedTask[],
+    results: Map<string, FlowExecutionResult>
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      let completed = 0;
+      let running = 0;
+      let index = 0;
+      const total = queue.length;
+
+      const processNext = async (): Promise<void> => {
+        if (this.isPaused) {
+          if (running === 0) resolve();
+          return;
+        }
+
+        while (running < this.maxConcurrent && index < queue.length) {
+          const task = queue[index];
+          if (task.status !== "queued") {
+            index++;
+            continue;
+          }
+
+          task.status = "running";
+          index++;
+          running++;
+
+          this.executeTask(task)
+            .then((result) => this.handleSuccess(task, result, results))
+            .catch((error) => this.handleError(task, error, results))
+            .finally(() => {
+              running--;
+              completed++;
+              completed >= total ? resolve() : processNext();
+            });
+        }
+
+        if (running === 0 && index >= queue.length) resolve();
+      };
+
+      processNext().catch(reject);
+    });
+  }
+
+  private async executeTask(task: QueuedTask): Promise<FlowExecutionResult> {
+    const context = await this.deps.browserManager.createContext();
+    const worker = new FlowWorker(task.id, context);
+
+    this.deps.activeWorkers.set(task.id, worker);
+    this.deps.config.onTaskStart?.(task.id);
+    this.deps.emitter.emit("task:start", task.id);
+
+    try {
+      return await worker.execute(task);
+    } finally {
+      await worker.cleanup();
+      await this.deps.browserManager.closeContext(context);
+      this.deps.activeWorkers.delete(task.id);
+    }
+  }
+
+  private handleSuccess(
+    task: QueuedTask,
+    result: FlowExecutionResult,
+    results: Map<string, FlowExecutionResult>
+  ): void {
+    task.status = "completed";
+    results.set(task.id, result);
+    this.deps.config.onTaskComplete?.(task.id, result);
+    this.deps.emitter.emit("task:complete", task.id, result);
+  }
+
+  private handleError(
+    task: QueuedTask,
+    error: unknown,
+    results: Map<string, FlowExecutionResult>
+  ): void {
+    task.status = "failed";
+    const err = error instanceof Error ? error : new Error(String(error));
+    const failedResult: FlowExecutionResult = {
+      success: false,
+      flowKey: task.flowKey,
+      leadId: task.leadId,
+      steps: [],
+      totalDuration: 0,
+      error: err,
+    };
+    results.set(task.id, failedResult);
+    this.deps.config.onTaskError?.(task.id, err);
+    this.deps.emitter.emit("task:error", task.id, err);
+  }
+}

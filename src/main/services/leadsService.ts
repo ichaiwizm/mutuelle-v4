@@ -9,6 +9,12 @@ export const LeadsService = {
     return rows;
   },
 
+  async getById(id: string) {
+    const rows = await db.select().from(schema.leads).where(eq(schema.leads.id, id));
+    if (rows.length === 0) return null;
+    return JSON.parse(rows[0].data);
+  },
+
   async create(raw: unknown) {
     // id facultatif à l’entrée → on le force
     const withId =

@@ -32,3 +32,13 @@ export { HooksManager } from "./hooks";
 
 // Pause/Resume
 export { PauseResumeManager } from "./pause";
+
+// Pool (parallel execution)
+export { FlowPool, FlowWorker, BrowserManager } from "./pool";
+export type {
+  FlowTask,
+  FlowPoolConfig,
+  FlowPoolResult,
+  WorkerStatus,
+  FlowPoolEvents,
+} from "./pool";
