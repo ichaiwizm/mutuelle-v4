@@ -39,7 +39,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm exec drizzle-kit:*)",
       "Bash(wait)",
-      "Bash(git -C /home/ichai/dev/mutuelle-v4 diff --stat e2e/)"
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 diff --stat e2e/)",
+      "Bash(pnpm exec vitest:*)"
     ],
     "deny": [],
     "ask": []
