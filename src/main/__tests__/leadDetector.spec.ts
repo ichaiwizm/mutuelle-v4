@@ -20,18 +20,18 @@ describe('isLead', () => {
     expect(isLead(email)).toBe(true);
   });
 
-  it('identifies valid AssurProspect lead with spouse and multiple children (email-005)', () => {
-    const email = email005 as MailMsg;
+  it('identifies valid AssurProspect lead with spouse and multiple children (email-015)', () => {
+    const email = email015 as MailMsg;
     expect(isLead(email)).toBe(true);
   });
 
-  it('rejects empty body email (email-002)', () => {
+  it('identifies valid AssurProspect lead (email-002)', () => {
     const email = email002 as MailMsg;
-    expect(isLead(email)).toBe(false);
+    expect(isLead(email)).toBe(true);
   });
 
-  it('rejects empty forward (email-015)', () => {
-    const email = email015 as MailMsg;
+  it('rejects empty forward (email-005)', () => {
+    const email = email005 as MailMsg;
     expect(isLead(email)).toBe(false);
   });
 
@@ -80,7 +80,7 @@ describe('detectProvider', () => {
   });
 
   it('detects AssurProspect for all valid emails', () => {
-    const validEmails = [email001, email005, email014];
+    const validEmails = [email001, email002, email014, email015];
 
     validEmails.forEach((email) => {
       const result = detectProvider(email as MailMsg);
@@ -90,7 +90,7 @@ describe('detectProvider', () => {
   });
 
   it('returns Unknown for empty emails', () => {
-    const email = email002 as MailMsg;
+    const email = email005 as MailMsg;
     const result = detectProvider(email);
 
     expect(result.provider).toBe('Unknown');
@@ -119,7 +119,7 @@ contact@assurprospect.fr`,
 
 describe('Provider detection signals', () => {
   it('identifies all AssurProspect signals correctly', () => {
-    const email = email001 as MailMsg;
+    const email = email002 as MailMsg; // email-002 has "AssurProspect.fr" in subject
     const result = detectProvider(email);
 
     // Should have multiple strong signals
