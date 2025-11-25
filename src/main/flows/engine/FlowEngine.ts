@@ -9,6 +9,7 @@ import { flowStateService } from "../state";
 import { executeStepWithRetry, evaluateConditional, captureScreenshot, buildFlowResult } from "./core";
 import { HooksManager } from "./hooks";
 import { PauseResumeManager } from "./pause";
+import { getServicesForFlow } from "./services";
 
 /**
  * Main Flow Execution Engine
@@ -34,13 +35,14 @@ export class FlowEngine extends EventEmitter {
     );
   }
 
-  async execute<T = any>(flowKey: string, context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger">): Promise<FlowExecutionResult> {
+  async execute<T = any>(flowKey: string, context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger" | "services">): Promise<FlowExecutionResult> {
     const startTime = Date.now();
     const stepResults: StepResult[] = [];
     this.pauseManager.reset();
 
     const logger = new FlowLogger(flowKey, context.lead?.id, this.config.verbose);
-    const baseContext = { ...context, flowKey, logger } as ExecutionContext<T>;
+    const services = getServicesForFlow(flowKey);
+    const baseContext = { ...context, flowKey, logger, services } as ExecutionContext<T>;
 
     try {
       const productConfig = getProductConfig(flowKey) as ProductConfiguration<T> | undefined;
@@ -62,7 +64,7 @@ export class FlowEngine extends EventEmitter {
 
       for (let i = startIndex; i < productConfig.steps.length; i++) {
         const stepDef = productConfig.steps[i];
-        const stepCtx: ExecutionContext<T> = { ...context, flowKey, stepDefinition: stepDef, logger: logger.child({ stepId: stepDef.id }) };
+        const stepCtx: ExecutionContext<T> = { ...context, flowKey, stepDefinition: stepDef, logger: logger.child({ stepId: stepDef.id }), services };
 
         if (this.pauseManager.isPauseRequested) {
           await this.pauseManager.markPaused();

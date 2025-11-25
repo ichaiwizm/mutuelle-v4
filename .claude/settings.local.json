@@ -34,7 +34,11 @@
       "Bash(test:*)",
       "Bash(sqlite3:*)",
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(MUTUELLE_DB_FILE=/home/ichai/dev/mutuelle-v4/.userData/mutuelle.db pnpm test:e2e:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm exec drizzle-kit:*)",
+      "Bash(wait)"
     ],
     "deny": [],
     "ask": []

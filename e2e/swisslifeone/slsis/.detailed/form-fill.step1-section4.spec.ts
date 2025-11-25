@@ -1,13 +1,16 @@
 import { test, expect } from '../../fixtures';
-import { SwissLifeOneInstances } from '@/main/flows/registry';
+import { createSwissLifeServices } from '@/main/flows/engine/services';
+import type { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
+import type { FormFillOrchestrator } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/form-fill/FormFillOrchestrator';
 
 test.describe('SwissLife One - Form Fill - Step 1 Section 4', () => {
   test('Fill "Données de l\'assuré principal" - Date de naissance field', async ({ page, formWithStep1Section3, leadData }) => {
     test.setTimeout(60000); // Increase timeout to 60s for this test
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section4(frame, leadData);
 
     // Verify the date was filled correctly

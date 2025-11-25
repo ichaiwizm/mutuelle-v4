@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import 'dotenv/config';
+import './playwright-setup';
 
 /**
  * Configuration Playwright pour tester les flows

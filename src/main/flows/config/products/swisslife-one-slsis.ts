@@ -9,7 +9,7 @@ import type { SwissLifeOneFormData } from "../../platforms/swisslifeone/products
 export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
   platform: "swisslife",
   product: "slsis",
-  flowKey: "swisslife_one_slis",
+  flowKey: "swisslife_one_slsis",
   category: "sante",
   displayName: "SwissLife One SLSIS",
   description: "Santé collective SwissLife One",

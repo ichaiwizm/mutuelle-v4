@@ -1,7 +1,8 @@
 import { BaseStep } from "../../../engine/BaseStep";
 import type { ExecutionContext } from "../../../engine/types";
 import type { SwissLifeOneFormData } from "../products/slsis/transformers/types";
-import { SwissLifeOneInstances } from "../../../registry";
+import type { SwissLifeNavigationStep } from "../products/slsis/steps/navigation";
+import type { FormFillOrchestrator } from "../products/slsis/steps/form-fill/FormFillOrchestrator";
 
 /**
  * Form fill step for SwissLife One platform
@@ -10,18 +11,22 @@ import { SwissLifeOneInstances } from "../../../registry";
  */
 export class SwissLifeFormFillStep extends BaseStep<SwissLifeOneFormData> {
   protected async executeStep(context: ExecutionContext<SwissLifeOneFormData>): Promise<void> {
-    const { page, transformedData, stepDefinition } = context;
+    const { page, transformedData, stepDefinition, services } = context;
 
     if (!transformedData) {
       throw new Error("Transformed data is required for form filling");
     }
 
-    // Get the navigation step to access iframe
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    if (!services) {
+      throw new Error("Services are required for form filling");
+    }
+
+    // Get the navigation service to access iframe
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    // Get the form fill orchestrator from registry
-    const formFiller = SwissLifeOneInstances.getFormFillStep();
+    // Cast to FormFillOrchestrator to access SwissLife-specific methods
+    const formFiller = services.formFill as FormFillOrchestrator;
 
     // Call the appropriate method based on step definition
     const method = stepDefinition.method;

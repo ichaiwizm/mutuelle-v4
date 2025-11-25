@@ -1,7 +1,7 @@
 import { BaseStep } from "../../../engine/BaseStep";
 import type { ExecutionContext } from "../../../engine/types";
 import type { AlptisFormData } from "../products/sante-select/transformers/types";
-import { AlptisInstances } from "../../../registry";
+import type { FormFillOrchestrator } from "../products/sante-select/steps/form-fill/FormFillOrchestrator";
 
 /**
  * Form fill step for Alptis platform
@@ -9,14 +9,18 @@ import { AlptisInstances } from "../../../registry";
  */
 export class AlptisFormFillStep extends BaseStep<AlptisFormData> {
   protected async executeStep(context: ExecutionContext<AlptisFormData>): Promise<void> {
-    const { page, transformedData, stepDefinition } = context;
+    const { page, transformedData, stepDefinition, services } = context;
 
     if (!transformedData) {
       throw new Error("Transformed data is required for form filling");
     }
 
-    // Get the form fill orchestrator from registry
-    const formFiller = AlptisInstances.getFormFillStep();
+    if (!services) {
+      throw new Error("Services are required for form filling");
+    }
+
+    // Cast to FormFillOrchestrator to access Alptis-specific methods
+    const formFiller = services.formFill as FormFillOrchestrator;
 
     // Call the appropriate method based on step definition
     const method = stepDefinition.method;

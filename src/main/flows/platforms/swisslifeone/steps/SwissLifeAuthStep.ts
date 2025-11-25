@@ -1,6 +1,5 @@
 import { BaseStep } from "../../../engine/BaseStep";
 import type { ExecutionContext } from "../../../engine/types";
-import { SwissLifeOneInstances } from "../../../registry";
 
 /**
  * Authentication step for SwissLife One platform
@@ -8,16 +7,13 @@ import { SwissLifeOneInstances } from "../../../registry";
  */
 export class SwissLifeAuthStep extends BaseStep {
   protected async executeStep(context: ExecutionContext): Promise<void> {
-    const { page, credentials } = context;
+    const { page, services } = context;
 
-    if (!credentials) {
-      throw new Error("Credentials are required for authentication");
+    if (!services) {
+      throw new Error("Services are required for authentication");
     }
 
-    // Get the auth instance from registry
-    const auth = SwissLifeOneInstances.getAuth();
-
-    // Execute login (ADFS/SAML flow)
-    await auth.login(page, context.logger);
+    // Execute login using injected auth service (ADFS/SAML flow)
+    await services.auth.login(page, context.logger);
   }
 }

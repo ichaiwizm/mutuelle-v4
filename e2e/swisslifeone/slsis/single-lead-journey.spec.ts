@@ -11,7 +11,8 @@
 import { test, expect } from '../fixtures';
 import { FlowEngine } from '@/main/flows/engine';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
-import { SwissLifeOneInstances } from '@/main/flows/registry';
+import { createSwissLifeServices } from '@/main/flows/engine/services';
+import type { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
 import { hasSwissLifeOneCredentials } from '../helpers/credentials';
 import { selectLead } from '../../leads';
 import {
@@ -50,7 +51,7 @@ test('Complete journey with FlowEngine', async ({ page, authenticatedPage }) => 
     stopOnError: true,
   });
 
-  const result = await engine.execute('swisslife_one_slis', {
+  const result = await engine.execute('swisslife_one_slsis', {
     page,
     lead,
     transformedData: formData,
@@ -61,7 +62,8 @@ test('Complete journey with FlowEngine', async ({ page, authenticatedPage }) => 
 
   // Verify all sections
   console.log('\n🔍 Verifying all sections...');
-  const nav = SwissLifeOneInstances.getNavigationStep();
+  const services = createSwissLifeServices();
+  const nav = services.navigation as SwissLifeNavigationStep;
   const frame = await nav.getIframe(page);
 
   await verifyStep1Section1(frame, formData);

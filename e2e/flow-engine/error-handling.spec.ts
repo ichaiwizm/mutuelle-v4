@@ -12,7 +12,7 @@ import { test, expect } from "@playwright/test";
 import { FlowEngine } from "../../src/main/flows/engine";
 import { flowStateService } from "../../src/main/flows/state";
 import { selectLead } from "../leads";
-import { AlptisInstances } from "../../src/main/flows/registry";
+import { createAlptisServices } from "../../src/main/flows/engine/services";
 import { LeadTransformer } from "../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer";
 import * as fs from "fs";
 import * as path from "path";
@@ -49,12 +49,11 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Navigate to form first
-    const nav = AlptisInstances.getNavigationStep();
-    await nav.execute(page);
+    await services.navigation.execute(page);
 
     const result = await engine.execute("alptis_sante_select", {
       page,
@@ -88,8 +87,8 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Use data that might cause intermittent failures
     const lead = selectLead("solo");
@@ -132,12 +131,11 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Navigate first
-    const nav = AlptisInstances.getNavigationStep();
-    await nav.execute(page);
+    await services.navigation.execute(page);
 
     // Use invalid data to trigger error
     const result = await engine.execute("alptis_sante_select", {
@@ -170,12 +168,11 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Navigate first
-    const nav = AlptisInstances.getNavigationStep();
-    await nav.execute(page);
+    await services.navigation.execute(page);
 
     // Execute with invalid data
     const result = await engine.execute("alptis_sante_select", {
@@ -240,12 +237,11 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Navigate first
-    const nav = AlptisInstances.getNavigationStep();
-    await nav.execute(page);
+    await services.navigation.execute(page);
 
     // Execute with invalid data to trigger error
     const result = await engine.execute("alptis_sante_select", {
@@ -282,12 +278,11 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
 
     // Navigate first
-    const nav = AlptisInstances.getNavigationStep();
-    await nav.execute(page);
+    await services.navigation.execute(page);
 
     // Execute with invalid data
     const result = await engine.execute("alptis_sante_select", {

@@ -1,6 +1,5 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { createRequire } from "node:module";
 
 let cachedUserData: string | null = null;
 
@@ -15,8 +14,8 @@ export function getUserDataDir(): string {
 
   // Try to use Electron if available without making it a hard dependency for tests
   try {
-    const req = createRequire(import.meta.url);
-    const electron = req('electron');
+    // Dynamic import of electron - works in both ESM and CommonJS contexts
+    const electron = require('electron');
     const p = electron?.app?.getPath?.('userData');
     if (p) {
       mkdirSync(p, { recursive: true });

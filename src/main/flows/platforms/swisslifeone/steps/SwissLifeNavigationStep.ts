@@ -1,6 +1,6 @@
 import { BaseStep } from "../../../engine/BaseStep";
 import type { ExecutionContext } from "../../../engine/types";
-import { SwissLifeOneInstances } from "../../../registry";
+import type { SwissLifeNavigationStep as SwissLifeNavService } from "../products/slsis/steps/navigation";
 
 /**
  * Navigation step for SwissLife One platform
@@ -9,10 +9,14 @@ import { SwissLifeOneInstances } from "../../../registry";
  */
 export class SwissLifeNavigationStep extends BaseStep {
   protected async executeStep(context: ExecutionContext): Promise<void> {
-    const { page } = context;
+    const { page, services } = context;
 
-    // Get the navigation step instance from registry
-    const navigationStep = SwissLifeOneInstances.getNavigationStep();
+    if (!services) {
+      throw new Error("Services are required for navigation");
+    }
+
+    // Cast to SwissLife navigation service to access iframe methods
+    const navigationStep = services.navigation as SwissLifeNavService;
 
     // Execute navigation (this loads the iframe)
     await navigationStep.execute(page, context.logger);

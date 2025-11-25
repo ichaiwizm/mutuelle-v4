@@ -24,7 +24,7 @@ export async function setupTestCtx(): Promise<TestCtx> {
   const existing = await (db as any).select({ key: (schema as any).flows.key }).from((schema as any).flows).limit(1);
   if (!existing[0]) {
     await (db as any).insert((schema as any).flows).values([
-      { key: 'swisslife_one_slis', version: 'v1', title: 'SwissLife One SLIS' },
+      { key: 'swisslife_one_slsis', version: 'v1', title: 'SwissLife One SLSIS' },
     ]);
   }
 

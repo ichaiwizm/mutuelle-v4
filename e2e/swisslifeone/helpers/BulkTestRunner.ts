@@ -17,7 +17,8 @@ import { BaseBulkTestRunner } from '../../shared/BaseBulkTestRunner';
 import { FlowEngine } from '@/main/flows/engine';
 import { SwissLifeOneAuth } from '@/main/flows/platforms/swisslifeone/lib/SwissLifeOneAuth';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
-import { SwissLifeOneInstances } from '@/main/flows/registry';
+import { createSwissLifeServices } from '@/main/flows/engine/services';
+import type { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
 import { BulkTestLogger } from '../../leads';
 import { getSwissLifeOneCredentials } from './credentials';
 import {
@@ -116,7 +117,7 @@ export class BulkTestRunner extends BaseBulkTestRunner {
 
     // Execute flow using engine
     this.logger.logStep('Exécution', 'du flow automatisé');
-    const result = await engine.execute('swisslife_one_slis', {
+    const result = await engine.execute('swisslife_one_slsis', {
       page,
       lead,
       transformedData: formData,
@@ -132,7 +133,8 @@ export class BulkTestRunner extends BaseBulkTestRunner {
     this.logger.logStep('Vérifications', 'post-exécution');
 
     // Get iframe for verification
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
     // Verify all sections

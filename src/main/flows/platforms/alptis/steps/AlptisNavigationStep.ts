@@ -1,6 +1,5 @@
 import { BaseStep } from "../../../engine/BaseStep";
 import type { ExecutionContext } from "../../../engine/types";
-import { AlptisInstances } from "../../../registry";
 
 /**
  * Navigation step for Alptis platform
@@ -8,12 +7,13 @@ import { AlptisInstances } from "../../../registry";
  */
 export class AlptisNavigationStep extends BaseStep {
   protected async executeStep(context: ExecutionContext): Promise<void> {
-    const { page } = context;
+    const { page, services } = context;
 
-    // Get the navigation step instance from registry
-    const navigationStep = AlptisInstances.getNavigationStep();
+    if (!services) {
+      throw new Error("Services are required for navigation");
+    }
 
-    // Execute navigation
-    await navigationStep.execute(page, context.logger);
+    // Execute navigation using injected service
+    await services.navigation.execute(page, context.logger);
   }
 }

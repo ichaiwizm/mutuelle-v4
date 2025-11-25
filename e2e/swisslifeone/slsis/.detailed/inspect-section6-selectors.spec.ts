@@ -1,5 +1,6 @@
 import { test } from '../../fixtures';
-import { SwissLifeOneInstances } from '@/main/flows/registry';
+import { createSwissLifeServices } from '@/main/flows/engine/services';
+import type { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
 
 /**
  * Test d'inspection pour découvrir les sélecteurs de la Section 6 (Enfants)
@@ -9,7 +10,8 @@ import { SwissLifeOneInstances } from '@/main/flows/registry';
 test.describe('Section 6 - Selector Discovery', () => {
   test('🔍 Discover children field selectors', async ({ page, formWithStep1Section5 }) => {
     test.setTimeout(120000);
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
     console.log('\n════════════════════════════════════════');

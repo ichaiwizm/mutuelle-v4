@@ -3,8 +3,10 @@
  * Permet de réutiliser les étapes communes (auth, navigation)
  */
 import { test as base } from '@playwright/test';
-import { SwissLifeOneInstances } from '../../src/main/flows/registry';
+import { createSwissLifeServices } from '../../src/main/flows/engine/services';
 import { SwissLifeOneLeadTransformer } from '../../src/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
+import type { SwissLifeNavigationStep } from '../../src/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
+import type { FormFillOrchestrator } from '../../src/main/flows/platforms/swisslifeone/products/slsis/steps/form-fill/FormFillOrchestrator';
 import type { SwissLifeOneFormData } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/types';
 import type { LeadType } from './types';
 import { selectLead, selectLeadByIndex, getLeadTypeName } from '../leads';
@@ -77,8 +79,8 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   authenticatedPage: async ({ page }, use) => {
     console.log('\n🔐 [FIXTURE] Authentification SwissLife One...');
-    const auth = SwissLifeOneInstances.getAuth();
-    await auth.login(page);
+    const services = createSwissLifeServices();
+    await services.auth.login(page);
     console.log('✅ [FIXTURE] Authentifié');
     await use();
   },
@@ -90,8 +92,8 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formPage: async ({ page, authenticatedPage }, use) => {
     console.log('\n🧭 [FIXTURE] Navigation vers formulaire SLSIS...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
-    await nav.execute(page);
+    const services = createSwissLifeServices();
+    await services.navigation.execute(page);
     console.log('✅ [FIXTURE] Sur le formulaire (iframe chargée)');
     await use();
   },
@@ -103,10 +105,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section1: async ({ page, formPage, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 1...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section1(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 1 remplie');
     await use();
@@ -119,10 +122,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section2: async ({ page, formWithStep1Section1, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 2...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section2(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 2 remplie');
     await use();
@@ -135,10 +139,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section3: async ({ page, formWithStep1Section2, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 3...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section3(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 3 remplie');
     await use();
@@ -151,10 +156,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section4: async ({ page, formWithStep1Section3, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 4...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section4(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 4 remplie');
     await use();
@@ -167,10 +173,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section5: async ({ page, formWithStep1Section4, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 5...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section5(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 5 remplie');
     await use();
@@ -183,10 +190,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section6: async ({ page, formWithStep1Section5, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 6...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section6(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 6 remplie');
     await use();
@@ -199,10 +207,11 @@ export const test = base.extend<SwissLifeOneFixtures>({
    */
   formWithStep1Section7: async ({ page, formWithStep1Section6, leadData }, use) => {
     console.log('\n📝 [FIXTURE] Remplissage Step 1 - Section 7 (finale)...');
-    const nav = SwissLifeOneInstances.getNavigationStep();
+    const services = createSwissLifeServices();
+    const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 
-    const formFill = SwissLifeOneInstances.getFormFillStep();
+    const formFill = services.formFill as FormFillOrchestrator;
     await formFill.fillStep1Section7(frame, leadData);
     console.log('✅ [FIXTURE] Step 1 - Section 7 remplie');
     console.log('🎉 [FIXTURE] Step 1 COMPLET - Toutes les sections remplies !');

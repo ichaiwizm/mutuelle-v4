@@ -12,7 +12,7 @@ import { FlowEngine } from "../../src/main/flows/engine";
 import { flowStateService } from "../../src/main/flows/state";
 import { LeadTransformer } from "../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer";
 import { selectLead } from "../leads";
-import { AlptisInstances } from "../../src/main/flows/registry";
+import { createAlptisServices } from "../../src/main/flows/engine/services";
 
 // Skip si pas de credentials
 const hasCredentials = !!process.env.ALPTIS_TEST_USERNAME && !!process.env.ALPTIS_TEST_PASSWORD;
@@ -22,8 +22,8 @@ test.describe("FlowEngine Pause/Resume", () => {
 
   test.beforeEach(async ({ page }) => {
     // Pre-authenticate to speed up tests
-    const auth = AlptisInstances.getAuth();
-    await auth.login(page);
+    const services = createAlptisServices();
+    await services.auth.login(page);
   });
 
   test("Pause mid-flow et persiste état en DB", async ({ page }) => {

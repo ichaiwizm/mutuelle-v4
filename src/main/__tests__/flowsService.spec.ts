@@ -13,6 +13,6 @@ describe('FlowsService', () => {
   it('list returns seeded flows', async () => {
     const { FlowsService } = await import('@/main/services/flowsService');
     const flows = await FlowsService.list();
-    expect(flows.map(f => f.key).sort()).toEqual(['alptis_sante_select','swisslife_one_slis']);
+    expect(flows.map(f => f.key).sort()).toEqual(['alptis_sante_select','swisslife_one_slsis']);
   });
 });
