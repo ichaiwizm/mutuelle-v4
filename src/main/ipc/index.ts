@@ -9,6 +9,10 @@ import { MailAuthService } from "../services/mailAuthService";
 import { MailService } from "../services/mailService";
 import { FixtureExporter } from "../services/fixtureExporter";
 import { OAuthService } from "../services/oauthService";
+import { ProductStatusService } from "../services/productStatusService";
+import { ProductConfigCore, ProductConfigQuery } from "../services/productConfig";
+import { flowStateService } from "../flows/state";
+import { getDashboardOverview } from "../services/dashboardService";
 import {
   AppError,
   ValidationError,
@@ -34,6 +38,11 @@ import {
   AutomationCancelSchema,
   FixturesExportSchema,
   LeadsParseFromTextSchema,
+  ProductGetConfigSchema,
+  ProductGetStatusSchema,
+  ProductSaveStatusSchema,
+  ProductUpdateStatusSchema,
+  FlowStateIdSchema,
 } from "@/shared/validation/ipc.zod";
 import { parseLeads } from "@/main/leads/parsing/parser";
 
@@ -273,6 +282,92 @@ export function registerIpc() {
     IPC_CHANNEL.AUTO_CANCEL,
     handler(AutomationCancelSchema, async ({ runId }) => {
       return AutomationService.cancel(runId);
+    })
+  );
+
+  // ========== Products ==========
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_LIST_CONFIGS,
+    simpleHandler(async () => {
+      return ProductConfigCore.listAllProducts();
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_GET_CONFIG,
+    handler(ProductGetConfigSchema, async ({ flowKey }) => {
+      return ProductConfigCore.getProductConfig(flowKey) ?? null;
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_LIST_ACTIVE_CONFIGS,
+    simpleHandler(async () => {
+      return ProductConfigQuery.listActiveProducts();
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_LIST_STATUSES,
+    simpleHandler(async () => {
+      return ProductStatusService.list();
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_GET_STATUS,
+    handler(ProductGetStatusSchema, async ({ platform, product }) => {
+      return ProductStatusService.getByProduct(platform, product);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_SAVE_STATUS,
+    handler(ProductSaveStatusSchema, async ({ platform, product, status, updatedBy }) => {
+      return ProductStatusService.upsert(platform, product, status, updatedBy);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.PRODUCTS_UPDATE_STATUS,
+    handler(ProductUpdateStatusSchema, async ({ platform, product, status, updatedBy }) => {
+      const result = await ProductStatusService.updateStatus(platform, product, status, updatedBy);
+      if (!result) {
+        throw new ValidationError(`Product status not found for ${platform}/${product}`);
+      }
+      return result;
+    })
+  );
+
+  // ========== Flow States (pause/resume inspection) ==========
+  ipcMain.handle(
+    IPC_CHANNEL.FLOW_STATES_LIST_PAUSED,
+    simpleHandler(async () => {
+      return flowStateService.getPausedFlows();
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.FLOW_STATES_GET,
+    handler(FlowStateIdSchema, async ({ id }) => {
+      const state = await flowStateService.getState(id);
+      return state ?? null;
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.FLOW_STATES_DELETE,
+    handler(FlowStateIdSchema, async ({ id }) => {
+      await flowStateService.deleteState(id);
+      return { deleted: true };
+    })
+  );
+
+  // ========== Dashboard ==========
+  ipcMain.handle(
+    IPC_CHANNEL.DASHBOARD_OVERVIEW,
+    simpleHandler(async () => {
+      return getDashboardOverview();
     })
   );
 }

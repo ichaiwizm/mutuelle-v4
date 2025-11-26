@@ -32,4 +32,21 @@ export const IPC_CHANNEL = {
   AUTO_GET: "automation:get",
   AUTO_LIST: "automation:list",
   AUTO_CANCEL: "automation:cancel",
+
+  // Products
+  PRODUCTS_LIST_CONFIGS: "products:listConfigs",
+  PRODUCTS_GET_CONFIG: "products:getConfig",
+  PRODUCTS_LIST_STATUSES: "products:listStatuses",
+  PRODUCTS_GET_STATUS: "products:getStatus",
+  PRODUCTS_SAVE_STATUS: "products:saveStatus",
+  PRODUCTS_UPDATE_STATUS: "products:updateStatus",
+  PRODUCTS_LIST_ACTIVE_CONFIGS: "products:listActiveConfigs",
+
+  // Flow states (pause/resume inspection)
+  FLOW_STATES_LIST_PAUSED: "flowStates:listPaused",
+  FLOW_STATES_GET: "flowStates:get",
+  FLOW_STATES_DELETE: "flowStates:delete",
+
+  // Dashboard
+  DASHBOARD_OVERVIEW: "dashboard:overview",
 } as const;

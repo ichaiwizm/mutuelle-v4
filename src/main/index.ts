@@ -5,6 +5,7 @@ import { registerIpc } from './ipc'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { db } from './db'
 import { flows } from './db/schema'
+import { PRODUCT_CONFIGS } from './flows/config/products'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -34,9 +35,12 @@ app.whenReady().then(async () => {
   // --- seeder flows ---
   const [exists] = await db.select({ key: flows.key }).from(flows).limit(1)
   if (!exists) {
-    await db.insert(flows).values([
-      { key: 'swisslife_one_slsis', version: 'v1', title: 'SwissLife One SLSIS' },
-    ])
+    const values = Object.values(PRODUCT_CONFIGS).map((config) => ({
+      key: config.flowKey,
+      version: 'v1',
+      title: config.displayName,
+    }))
+    await db.insert(flows).values(values)
   }
 
   registerIpc()

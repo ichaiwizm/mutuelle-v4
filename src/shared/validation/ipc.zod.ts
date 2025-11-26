@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { LeadSchema } from "./lead.zod";
+import {
+  CreateProductStatusSchema,
+  UpdateProductStatusSchema,
+} from "./product.zod";
 
 // ========== Leads ==========
 
@@ -91,4 +95,28 @@ export const AutomationCancelSchema = z.object({
 
 export const FixturesExportSchema = z.object({
   days: z.number().int().positive().max(365),
+});
+
+// ========== Products ==========
+
+export const ProductGetConfigSchema = z.object({
+  flowKey: z.string().min(1),
+});
+
+export const ProductGetStatusSchema = z.object({
+  platform: z.string().min(1),
+  product: z.string().min(1),
+});
+
+export const ProductSaveStatusSchema = CreateProductStatusSchema;
+
+export const ProductUpdateStatusSchema = UpdateProductStatusSchema.extend({
+  platform: z.string().min(1),
+  product: z.string().min(1),
+});
+
+// ========== Flow States (pause/resume) ==========
+
+export const FlowStateIdSchema = z.object({
+  id: z.string().uuid(),
 });

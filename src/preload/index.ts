@@ -67,6 +67,27 @@ const api: Ipc = {
     list: (options) => invokeIpc(IPC_CHANNEL.AUTO_LIST, options),
     cancel: (runId) => invokeIpc(IPC_CHANNEL.AUTO_CANCEL, { runId }),
   },
+
+  products: {
+    listConfigs: () => invokeIpc(IPC_CHANNEL.PRODUCTS_LIST_CONFIGS),
+    getConfig: (flowKey) => invokeIpc(IPC_CHANNEL.PRODUCTS_GET_CONFIG, { flowKey }),
+    listActiveConfigs: () => invokeIpc(IPC_CHANNEL.PRODUCTS_LIST_ACTIVE_CONFIGS),
+    listStatuses: () => invokeIpc(IPC_CHANNEL.PRODUCTS_LIST_STATUSES),
+    getStatus: (platform, product) =>
+      invokeIpc(IPC_CHANNEL.PRODUCTS_GET_STATUS, { platform, product }),
+    saveStatus: (input) => invokeIpc(IPC_CHANNEL.PRODUCTS_SAVE_STATUS, input),
+    updateStatus: (input) => invokeIpc(IPC_CHANNEL.PRODUCTS_UPDATE_STATUS, input),
+  },
+
+  flowStates: {
+    listPaused: () => invokeIpc(IPC_CHANNEL.FLOW_STATES_LIST_PAUSED),
+    get: (id) => invokeIpc(IPC_CHANNEL.FLOW_STATES_GET, { id }),
+    delete: (id) => invokeIpc(IPC_CHANNEL.FLOW_STATES_DELETE, { id }),
+  },
+
+  dashboard: {
+    overview: () => invokeIpc(IPC_CHANNEL.DASHBOARD_OVERVIEW),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

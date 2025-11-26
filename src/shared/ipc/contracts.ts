@@ -1,6 +1,11 @@
 import type { Flow } from "@/shared/types/flow";
 import type { Lead } from "@/shared/types/lead";
 import type { Run, RunItem } from "@/shared/types/run";
+import type {
+  ProductConfiguration,
+  ProductStatus,
+  ProductStatusValue,
+} from "@/shared/types/product";
 
 // ========== Mail ==========
 
@@ -76,6 +81,55 @@ export type AutomationListResult = {
   total: number;
 };
 
+// ========== Flow States (pause/resume) ==========
+
+export type FlowStateStatus = "running" | "paused" | "completed" | "failed";
+
+export type FlowStateDTO = {
+  id: string;
+  flowKey: string;
+  leadId?: string;
+  currentStepIndex: number;
+  completedSteps: string[];
+  stepStates: Record<string, any>;
+  status: FlowStateStatus;
+  startedAt: number;
+  pausedAt?: number;
+  resumedAt?: number;
+  completedAt?: number;
+};
+
+// ========== Products ==========
+
+export type ProductStatusInput = {
+  platform: string;
+  product: string;
+  status: ProductStatusValue;
+  updatedBy?: string;
+};
+
+// ========== Dashboard ==========
+
+export type DashboardOverview = {
+  mail: MailStatus;
+  leads: { total: number };
+  automation: {
+    totalRuns: number;
+    recentRuns: Run[];
+  };
+  flows: {
+    total: number;
+    items: Flow[];
+  };
+  flowStates: {
+    pausedCount: number;
+  };
+  products: {
+    activeCount: number;
+    active: ProductConfiguration[];
+  };
+};
+
 // ========== IPC root contract ==========
 
 export type Ipc = {
@@ -121,5 +175,25 @@ export type Ipc = {
     get: (runId: string) => Promise<AutomationGetResult>;
     list: (options?: { limit?: number; offset?: number }) => Promise<AutomationListResult>;
     cancel: (runId: string) => Promise<{ cancelled: boolean }>;
+  };
+
+  products: {
+    listConfigs: () => Promise<ProductConfiguration[]>;
+    getConfig: (flowKey: string) => Promise<ProductConfiguration | null>;
+    listActiveConfigs: () => Promise<ProductConfiguration[]>;
+    listStatuses: () => Promise<ProductStatus[]>;
+    getStatus: (platform: string, product: string) => Promise<ProductStatus | null>;
+    saveStatus: (input: ProductStatusInput) => Promise<ProductStatus>;
+    updateStatus: (input: ProductStatusInput) => Promise<ProductStatus>;
+  };
+
+  flowStates: {
+    listPaused: () => Promise<FlowStateDTO[]>;
+    get: (id: string) => Promise<FlowStateDTO | null>;
+    delete: (id: string) => Promise<{ deleted: boolean }>;
+  };
+
+  dashboard: {
+    overview: () => Promise<DashboardOverview>;
   };
 };
