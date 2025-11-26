@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Source paths for Tailwind v4 content detection */
+@source "../components/**/*.tsx";
+@source "./components/**/*.tsx";
+@source "./pages/**/*.tsx";
+
 @custom-variant dark (&:is(.dark *));
 
 /* Palette shadcn (oklch) + variables CSS */
@@ -140,6 +145,7 @@
 .border { border-color: var(--color-border) }
 .bg-background { background-color: var(--color-background) }
 .text-foreground { color: var(--color-foreground) }
+
 
 @layer base {
   * {

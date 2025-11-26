@@ -1,7 +1,7 @@
 export type Run = {
   id: string;
   status: "queued" | "running" | "done" | "failed" | "cancelled";
-  createdAt: Date;
+  createdAt: Date | string;
 };
 
 export type RunItem = {
