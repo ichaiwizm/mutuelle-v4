@@ -13,6 +13,7 @@ type MailActions = {
   checkStatus: () => Promise<void>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
+  cancel: () => Promise<void>;
   fetchEmails: (days: number) => Promise<MailFetchResult>;
   reset: () => void;
 };
@@ -71,6 +72,11 @@ export const useMailStore = create<MailStore>((set, get) => ({
       });
       throw err;
     }
+  },
+
+  cancel: async () => {
+    await window.api.mail.cancel();
+    set({ connecting: false, error: null });
   },
 
   fetchEmails: async (days: number) => {

@@ -148,6 +148,7 @@ export type Ipc = {
     connect: () => Promise<{ email: string }>;
     fetch: (params: MailFetchParams) => Promise<MailFetchResult>;
     disconnect: () => Promise<{ ok: boolean }>;
+    cancel: () => Promise<{ cancelled: boolean }>;
   };
 
   flows: {

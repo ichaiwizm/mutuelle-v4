@@ -16,6 +16,7 @@ type DashboardGridProps = {
     fetching: boolean;
     connect: () => Promise<void>;
     disconnect: () => Promise<void>;
+    cancel: () => Promise<void>;
     fetchEmails: (days: number) => Promise<unknown>;
   };
   onNavigate: (tab: string) => void;
@@ -34,6 +35,7 @@ export function DashboardGrid({ overview, mail, onNavigate }: DashboardGridProps
         connecting={mail.connecting}
         onConnect={mail.connect}
         onDisconnect={mail.disconnect}
+        onCancel={mail.cancel}
       />
 
       <LeadsStatsCard

@@ -10,6 +10,7 @@ type MailStatusCardProps = {
   connecting: boolean;
   onConnect: () => Promise<void>;
   onDisconnect: () => Promise<void>;
+  onCancel: () => Promise<void>;
 };
 
 export function MailStatusCard({
@@ -18,6 +19,7 @@ export function MailStatusCard({
   connecting,
   onConnect,
   onDisconnect,
+  onCancel,
 }: MailStatusCardProps) {
   const handleConnect = async () => {
     try {
@@ -41,6 +43,11 @@ export function MailStatusCard({
     }
   };
 
+  const handleCancel = async () => {
+    await onCancel();
+    toast.info("Connexion annulée");
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -61,16 +68,21 @@ export function MailStatusCard({
         )}
 
         <Button
-          variant={isConnected ? "outline" : "default"}
+          variant={connecting ? "destructive" : isConnected ? "outline" : "default"}
           size="sm"
           className="w-full"
-          onClick={isConnected ? handleDisconnect : handleConnect}
-          disabled={connecting}
+          onClick={connecting ? handleCancel : isConnected ? handleDisconnect : handleConnect}
         >
           {connecting ? (
-            <LoadingSpinner size="sm" className="mr-2" />
-          ) : null}
-          {isConnected ? "Déconnecter" : "Connecter Gmail"}
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Annuler
+            </>
+          ) : isConnected ? (
+            "Déconnecter"
+          ) : (
+            "Connecter Gmail"
+          )}
         </Button>
       </CardContent>
     </Card>

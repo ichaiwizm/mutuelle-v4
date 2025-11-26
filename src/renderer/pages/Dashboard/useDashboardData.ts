@@ -36,6 +36,7 @@ export function useDashboardData() {
       fetching: mail.fetching,
       connect: mail.connect,
       disconnect: mail.disconnect,
+      cancel: mail.cancel,
       fetchEmails: mail.fetchEmails,
     },
   };
