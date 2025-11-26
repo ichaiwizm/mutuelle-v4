@@ -14,8 +14,8 @@ import { FixtureExporter } from '../src/main/services/fixtureExporter';
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
-const REDIRECT_PORT = 8089;
-const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/callback`;
+const REDIRECT_PORT = 53682;
+const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth2/callback`;
 
 function generateCodeVerifier(): string {
   return randomBytes(32).toString('base64url');
@@ -104,7 +104,7 @@ async function doOAuthFlow(): Promise<{ ok: true; email: string } | { ok: false;
     const server: Server = createServer(async (req, res) => {
       const url = new URL(req.url || '/', `http://127.0.0.1:${REDIRECT_PORT}`);
 
-      if (url.pathname !== '/callback') {
+      if (url.pathname !== '/oauth2/callback') {
         res.writeHead(404);
         res.end('Not Found');
         return;

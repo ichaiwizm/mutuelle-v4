@@ -14,9 +14,14 @@ import { AuthError, ValidationError, NetworkError } from "@/shared/errors";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
-const REDIRECT_PORT = 8089;
-const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/callback`;
+const GMAIL_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "openid",
+  "email",
+  "profile",
+].join(" ");
+const REDIRECT_PORT = 53682;
+const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/oauth2/callback`;
 
 type OAuthResult = {
   ok: true;
@@ -150,7 +155,7 @@ export const OAuthService = {
       const server = createServer(async (req, res) => {
         const url = new URL(req.url || "/", `http://127.0.0.1:${REDIRECT_PORT}`);
 
-        if (url.pathname !== "/callback") {
+        if (url.pathname !== "/oauth2/callback") {
           res.writeHead(404);
           res.end("Not Found");
           return;
@@ -250,7 +255,7 @@ export const OAuthService = {
           client_id: clientId,
           redirect_uri: REDIRECT_URI,
           response_type: "code",
-          scope: GMAIL_SCOPE,
+          scope: GMAIL_SCOPES,
           state,
           code_challenge: codeChallenge,
           code_challenge_method: "S256",
