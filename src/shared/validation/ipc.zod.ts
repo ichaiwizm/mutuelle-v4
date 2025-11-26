@@ -27,6 +27,12 @@ export const LeadsListSchema = z.object({
   offset: z.number().int().min(0).optional(),
 }).optional();
 
+// Intelligent paste / parsing from raw text
+export const LeadsParseFromTextSchema = z.object({
+  text: z.string().min(1, "Text is required"),
+  subject: z.string().optional(),
+});
+
 // ========== Credentials ==========
 
 const PlatformSchema = z.enum(["alptis", "swisslife"]);
@@ -53,6 +59,8 @@ export const CredentialsTestSchema = z.object({
 
 export const MailFetchSchema = z.object({
   days: z.number().int().positive().max(365),
+  verbose: z.boolean().optional(),
+  concurrency: z.number().int().positive().max(100).optional(),
 });
 
 // ========== Automation ==========

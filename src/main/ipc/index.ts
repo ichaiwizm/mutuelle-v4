@@ -33,7 +33,9 @@ import {
   AutomationListSchema,
   AutomationCancelSchema,
   FixturesExportSchema,
+  LeadsParseFromTextSchema,
 } from "@/shared/validation/ipc.zod";
+import { parseLeads } from "@/main/leads/parsing/parser";
 
 /**
  * Validate input with a Zod schema and throw ValidationError if invalid.
@@ -122,8 +124,8 @@ export function registerIpc() {
 
   ipcMain.handle(
     IPC_CHANNEL.MAIL_FETCH,
-    handler(MailFetchSchema, async ({ days }) => {
-      return MailService.fetch(days);
+    handler(MailFetchSchema, async ({ days, verbose, concurrency }) => {
+      return MailService.fetch(days, undefined, { verbose, concurrency });
     })
   );
 
@@ -180,6 +182,27 @@ export function registerIpc() {
     handler(LeadsRemoveSchema, async ({ id }) => {
       await LeadsService.remove(id);
       return { removed: true };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_PARSE_FROM_TEXT,
+    handler(LeadsParseFromTextSchema, async ({ text, subject }) => {
+      const leads = parseLeads({ text, subject }, { source: "clipboard" });
+      return leads;
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_PARSE_AND_CREATE_FROM_TEXT,
+    handler(LeadsParseFromTextSchema, async ({ text, subject }) => {
+      const leads = parseLeads({ text, subject }, { source: "clipboard" });
+      const ids: string[] = [];
+      for (const lead of leads) {
+        const { id } = await LeadsService.create(lead);
+        ids.push(id);
+      }
+      return { created: ids.length, ids };
     })
   );
 
