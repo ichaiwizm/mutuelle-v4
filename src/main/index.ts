@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { registerIpc } from './ipc'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { db } from './db'
-import { flows } from './db/schema'
+import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -51,6 +51,31 @@ app.whenReady().then(async () => {
           title: v.title,
         },
       })
+  }
+
+  // --- seeder product_status (par défaut: active) ---
+  const existingStatuses = await db
+    .select({
+      platform: productStatus.platform,
+      product: productStatus.product,
+    })
+    .from(productStatus)
+
+  const existingStatusKeys = new Set(
+    existingStatuses.map((s) => `${s.platform}:${s.product}`)
+  )
+
+  for (const config of Object.values(PRODUCT_CONFIGS)) {
+    const key = `${config.platform}:${config.product}`
+    if (existingStatusKeys.has(key)) continue
+
+    await db.insert(productStatus).values({
+      platform: config.platform,
+      product: config.product,
+      status: 'active',
+      updatedAt: new Date(),
+      updatedBy: null,
+    })
   }
 
   registerIpc()

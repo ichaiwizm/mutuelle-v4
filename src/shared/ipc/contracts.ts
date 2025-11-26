@@ -99,6 +99,16 @@ export type FlowStateDTO = {
   completedAt?: number;
 };
 
+export type FlowResumeResult = {
+  success: boolean;
+  flowKey: string;
+  leadId?: string;
+  totalDuration: number;
+  paused?: boolean;
+  stateId?: string;
+  errorMessage?: string;
+};
+
 // ========== Products ==========
 
 export type ProductStatusInput = {
@@ -137,6 +147,7 @@ export type Ipc = {
     status: () => Promise<MailStatus>;
     connect: () => Promise<{ email: string }>;
     fetch: (params: MailFetchParams) => Promise<MailFetchResult>;
+    disconnect: () => Promise<{ ok: boolean }>;
   };
 
   flows: {
@@ -191,6 +202,7 @@ export type Ipc = {
     listPaused: () => Promise<FlowStateDTO[]>;
     get: (id: string) => Promise<FlowStateDTO | null>;
     delete: (id: string) => Promise<{ deleted: boolean }>;
+    resume: (id: string) => Promise<FlowResumeResult>;
   };
 
   dashboard: {

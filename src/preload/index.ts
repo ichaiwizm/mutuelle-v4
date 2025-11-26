@@ -32,6 +32,7 @@ const api: Ipc = {
     status: () => invokeIpc(IPC_CHANNEL.MAIL_STATUS),
     connect: () => invokeIpc(IPC_CHANNEL.MAIL_CONNECT),
     fetch: (params) => invokeIpc(IPC_CHANNEL.MAIL_FETCH, params),
+    disconnect: () => invokeIpc(IPC_CHANNEL.MAIL_DISCONNECT),
   },
 
   flows: {
@@ -83,6 +84,7 @@ const api: Ipc = {
     listPaused: () => invokeIpc(IPC_CHANNEL.FLOW_STATES_LIST_PAUSED),
     get: (id) => invokeIpc(IPC_CHANNEL.FLOW_STATES_GET, { id }),
     delete: (id) => invokeIpc(IPC_CHANNEL.FLOW_STATES_DELETE, { id }),
+    resume: (id) => invokeIpc(IPC_CHANNEL.FLOW_STATES_RESUME, { id }),
   },
 
   dashboard: {

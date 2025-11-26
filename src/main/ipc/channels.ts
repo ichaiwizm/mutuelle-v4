@@ -46,6 +46,7 @@ export const IPC_CHANNEL = {
   FLOW_STATES_LIST_PAUSED: "flowStates:listPaused",
   FLOW_STATES_GET: "flowStates:get",
   FLOW_STATES_DELETE: "flowStates:delete",
+  FLOW_STATES_RESUME: "flowStates:resume",
 
   // Dashboard
   DASHBOARD_OVERVIEW: "dashboard:overview",

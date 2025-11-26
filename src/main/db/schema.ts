@@ -33,15 +33,15 @@ export const flows = sqliteTable("flows", {
 // Runs & items (artefacts par step)
 export const runs = sqliteTable("runs", {
   id: text("id").primaryKey(),                   // uuid
-  status: text("status").notNull(),              // "queued"|"running"|"done"|"failed"
+  status: text("status").notNull(),              // "queued"|"running"|"done"|"failed"|"cancelled"
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
 export const runItems = sqliteTable("run_items", {
   id: text("id").primaryKey(),                   // uuid
-  runId: text("run_id").notNull(),               // FK runs.id
-  flowKey: text("flow_key").notNull(),           // FK flows.key
-  leadId: text("lead_id").notNull(),             // FK leads.id
+  runId: text("run_id").notNull().references(() => runs.id, { onDelete: "cascade" }),
+  flowKey: text("flow_key").notNull().references(() => flows.key, { onDelete: "restrict" }),
+  leadId: text("lead_id").notNull().references(() => leads.id, { onDelete: "restrict" }),
   status: text("status").notNull(),
   artifactsDir: text("artifacts_dir").notNull(), // chemin dossier screenshots/vidéos
 });
@@ -82,8 +82,8 @@ export const flowStates = sqliteTable(
   "flow_states",
   {
     id: text("id").primaryKey(),                           // nanoid
-    flowKey: text("flow_key").notNull(),                   // e.g. "alptis_sante_select"
-    leadId: text("lead_id"),                               // FK leads.id (optional)
+    flowKey: text("flow_key").notNull().references(() => flows.key, { onDelete: "restrict" }),
+    leadId: text("lead_id").references(() => leads.id, { onDelete: "set null" }),  // nullable, set null on lead deletion
     currentStepIndex: integer("current_step_index").notNull().default(0),
     completedSteps: text("completed_steps").notNull().default("[]"),    // JSON array of step IDs
     stepStates: text("step_states").default("{}"),                      // JSON object for intermediate state

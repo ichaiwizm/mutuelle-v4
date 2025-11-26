@@ -1,20 +1,34 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { setupTestCtx } from "./testUtils";
+import { setupTestCtx, type TestCtx } from "./testUtils";
 
-let cleanup: () => void;
+let ctx: TestCtx;
 
 describe("FlowStateService", () => {
   beforeAll(async () => {
-    const ctx = await setupTestCtx();
-    cleanup = ctx.cleanup;
+    ctx = await setupTestCtx();
   });
 
   afterAll(() => {
-    cleanup?.();
+    ctx.cleanup?.();
   });
 
   it("creates, retrieves, updates and deletes flow states", async () => {
     const { flowStateService } = await import("@/main/flows/state");
+    const { db, schema } = ctx;
+
+    // Create test flow and lead for FK constraints
+    await db.insert(schema.flows).values({
+      key: "test_flow_key",
+      version: "v1",
+      title: "Test Flow",
+    }).onConflictDoNothing();
+
+    await db.insert(schema.leads).values({
+      id: "lead-123",
+      data: JSON.stringify({ name: "Test Lead" }),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).onConflictDoNothing();
 
     const state = await flowStateService.createState("test_flow_key", "lead-123");
     expect(state.id).toBeTypeOf("string");

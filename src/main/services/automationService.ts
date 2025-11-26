@@ -1,5 +1,5 @@
 import { db, schema } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, ne } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -207,6 +207,10 @@ export const AutomationService = {
         lead,
         transformedData,
         artifactsDir: dir,
+        // Enable pause/resume for all automated flows
+        flowConfig: {
+          enablePauseResume: true,
+        },
       });
     }
 
@@ -235,16 +239,21 @@ export const AutomationService = {
 
       const result = await pool.start();
 
-      // Check if cancelled during execution
-      const currentRun = await this.get(runId);
-      if (currentRun?.status === "cancelled") {
+      // Atomic update: only update status if not already cancelled
+      // This prevents race condition where cancel() runs between our check and update
+      const finalStatus = result.failed > 0 ? "failed" : "done";
+      const updateResult = await db
+        .update(schema.runs)
+        .set({ status: finalStatus })
+        .where(and(
+          eq(schema.runs.id, runId),
+          ne(schema.runs.status, "cancelled")
+        ));
+
+      // If no rows were updated, the run was cancelled
+      if (updateResult.changes === 0) {
         return { runId, result: null };
       }
-
-      await db
-        .update(schema.runs)
-        .set({ status: result.failed > 0 ? "failed" : "done" })
-        .where(eq(schema.runs.id, runId));
 
       return { runId, result };
     } finally {

@@ -15,5 +15,7 @@ export function resolveDbPath(name = "mutuelle.db") {
 
 export function openDb(dbPath = resolveDbPath()) {
   const sqlite = new Database(dbPath);
+  // Enable foreign key constraints enforcement
+  sqlite.pragma("foreign_keys = ON");
   return drizzle(sqlite);
 }
