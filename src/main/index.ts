@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { app, BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
