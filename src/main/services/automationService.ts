@@ -123,11 +123,17 @@ export const AutomationService = {
       activePools.delete(runId);
     }
 
-    // Update status
+    // Update run status
     await db
       .update(schema.runs)
       .set({ status: "cancelled" })
       .where(eq(schema.runs.id, runId));
+
+    // Mark all not-finalized items as cancelled for consistency
+    await db
+      .update(schema.runItems)
+      .set({ status: "cancelled" })
+      .where(eq(schema.runItems.runId, runId));
 
     return { cancelled: true };
   },
@@ -151,10 +157,40 @@ export const AutomationService = {
     const tasks: FlowTask[] = [];
 
     for (const item of items) {
+      const lead = await LeadsService.getById(item.leadId);
+      if (!lead) {
+        console.warn(`Lead ${item.leadId} not found, skipping`);
+        continue;
+      }
+
       const itemId = randomUUID();
       const dir = join(artifactsRoot(), runId, itemId);
       await mkdir(dir, { recursive: true });
 
+      // Transform lead data for the flow (if transformer exists)
+      let transformedData: unknown;
+      if (hasTransformerForFlow(item.flowKey)) {
+        try {
+          transformedData = transformLeadForFlow(item.flowKey, lead);
+        } catch (error) {
+          console.error(
+            `Failed to transform lead ${item.leadId} for flow ${item.flowKey}:`,
+            error
+          );
+          // Persist a failed run item so the UI sees the failure explicitly
+          await db.insert(schema.runItems).values({
+            id: itemId,
+            runId,
+            flowKey: item.flowKey,
+            leadId: item.leadId,
+            status: "failed",
+            artifactsDir: dir,
+          });
+          continue;
+        }
+      }
+
+      // Only insert run_items for tasks that will actually be enqueued
       await db.insert(schema.runItems).values({
         id: itemId,
         runId,
@@ -163,26 +199,6 @@ export const AutomationService = {
         status: "queued",
         artifactsDir: dir,
       });
-
-      const lead = await LeadsService.getById(item.leadId);
-      if (!lead) {
-        console.warn(`Lead ${item.leadId} not found, skipping`);
-        continue;
-      }
-
-      // Transform lead data for the flow
-      let transformedData: unknown;
-      if (hasTransformerForFlow(item.flowKey)) {
-        try {
-          transformedData = transformLeadForFlow(item.flowKey, lead);
-        } catch (error) {
-          console.error(`Failed to transform lead ${item.leadId} for flow ${item.flowKey}:`, error);
-          await db.update(schema.runItems)
-            .set({ status: "failed" })
-            .where(eq(schema.runItems.id, itemId));
-          continue;
-        }
-      }
 
       tasks.push({
         id: itemId,
@@ -195,7 +211,8 @@ export const AutomationService = {
     }
 
     if (tasks.length === 0) {
-      await db.update(schema.runs)
+      await db
+        .update(schema.runs)
         .set({ status: "failed" })
         .where(eq(schema.runs.id, runId));
       return { runId, result: null };
@@ -208,27 +225,31 @@ export const AutomationService = {
     // Track pool for potential cancellation
     activePools.set(runId, pool);
 
-    pool.enqueue(tasks);
+    try {
+      pool.enqueue(tasks);
 
-    await db.update(schema.runs)
-      .set({ status: "running" })
-      .where(eq(schema.runs.id, runId));
+      await db
+        .update(schema.runs)
+        .set({ status: "running" })
+        .where(eq(schema.runs.id, runId));
 
-    const result = await pool.start();
+      const result = await pool.start();
 
-    // Clean up
-    activePools.delete(runId);
+      // Check if cancelled during execution
+      const currentRun = await this.get(runId);
+      if (currentRun?.status === "cancelled") {
+        return { runId, result: null };
+      }
 
-    // Check if cancelled during execution
-    const currentRun = await this.get(runId);
-    if (currentRun?.status === "cancelled") {
-      return { runId, result: null };
+      await db
+        .update(schema.runs)
+        .set({ status: result.failed > 0 ? "failed" : "done" })
+        .where(eq(schema.runs.id, runId));
+
+      return { runId, result };
+    } finally {
+      // Always clean up tracking, even if pool.start throws
+      activePools.delete(runId);
     }
-
-    await db.update(schema.runs)
-      .set({ status: result.failed > 0 ? "failed" : "done" })
-      .where(eq(schema.runs.id, runId));
-
-    return { runId, result };
   },
 };

@@ -10,6 +10,7 @@ import { URL, URLSearchParams } from "node:url";
 import { randomBytes, createHash } from "node:crypto";
 import { shell } from "electron";
 import { MailAuthService } from "./mailAuthService";
+import { AuthError, ValidationError, NetworkError } from "@/shared/errors";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -51,7 +52,7 @@ function getCredentials() {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error(
+    throw new ValidationError(
       "Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment"
     );
   }
@@ -90,7 +91,8 @@ async function exchangeCodeForTokens(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error_description || error.error || "Token exchange failed");
+    const message = error.error_description || error.error || "Token exchange failed";
+    throw new AuthError(message);
   }
 
   return response.json();
@@ -108,7 +110,7 @@ async function getUserEmail(accessToken: string): Promise<string> {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to get user info");
+    throw new NetworkError("Failed to get user info");
   }
 
   const data = await response.json();

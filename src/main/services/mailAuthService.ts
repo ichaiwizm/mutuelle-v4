@@ -2,6 +2,7 @@ import { db, schema } from '../db';
 import { eq, and } from 'drizzle-orm';
 import { OAUTH_CONFIG } from '@/main/mail/constants';
 import { EncryptionService } from './encryptionService';
+import { AuthError } from '@/shared/errors';
 
 const ENCRYPTED_PREFIX = "ENC:";
 
@@ -76,7 +77,8 @@ export const MailAuthService = {
   async requireToken(provider: 'google' = OAUTH_CONFIG.PROVIDER_GOOGLE): Promise<OAuthToken> {
     const token = await this.getToken(provider);
     if (!token) {
-      throw new Error(ERRORS.NO_OAUTH_TOKENS);
+      // Erreur typée pour remonter un code 'AUTH' côté IPC
+      throw new AuthError(ERRORS.NO_OAUTH_TOKENS);
     }
     return token;
   },

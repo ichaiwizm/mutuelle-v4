@@ -62,7 +62,8 @@ export const CredentialsTestSchema = z.object({
 // ========== Mail ==========
 
 export const MailFetchSchema = z.object({
-  days: z.number().int().positive().max(365),
+  // 0 = pas de filtre de date (tous les messages)
+  days: z.number().int().min(0).max(365),
   verbose: z.boolean().optional(),
   concurrency: z.number().int().positive().max(100).optional(),
 });

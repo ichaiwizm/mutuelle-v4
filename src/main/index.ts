@@ -32,15 +32,25 @@ app.whenReady().then(async () => {
   const migrationsFolder = path.join(__dirname, '../../drizzle')
   await migrate(db, { migrationsFolder })
 
-  // --- seeder flows ---
-  const [exists] = await db.select({ key: flows.key }).from(flows).limit(1)
-  if (!exists) {
-    const values = Object.values(PRODUCT_CONFIGS).map((config) => ({
-      key: config.flowKey,
-      version: 'v1',
-      title: config.displayName,
-    }))
-    await db.insert(flows).values(values)
+  // --- seeder flows (idempotent, aligné configs produits) ---
+  const values = Object.values(PRODUCT_CONFIGS).map((config) => ({
+    key: config.flowKey,
+    version: 'v1',
+    title: config.displayName,
+  }))
+
+  for (const v of values) {
+    // Upsert par clé de flow
+    await db
+      .insert(flows)
+      .values(v)
+      .onConflictDoUpdate({
+        target: flows.key,
+        set: {
+          version: v.version,
+          title: v.title,
+        },
+      })
   }
 
   registerIpc()
