@@ -208,13 +208,32 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
     .filter(f => f.endsWith('.json'))
     .sort();
 
+  /**
+   * Helper to count expected leads in an email
+   * - AssurProspect: count "Transmission d'une fiche" occurrences
+   * - Assurland: 1 lead per email (HTML table format)
+   * - Empty: 0 leads
+   */
+  function countExpectedLeads(email: MailMsg): number {
+    // AssurProspect format
+    const transmissionCount = (email.text.match(/Transmission d['']une fiche/gi) || []).length;
+    if (transmissionCount > 0) return transmissionCount;
+
+    // Assurland format (HTML table with assurland.com)
+    const isAssurland = email.text.includes('assurland.com') &&
+      /<td><b>Civilite<\/b><\/td>/i.test(email.text);
+    if (isAssurland) return 1;
+
+    return 0;
+  }
+
   for (const filename of fixtureFiles) {
     it(`Parse et vérifie ${filename}`, () => {
       const filepath = join(FIXTURES_DIR, filename);
       const email = require(filepath) as MailMsg;
 
       // Count expected leads
-      const transmissionCount = (email.text.match(/Transmission d['']une fiche/gi) || []).length;
+      const expectedCount = countExpectedLeads(email);
 
       // Parse
       const leads = parseLeads(
@@ -223,7 +242,7 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
       );
 
       // Verify count
-      expect(leads.length).toBe(transmissionCount);
+      expect(leads.length).toBe(expectedCount);
 
       // Verify each lead has required fields
       leads.forEach((lead, idx) => {
@@ -248,26 +267,39 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
     let totalLeads = 0;
     let totalEmails = 0;
     let emptyEmails = 0;
+    let assurprospectLeads = 0;
+    let assurlandLeads = 0;
 
     for (const filename of fixtureFiles) {
       const filepath = join(FIXTURES_DIR, filename);
       const email = require(filepath) as MailMsg;
-      const count = (email.text.match(/Transmission d['']une fiche/gi) || []).length;
 
-      if (count === 0) {
-        emptyEmails++;
-      } else {
+      const transmissionCount = (email.text.match(/Transmission d['']une fiche/gi) || []).length;
+      const isAssurland = email.text.includes('assurland.com') &&
+        /<td><b>Civilite<\/b><\/td>/i.test(email.text);
+
+      if (transmissionCount > 0) {
         totalEmails++;
-        totalLeads += count;
+        totalLeads += transmissionCount;
+        assurprospectLeads += transmissionCount;
+      } else if (isAssurland) {
+        totalEmails++;
+        totalLeads += 1;
+        assurlandLeads += 1;
+      } else {
+        emptyEmails++;
       }
     }
 
     console.log(`\n📊 STATISTIQUES FINALES:`);
     console.log(`   Total fixtures: ${fixtureFiles.length}`);
     console.log(`   Emails avec leads: ${totalEmails}`);
+    console.log(`   - AssurProspect: ${assurprospectLeads} leads`);
+    console.log(`   - Assurland: ${assurlandLeads} leads`);
     console.log(`   Emails vides: ${emptyEmails}`);
     console.log(`   Total leads parsés: ${totalLeads}\n`);
 
+    // 23 AssurProspect + 2 Assurland = 25 leads
     expect(totalLeads).toBe(25);
   });
 });

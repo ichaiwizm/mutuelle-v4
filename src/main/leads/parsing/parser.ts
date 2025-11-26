@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import type { Lead } from '@/shared/types/lead';
 import { isLead, detectProvider, type LeadInput } from '../detection/detector';
 import { parseAssurProspect } from './assurprospect';
+import { parseAssurland } from './assurland';
 import { splitEmailIntoLeadBlocks } from './extractors';
 import type { ParseResult, ExtractedLead } from './types';
 
@@ -39,8 +40,10 @@ export function parseLead(
   let result: ParseResult;
   if (detection.provider === 'AssurProspect') {
     result = parseAssurProspect(text);
+  } else if (detection.provider === 'Assurland') {
+    result = parseAssurland(text);
   } else {
-    // Future: add Assurland parser
+    // Unknown provider
     return null;
   }
 
@@ -100,14 +103,26 @@ export function parseLeads(
   inputs: Array<string | LeadInput> | string | LeadInput,
   metadata?: { emailId?: string; source?: string }
 ): Lead[] {
-  // If single input, split it into multiple lead blocks
+  // If single input, try multiple parsing strategies
   if (!Array.isArray(inputs)) {
     const text = typeof inputs === 'string' ? inputs : inputs.text;
-    const blocks = splitEmailIntoLeadBlocks(text);
+    const subject = typeof inputs === 'string' ? undefined : inputs.subject;
 
-    return blocks
-      .map(block => parseLead(block, metadata))
-      .filter((lead): lead is Lead => lead !== null);
+    // Strategy 1: Try to split into multiple lead blocks (AssurProspect multi-lead format)
+    const blocks = splitEmailIntoLeadBlocks(text);
+    if (blocks.length > 0) {
+      return blocks
+        .map(block => parseLead(block, metadata))
+        .filter((lead): lead is Lead => lead !== null);
+    }
+
+    // Strategy 2: Try to parse as a single lead (Assurland or other formats)
+    const singleLead = parseLead({ text, subject }, metadata);
+    if (singleLead) {
+      return [singleLead];
+    }
+
+    return [];
   }
 
   // Legacy: array of inputs

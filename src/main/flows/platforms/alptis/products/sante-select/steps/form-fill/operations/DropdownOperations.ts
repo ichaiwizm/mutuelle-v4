@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
-import type { FlowLogger } from '../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
+import type { AlptisProfession } from '../../../transformers/types';
 import { verifySelectValue } from '../verifiers';
 import { PROFESSION_LABELS, REGIME_LABELS } from '../helpers/form-labels';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
@@ -24,7 +25,7 @@ export async function fillCategorieSocioprofessionnelleField(
 ): Promise<void> {
   logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, value, fieldIndex });
 
-  const label = PROFESSION_LABELS[value as any];
+  const label = PROFESSION_LABELS[value as AlptisProfession];
   if (!label) throw new Error(`Label inconnu: ${value}`);
 
   const textbox = page.getByRole('textbox', { name: /catégorie socioprofessionnelle/i }).nth(fieldIndex);

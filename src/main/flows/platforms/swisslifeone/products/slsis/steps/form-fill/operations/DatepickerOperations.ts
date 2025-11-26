@@ -1,5 +1,5 @@
 import type { Frame } from '@playwright/test';
-import type { FlowLogger } from '../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
 import { SwissLifeOneTimeouts } from '../../../../../../../config';
 import { fillTextboxField, type TextboxFillOptions } from './TextboxOperations';
 

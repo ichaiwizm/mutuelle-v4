@@ -1,0 +1,86 @@
+import { z } from "zod";
+import { LeadSchema } from "./lead.zod";
+
+// ========== Leads ==========
+
+export const LeadsCreateSchema = LeadSchema;
+
+export const LeadsUpdateSchema = z.object({
+  id: z.string().uuid(),
+  data: z.object({
+    subscriber: z.record(z.any()).optional(),
+    project: z.record(z.any()).optional(),
+    children: z.array(z.record(z.any())).optional(),
+  }),
+});
+
+export const LeadsGetSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const LeadsRemoveSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const LeadsListSchema = z.object({
+  limit: z.number().int().positive().max(1000).optional(),
+  offset: z.number().int().min(0).optional(),
+}).optional();
+
+// ========== Credentials ==========
+
+const PlatformSchema = z.enum(["alptis", "swisslife"]);
+
+export const CredentialsUpsertSchema = z.object({
+  platform: PlatformSchema,
+  login: z.string().min(1, "Login is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const CredentialsGetSchema = z.object({
+  platform: PlatformSchema,
+});
+
+export const CredentialsDeleteSchema = z.object({
+  platform: PlatformSchema,
+});
+
+export const CredentialsTestSchema = z.object({
+  platform: PlatformSchema,
+});
+
+// ========== Mail ==========
+
+export const MailFetchSchema = z.object({
+  days: z.number().int().positive().max(365),
+});
+
+// ========== Automation ==========
+
+export const AutomationEnqueueItemSchema = z.object({
+  leadId: z.string().uuid(),
+  flowKey: z.string().min(1),
+});
+
+export const AutomationEnqueueSchema = z.object({
+  items: z.array(AutomationEnqueueItemSchema).min(1),
+});
+
+export const AutomationGetSchema = z.object({
+  runId: z.string().uuid(),
+});
+
+export const AutomationListSchema = z.object({
+  limit: z.number().int().positive().max(100).optional().default(20),
+  offset: z.number().int().min(0).optional().default(0),
+}).optional();
+
+export const AutomationCancelSchema = z.object({
+  runId: z.string().uuid(),
+});
+
+// ========== Fixtures (dev) ==========
+
+export const FixturesExportSchema = z.object({
+  days: z.number().int().positive().max(365),
+});

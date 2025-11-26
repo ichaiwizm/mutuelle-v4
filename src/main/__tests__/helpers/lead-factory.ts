@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import type { Lead } from '@/shared/types/lead';
 
 /**
@@ -15,6 +15,7 @@ const DEFAULT_SUBSCRIBER = {
   ville: 'PARIS',
   email: 'test@example.com',
   telephone: '06.12.34.56.78',
+  nombreEnfants: 0,
 };
 
 /**
@@ -50,7 +51,7 @@ interface CreateLeadOptions {
  */
 export function createTestLead(options: CreateLeadOptions = {}): Lead {
   return {
-    id: options.id ?? uuidv4(),
+    id: options.id ?? randomUUID(),
     subscriber: {
       ...DEFAULT_SUBSCRIBER,
       ...options.subscriber,

@@ -9,7 +9,7 @@ const mockBrowserClose = vi.fn();
 const mockCreateContext = vi.fn();
 const mockCloseContext = vi.fn();
 
-const mockWorkerExecute = vi.fn<any, Promise<FlowExecutionResult>>();
+const mockWorkerExecute = vi.fn<() => Promise<FlowExecutionResult>>();
 const mockWorkerCleanup = vi.fn();
 const mockWorkerRequestPause = vi.fn();
 

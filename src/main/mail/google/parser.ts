@@ -41,29 +41,70 @@ export function parseHeaders(
 }
 
 /**
- * Finds the text/plain MIME part in a Gmail message payload
+ * Finds the text/plain MIME part in a Gmail message payload (recursively)
  *
- * Gmail messages can have multiple parts (HTML, plain text, attachments).
- * This function locates the plain text version for easier processing.
+ * Gmail messages can have multiple nested parts (HTML, plain text, attachments).
+ * This function recursively searches for the plain text version, prioritizing
+ * text/plain over text/html.
  *
  * @param payload - Gmail message payload
- * @returns The message part containing text/plain, or the payload itself as fallback
+ * @returns The message part containing text/plain, or undefined if not found
  */
 export function findTextPlainPart(
   payload: gmail_v1.Schema$MessagePart | undefined
 ): gmail_v1.Schema$MessagePart | undefined {
   if (!payload) return undefined;
 
-  // Check if payload has parts (multipart message)
-  if (payload.parts && payload.parts.length > 0) {
-    const textPart = payload.parts.find(p =>
-      p.mimeType?.startsWith('text/plain')
-    );
-    if (textPart) return textPart;
+  // If this part is text/plain with data, return it immediately
+  if (payload.mimeType === 'text/plain' && payload.body?.data) {
+    return payload;
   }
 
-  // Fallback: return the payload itself (single-part message)
-  return payload;
+  // Recursively search in parts - prioritize text/plain
+  if (payload.parts && payload.parts.length > 0) {
+    // First pass: look for text/plain specifically
+    for (const part of payload.parts) {
+      const found = findTextPlainPart(part);
+      if (found?.mimeType === 'text/plain') return found;
+    }
+
+    // Second pass: accept any part with body data (e.g., text/html)
+    for (const part of payload.parts) {
+      const found = findAnyTextPart(part);
+      if (found) return found;
+    }
+  }
+
+  // Fallback: if payload itself has body data, return it
+  if (payload.body?.data) {
+    return payload;
+  }
+
+  return undefined;
+}
+
+/**
+ * Helper: finds any text part with data (used as fallback when no text/plain exists)
+ */
+function findAnyTextPart(
+  payload: gmail_v1.Schema$MessagePart | undefined
+): gmail_v1.Schema$MessagePart | undefined {
+  if (!payload) return undefined;
+
+  // If this part has body data, return it
+  if (payload.body?.data && payload.mimeType?.startsWith('text/')) {
+    return payload;
+  }
+
+  // Recursively search in parts
+  if (payload.parts && payload.parts.length > 0) {
+    for (const part of payload.parts) {
+      const found = findAnyTextPart(part);
+      if (found) return found;
+    }
+  }
+
+  return undefined;
 }
 
 /**

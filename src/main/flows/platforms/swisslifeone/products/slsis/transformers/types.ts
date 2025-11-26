@@ -15,6 +15,7 @@ export type {
   SwissLifeGamme,
   TypeSimulation,
   AyantDroit,
+  DepartementCode,
   // Form data structures
   SwissLifeOneFormData,
   ProjetData,

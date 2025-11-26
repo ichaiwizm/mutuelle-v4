@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import type { FlowLogger } from '../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
 import { verifyToggleState } from '../verifiers';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../../config';
 

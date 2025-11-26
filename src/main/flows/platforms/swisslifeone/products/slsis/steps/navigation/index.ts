@@ -1,5 +1,5 @@
 import type { Page, Frame } from 'playwright';
-import type { FlowLogger } from '../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import {
   SwissLifeOneUrls,
   SwissLifeOneSelectors,

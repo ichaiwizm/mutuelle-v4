@@ -1,5 +1,5 @@
 import type { Frame } from '@playwright/test';
-import type { FlowLogger } from '../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
 import type { SwissLifeOneFormData } from '../../../transformers/types';
 import { fillNomProjet } from '../field-fillers/fill-step1-section1';
 import { fillSection2 as fillVosProjets } from '../field-fillers/fill-step1-section2';

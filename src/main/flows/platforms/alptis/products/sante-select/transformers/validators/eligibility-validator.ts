@@ -1,4 +1,4 @@
-import type { Lead } from '../../../../../types/lead.types';
+import type { Lead } from '@/shared/types/lead';
 import { parseDate } from '../transformers/date-transformer';
 
 export interface EligibilityResult {
@@ -14,6 +14,9 @@ export interface EligibilityResult {
  */
 export function calculateAge(dateNaissance: string): number {
   const birthDate = parseDate(dateNaissance);
+  if (!birthDate) {
+    throw new Error(`Invalid date format: ${dateNaissance}`);
+  }
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -74,15 +77,15 @@ export function isEligibleAsMainSubscriber(
 export function determineEligibility(lead: Lead): EligibilityResult {
   // Vérifier l'éligibilité de l'adhérent principal
   const subscriberCheck = isEligibleAsMainSubscriber(
-    lead.subscriber.dateNaissance,
-    lead.subscriber.profession,
-    lead.subscriber.regimeSocial
+    lead.subscriber.dateNaissance || '',
+    lead.subscriber.profession || '',
+    lead.subscriber.regimeSocial || ''
   );
 
   // Vérifier l'éligibilité du conjoint s'il existe
   let conjointCheck: { eligible: boolean; reason: string } | null = null;
 
-  if (lead.project?.conjoint) {
+  if (lead.project?.conjoint?.dateNaissance) {
     conjointCheck = isEligibleAsMainSubscriber(
       lead.project.conjoint.dateNaissance,
       lead.project.conjoint.profession || '',

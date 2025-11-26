@@ -4,7 +4,7 @@ import type { FlowTask } from "../../flows/engine/pool/types";
 import type { FlowExecutionResult } from "../../flows/engine/types";
 
 // Mock FlowEngine with a class
-const mockExecute = vi.fn<any, Promise<FlowExecutionResult>>();
+const mockExecute = vi.fn<() => Promise<FlowExecutionResult>>();
 const mockRequestPause = vi.fn();
 
 vi.mock("../../flows/engine/FlowEngine", () => ({

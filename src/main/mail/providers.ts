@@ -9,7 +9,7 @@ export type Provider = {
 
 // Liste des fournisseurs autorisés
 export const LEAD_PROVIDERS: Provider[] = [
-  { email: 'noreply@assurland.com', name: 'Assurland' },
+  { domain: 'assurland.com', name: 'Assurland' }, // Accepte noreply@, opdata@, etc.
   { domain: 'assurprospect.com', name: 'AssurProspect' },
   { domain: 'france-epargne.fr', name: 'France Épargne' }, // Accepte tous les emails @france-epargne.fr
   // Ajouter d'autres fournisseurs ici

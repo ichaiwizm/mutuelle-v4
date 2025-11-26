@@ -1,5 +1,5 @@
 import type { Frame } from '@playwright/test';
-import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../../engine/FlowLogger';
 import { fillSelectField } from '../../operations/SelectOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../../selectors';
 

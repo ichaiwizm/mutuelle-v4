@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import type { FlowLogger } from '../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { SECTION_2_SELECTORS } from './selectors';
 import { verifyTextValue } from './verifiers';
 import { blurField, clearAndType } from './actions';

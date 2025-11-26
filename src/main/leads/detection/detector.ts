@@ -5,6 +5,9 @@
 
 import {
   LEAD_PATTERNS,
+  LEAD_HTML_PATTERNS,
+  ASSURLAND_PATTERNS,
+  ASSURLAND_TEXT_PATTERNS,
   PROVIDER_PATTERNS,
   EXCLUSION_PATTERNS,
   VALID_SUBJECT_PATTERNS,
@@ -26,7 +29,7 @@ export type LeadInput = {
 
 /**
  * Determines if text contains a valid lead structure
- * Can accept plain text string or an object with text and optional subject
+ * Supports both AssurProspect (text/HTML) and Assurland (HTML table) formats
  */
 export function isLead(input: string | LeadInput): boolean {
   // Normalize input
@@ -38,17 +41,43 @@ export function isLead(input: string | LeadInput): boolean {
   if (EXCLUSION_PATTERNS.emptyForward(subject, text)) return false;
   if (EXCLUSION_PATTERNS.tooShort(text)) return false;
 
-  // Rule 2: Must contain core structure markers
+  // Try AssurProspect format first (most common)
+  if (isLeadAssurProspect(text)) return true;
+
+  // Try Assurland format
+  if (isLeadAssurland(text)) return true;
+
+  return false;
+}
+
+/**
+ * Checks if text matches AssurProspect lead format (text or HTML)
+ */
+function isLeadAssurProspect(text: string): boolean {
+  // Must contain core structure marker
   if (!LEAD_PATTERNS.transmissionMarker.test(text)) return false;
 
-  // Rule 3: Must contain required sections
+  // Try text format first
+  if (isLeadAssurProspectText(text)) return true;
+
+  // Try HTML format
+  if (isLeadAssurProspectHtml(text)) return true;
+
+  return false;
+}
+
+/**
+ * Checks if text matches AssurProspect text format
+ */
+function isLeadAssurProspectText(text: string): boolean {
+  // Must contain required sections
   const hasContact = LEAD_PATTERNS.contactSection.test(text);
   const hasSouscripteur = LEAD_PATTERNS.souscripteurSection.test(text);
   const hasBesoin = LEAD_PATTERNS.besoinSection.test(text);
 
   if (!hasContact || !hasSouscripteur || !hasBesoin) return false;
 
-  // Rule 4: Must contain minimum required fields
+  // Must contain minimum required fields
   const requiredFields = [
     LEAD_PATTERNS.civilite,
     LEAD_PATTERNS.nom,
@@ -60,10 +89,88 @@ export function isLead(input: string | LeadInput): boolean {
     LEAD_PATTERNS.dateEffet,
   ];
 
-  const hasAllFields = requiredFields.every((pattern) => pattern.test(text));
-  if (!hasAllFields) return false;
+  return requiredFields.every((pattern) => pattern.test(text));
+}
 
-  return true;
+/**
+ * Checks if text matches AssurProspect HTML format
+ */
+function isLeadAssurProspectHtml(text: string): boolean {
+  // Must contain required sections (HTML format)
+  const hasContact = LEAD_HTML_PATTERNS.contactSection.test(text);
+  const hasSouscripteur = LEAD_HTML_PATTERNS.souscripteurSection.test(text);
+  const hasBesoin = LEAD_HTML_PATTERNS.besoinSection.test(text);
+
+  if (!hasContact || !hasSouscripteur || !hasBesoin) return false;
+
+  // Must contain minimum required fields (HTML format)
+  const requiredFields = [
+    LEAD_HTML_PATTERNS.civilite,
+    LEAD_HTML_PATTERNS.nom,
+    LEAD_HTML_PATTERNS.prenom,
+    LEAD_HTML_PATTERNS.telephone,
+    LEAD_HTML_PATTERNS.email,
+    LEAD_HTML_PATTERNS.dateNaissance,
+    LEAD_HTML_PATTERNS.regimeSocial,
+    LEAD_HTML_PATTERNS.dateEffet,
+  ];
+
+  return requiredFields.every((pattern) => pattern.test(text));
+}
+
+/**
+ * Checks if text matches Assurland format (HTML table or text)
+ */
+function isLeadAssurland(text: string): boolean {
+  // Try HTML table format first
+  if (isLeadAssurlandHtml(text)) return true;
+
+  // Try text format
+  if (isLeadAssurlandText(text)) return true;
+
+  return false;
+}
+
+/**
+ * Checks if text matches Assurland HTML table format
+ */
+function isLeadAssurlandHtml(text: string): boolean {
+  // Must have HTML table structure
+  if (!ASSURLAND_PATTERNS.htmlTable.test(text)) return false;
+
+  // Must have Assurland signature
+  if (!ASSURLAND_PATTERNS.assurlandSignature.test(text)) return false;
+
+  // Must have required fields in HTML table format
+  const requiredFields = [
+    ASSURLAND_PATTERNS.civilite,
+    ASSURLAND_PATTERNS.nom,
+    ASSURLAND_PATTERNS.prenom,
+    ASSURLAND_PATTERNS.telephone,
+    ASSURLAND_PATTERNS.email,
+    ASSURLAND_PATTERNS.dateNaissance,
+    ASSURLAND_PATTERNS.regimeSocial,
+  ];
+
+  return requiredFields.every((pattern) => pattern.test(text));
+}
+
+/**
+ * Checks if text matches Assurland text format (tab-separated)
+ */
+function isLeadAssurlandText(text: string): boolean {
+  // Must have required fields in tab-separated format
+  const requiredFields = [
+    ASSURLAND_TEXT_PATTERNS.civilite,
+    ASSURLAND_TEXT_PATTERNS.nom,
+    ASSURLAND_TEXT_PATTERNS.prenom,
+    ASSURLAND_TEXT_PATTERNS.telephone,
+    ASSURLAND_TEXT_PATTERNS.email,
+    ASSURLAND_TEXT_PATTERNS.dateNaissance,
+    ASSURLAND_TEXT_PATTERNS.regimeSocial,
+  ];
+
+  return requiredFields.every((pattern) => pattern.test(text));
 }
 
 /**
@@ -100,6 +207,18 @@ export function detectProvider(input: string | LeadInput): ProviderDetectionResu
   }
   if (PROVIDER_PATTERNS.assurland.subject.test(subject)) {
     signals.push('assurland_subject');
+  }
+  // Check for Assurland HTML table structure
+  if (ASSURLAND_PATTERNS.htmlTable.test(text) && ASSURLAND_PATTERNS.civilite.test(text)) {
+    signals.push('assurland_table_structure');
+  }
+  // Check for Assurland text format (tab-separated)
+  if (ASSURLAND_TEXT_PATTERNS.civilite.test(text) && ASSURLAND_TEXT_PATTERNS.nom.test(text)) {
+    signals.push('assurland_text_structure');
+  }
+  // Check for DataPro service signature
+  if (ASSURLAND_PATTERNS.serviceDataPro.test(text)) {
+    signals.push('assurland_datapro');
   }
 
   const assurlandCount = signals.filter((s) => s.startsWith('assurland')).length;

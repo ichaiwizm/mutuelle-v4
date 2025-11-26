@@ -2,8 +2,8 @@
  * Verification helpers for transformer tests
  */
 import { expect } from '@playwright/test';
-import type { AlptisFormData } from '../../src/main/flows/platforms/alptis/products/sante-select/transformers/types';
-import type { Lead } from '../../src/shared/types/lead';
+import type { AlptisFormData } from '../../../src/main/flows/platforms/alptis/products/sante-select/transformers/types';
+import type { Lead } from '../../../src/shared/types/lead';
 
 /**
  * Verify all sections of transformed data

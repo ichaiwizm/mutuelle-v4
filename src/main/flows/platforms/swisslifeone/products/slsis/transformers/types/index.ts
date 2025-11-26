@@ -11,6 +11,7 @@ export type {
   SwissLifeGamme,
   TypeSimulation,
   AyantDroit,
+  DepartementCode,
 } from './enums';
 
 // Form data structures

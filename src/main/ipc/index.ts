@@ -1,4 +1,5 @@
-import { ipcMain } from "electron";
+import { ipcMain, IpcMainInvokeEvent } from "electron";
+import { ZodError, ZodSchema } from "zod";
 import { IPC_CHANNEL } from "./channels";
 import { LeadsService } from "../services/leadsService";
 import { CredentialsService } from "../services/credentialsService";
@@ -7,17 +8,248 @@ import { FlowsService } from "../services/flowsService";
 import { MailAuthService } from "../services/mailAuthService";
 import { MailService } from "../services/mailService";
 import { FixtureExporter } from "../services/fixtureExporter";
+import { OAuthService } from "../services/oauthService";
+import {
+  AppError,
+  ValidationError,
+  IpcResult,
+  success,
+  failure,
+  toIpcResult,
+} from "@/shared/errors";
+import {
+  LeadsCreateSchema,
+  LeadsUpdateSchema,
+  LeadsGetSchema,
+  LeadsRemoveSchema,
+  LeadsListSchema,
+  CredentialsUpsertSchema,
+  CredentialsGetSchema,
+  CredentialsDeleteSchema,
+  CredentialsTestSchema,
+  MailFetchSchema,
+  AutomationEnqueueSchema,
+  AutomationGetSchema,
+  AutomationListSchema,
+  AutomationCancelSchema,
+  FixturesExportSchema,
+} from "@/shared/validation/ipc.zod";
+
+/**
+ * Validate input with a Zod schema and throw ValidationError if invalid.
+ */
+function validate<T>(schema: ZodSchema<T>, data: unknown): T {
+  try {
+    return schema.parse(data);
+  } catch (err) {
+    if (err instanceof ZodError) {
+      const issues = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+      throw new ValidationError(`Validation failed: ${issues.join(", ")}`, {
+        issues: err.issues,
+      });
+    }
+    throw err;
+  }
+}
+
+/**
+ * Wrap an IPC handler with error handling and optional validation.
+ */
+function handler<TInput, TOutput>(
+  schema: ZodSchema<TInput> | null,
+  fn: (input: TInput) => Promise<TOutput>
+): (_event: IpcMainInvokeEvent, input: unknown) => Promise<IpcResult<TOutput>> {
+  return async (_event, rawInput) => {
+    try {
+      const input = schema ? validate(schema, rawInput) : (rawInput as TInput);
+      const result = await fn(input);
+      return success(result);
+    } catch (err) {
+      if (err instanceof AppError) {
+        return failure(err);
+      }
+      return toIpcResult(err);
+    }
+  };
+}
+
+/**
+ * Simple handler without input validation.
+ */
+function simpleHandler<TOutput>(
+  fn: () => Promise<TOutput>
+): () => Promise<IpcResult<TOutput>> {
+  return async () => {
+    try {
+      const result = await fn();
+      return success(result);
+    } catch (err) {
+      if (err instanceof AppError) {
+        return failure(err);
+      }
+      return toIpcResult(err);
+    }
+  };
+}
 
 export function registerIpc() {
-  ipcMain.handle(IPC_CHANNEL.MAIL_STATUS, () => MailAuthService.status());
-  ipcMain.handle(IPC_CHANNEL.MAIL_CONNECT, async () => ({ ok: false, error: 'not_implemented_yet' }));
-  ipcMain.handle(IPC_CHANNEL.MAIL_FETCH, (_e, days: number) => MailService.fetch(days).catch(err => ({ fetched:0, scanned:0, matched:0, created:0, error:String(err) })));
-  ipcMain.handle(IPC_CHANNEL.FIXTURES_EXPORT, (_e, days: number) => FixtureExporter.exportEmailsToFixtures(days));
-  ipcMain.handle(IPC_CHANNEL.FLOWS_LIST, () => FlowsService.list());
-  ipcMain.handle(IPC_CHANNEL.LEADS_LIST, () => LeadsService.list());
-  ipcMain.handle(IPC_CHANNEL.LEADS_CREATE, (_e, lead) => LeadsService.create(lead));
-  ipcMain.handle(IPC_CHANNEL.LEADS_REMOVE, (_e, id) => LeadsService.remove(id));
-  ipcMain.handle(IPC_CHANNEL.CREDS_UPSERT, (_e, p) => CredentialsService.upsert(p));
-  ipcMain.handle(IPC_CHANNEL.CREDS_TEST, (_e, platform) => CredentialsService.test(platform));
-  ipcMain.handle(IPC_CHANNEL.AUTO_ENQUEUE, (_e, items) => AutomationService.enqueue(items));
+  // ========== Mail ==========
+  ipcMain.handle(
+    IPC_CHANNEL.MAIL_STATUS,
+    simpleHandler(() => MailAuthService.status())
+  );
+
+  ipcMain.handle(IPC_CHANNEL.MAIL_CONNECT, async () => {
+    try {
+      const result = await OAuthService.connect();
+      if (result.ok) {
+        return success({ email: result.email });
+      }
+      return { ok: false as const, error: "AUTH" as const, message: result.error };
+    } catch (err) {
+      return toIpcResult(err);
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNEL.MAIL_DISCONNECT, async () => {
+    try {
+      await OAuthService.disconnect();
+      return success({ disconnected: true });
+    } catch (err) {
+      return toIpcResult(err);
+    }
+  });
+
+  ipcMain.handle(
+    IPC_CHANNEL.MAIL_FETCH,
+    handler(MailFetchSchema, async ({ days }) => {
+      return MailService.fetch(days);
+    })
+  );
+
+  // ========== Fixtures (dev) ==========
+  ipcMain.handle(
+    IPC_CHANNEL.FIXTURES_EXPORT,
+    handler(FixturesExportSchema, async ({ days }) => {
+      return FixtureExporter.exportEmailsToFixtures(days);
+    })
+  );
+
+  // ========== Flows ==========
+  ipcMain.handle(
+    IPC_CHANNEL.FLOWS_LIST,
+    simpleHandler(() => FlowsService.list())
+  );
+
+  // ========== Leads ==========
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_LIST,
+    handler(LeadsListSchema, async (options) => {
+      const [leads, total] = await Promise.all([
+        LeadsService.list(options ?? undefined),
+        LeadsService.count(),
+      ]);
+      return { leads, total };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_GET,
+    handler(LeadsGetSchema, async ({ id }) => {
+      return LeadsService.get(id);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_CREATE,
+    handler(LeadsCreateSchema, async (lead) => {
+      return LeadsService.create(lead);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_UPDATE,
+    handler(LeadsUpdateSchema, async ({ id, data }) => {
+      await LeadsService.update(id, data);
+      return { updated: true };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_REMOVE,
+    handler(LeadsRemoveSchema, async ({ id }) => {
+      await LeadsService.remove(id);
+      return { removed: true };
+    })
+  );
+
+  // ========== Credentials ==========
+  ipcMain.handle(
+    IPC_CHANNEL.CREDS_UPSERT,
+    handler(CredentialsUpsertSchema, async (creds) => {
+      await CredentialsService.upsert(creds);
+      return { saved: true };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.CREDS_GET,
+    handler(CredentialsGetSchema, async ({ platform }) => {
+      const creds = await CredentialsService.getByPlatform(platform);
+      // Don't return password to frontend - just confirm it exists
+      if (!creds) return null;
+      return { platform: creds.platform, login: creds.login, hasPassword: true };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.CREDS_LIST,
+    simpleHandler(async () => {
+      return CredentialsService.listPlatforms();
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.CREDS_DELETE,
+    handler(CredentialsDeleteSchema, async ({ platform }) => {
+      await CredentialsService.delete(platform);
+      return { deleted: true };
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.CREDS_TEST,
+    handler(CredentialsTestSchema, async ({ platform }) => {
+      return CredentialsService.test(platform);
+    })
+  );
+
+  // ========== Automation ==========
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_ENQUEUE,
+    handler(AutomationEnqueueSchema, async ({ items }) => {
+      return AutomationService.enqueue(items);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_GET,
+    handler(AutomationGetSchema, async ({ runId }) => {
+      return AutomationService.get(runId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_LIST,
+    handler(AutomationListSchema, async (options) => {
+      return AutomationService.list(options ?? undefined);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_CANCEL,
+    handler(AutomationCancelSchema, async ({ runId }) => {
+      return AutomationService.cancel(runId);
+    })
+  );
 }

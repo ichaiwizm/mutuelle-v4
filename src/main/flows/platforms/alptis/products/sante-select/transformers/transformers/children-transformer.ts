@@ -25,6 +25,12 @@ export function transformChildren(lead: Lead, subscriberRegime: AlptisRegime) {
     .map((child, index) => {
       console.log(`[CHILDREN] Child ${index + 1}:`, child);
 
+      // Vérifier que la date de naissance est présente
+      if (!child.dateNaissance) {
+        console.warn(`[CHILDREN] Missing birth date for child ${index + 1}, skipping`);
+        return null;
+      }
+
       // Valider l'âge
       const birthDate = parseDate(child.dateNaissance);
       if (!birthDate) {

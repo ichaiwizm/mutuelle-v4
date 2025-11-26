@@ -1,5 +1,5 @@
 import type { Frame } from '@playwright/test';
-import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../../../engine/FlowLogger';
 import { SWISSLIFE_STEP1_SELECTORS } from '../../selectors';
 import { mapGammeToFormLabel } from '../../mappers/gamme-form-mapper';
 import type { GammesOptionsData } from '../../../../transformers/types';

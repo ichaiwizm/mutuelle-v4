@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import type { FlowLogger } from '../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { expect } from '@playwright/test';
 import { SECTION_4_SELECTORS } from './selectors/section4';
 import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './operations';

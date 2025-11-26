@@ -1,6 +1,6 @@
 import type { Page } from 'playwright';
 import type { AlptisFormData } from '../../transformers/types';
-import type { FlowLogger } from '../../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import { ERROR_SELECTORS } from './selectors';
 import { Section1Fill, Section2Fill, Section3Fill, Section4Fill } from './sections';
 

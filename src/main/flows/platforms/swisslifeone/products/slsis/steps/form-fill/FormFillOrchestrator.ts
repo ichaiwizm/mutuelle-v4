@@ -1,5 +1,5 @@
 import type { Frame } from '@playwright/test';
-import type { FlowLogger } from '../../../../engine/FlowLogger';
+import type { FlowLogger } from '../../../../../../engine/FlowLogger';
 import type { SwissLifeOneFormData } from '../../transformers/types';
 import { Step1Fill } from './sections/Step1Fill';
 

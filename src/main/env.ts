@@ -16,11 +16,11 @@ export function getUserDataDir(): string {
   try {
     // Dynamic import of electron - works in both ESM and CommonJS contexts
     const electron = require('electron');
-    const p = electron?.app?.getPath?.('userData');
+    const p = electron?.app?.getPath?.('userData') as string | undefined;
     if (p) {
       mkdirSync(p, { recursive: true });
       cachedUserData = p;
-      return cachedUserData;
+      return p;
     }
   } catch {
     // ignore, fallback below

@@ -90,8 +90,14 @@ describe('detectProvider', () => {
   });
 
   it('returns Unknown for empty emails', () => {
-    const email = email005 as MailMsg;
-    const result = detectProvider(email);
+    const emptyEmail: MailMsg = {
+      id: 'empty-test',
+      subject: 'Random subject',
+      from: 'someone@example.com',
+      date: Date.now(),
+      text: '',
+    };
+    const result = detectProvider(emptyEmail);
 
     expect(result.provider).toBe('Unknown');
     expect(result.confidence).toBe('low');
