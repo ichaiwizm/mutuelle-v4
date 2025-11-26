@@ -81,7 +81,7 @@ export const productStatus = sqliteTable(
 export const flowStates = sqliteTable(
   "flow_states",
   {
-    id: text("id").primaryKey(),                           // nanoid
+    id: text("id").primaryKey(),                           // uuid
     flowKey: text("flow_key").notNull().references(() => flows.key, { onDelete: "restrict" }),
     leadId: text("lead_id").references(() => leads.id, { onDelete: "set null" }),  // nullable, set null on lead deletion
     currentStepIndex: integer("current_step_index").notNull().default(0),
