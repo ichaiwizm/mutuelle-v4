@@ -117,7 +117,7 @@ export function registerIpc() {
       if (result.ok) {
         return success({ email: result.email });
       }
-      return { ok: false as const, error: "AUTH" as const, message: result.error };
+      return failure(new AppError("AUTH", result.error || "OAuth authentication failed"));
     } catch (err) {
       return toIpcResult(err);
     }

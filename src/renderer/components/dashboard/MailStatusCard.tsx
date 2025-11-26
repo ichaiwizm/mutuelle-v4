@@ -2,13 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "../common/StatusBadge";
 import { LoadingSpinner } from "../common/LoadingSpinner";
+import { toast } from "sonner";
 
 type MailStatusCardProps = {
   isConnected: boolean;
   email?: string;
   connecting: boolean;
-  onConnect: () => void;
-  onDisconnect: () => void;
+  onConnect: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
 };
 
 export function MailStatusCard({
@@ -18,6 +19,28 @@ export function MailStatusCard({
   onConnect,
   onDisconnect,
 }: MailStatusCardProps) {
+  const handleConnect = async () => {
+    try {
+      await onConnect();
+      toast.success("Gmail connecté");
+    } catch (err) {
+      toast.error("Échec de connexion Gmail", {
+        description: (err as Error).message,
+      });
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await onDisconnect();
+      toast.success("Gmail déconnecté");
+    } catch (err) {
+      toast.error("Échec de déconnexion", {
+        description: (err as Error).message,
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -41,7 +64,7 @@ export function MailStatusCard({
           variant={isConnected ? "outline" : "default"}
           size="sm"
           className="w-full"
-          onClick={isConnected ? onDisconnect : onConnect}
+          onClick={isConnected ? handleDisconnect : handleConnect}
           disabled={connecting}
         >
           {connecting ? (

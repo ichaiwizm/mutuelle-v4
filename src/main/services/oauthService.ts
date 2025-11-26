@@ -271,6 +271,7 @@ export const OAuthService = {
       });
 
       server.on("error", (err) => {
+        console.error("[OAuth] Server error:", err);
         cleanup();
         resolve({ ok: false, error: `Server error: ${err.message}` });
       });
