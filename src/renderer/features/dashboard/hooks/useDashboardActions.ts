@@ -42,8 +42,8 @@ export function useDashboardActions({ refetch }: UseDashboardActionsProps) {
     setIsFetching(true)
     try {
       toast.loading('Fetching emails...', { id: 'fetch-emails' })
-      const result = await window.api.mail.fetch({ days: 7 })
-      toast.success(`Fetched ${result.fetched} emails, found ${result.detected} leads`, { id: 'fetch-emails' })
+      const result = await window.api.mail.fetch({ days: 30 })
+      toast.success(`Fetched ${result.fetched} emails, saved ${result.saved} leads`, { id: 'fetch-emails' })
       refetch()
     } catch { toast.error('Failed to fetch emails', { id: 'fetch-emails' }) }
     finally { setIsFetching(false) }
