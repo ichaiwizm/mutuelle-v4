@@ -1,0 +1,1 @@
+export { LeadDetailsPanel } from './LeadDetailsPanel'

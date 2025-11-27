@@ -38,6 +38,13 @@ export type Project = {
   besoinAssuranceSante?: string;
   emailId?: string;
   conjoint?: Conjoint;
+  // Coverage levels (1-4 scale)
+  actuellementAssure?: boolean;
+  soinsMedicaux?: number;
+  hospitalisation?: number;
+  optique?: number;
+  dentaire?: number;
+  source?: string;
   [key: string]: unknown;
 };
 
@@ -47,6 +54,7 @@ export type Project = {
 export type Child = {
   dateNaissance?: string;
   regimeSocial?: string;
+  order?: number;
   [key: string]: unknown;
 };
 
