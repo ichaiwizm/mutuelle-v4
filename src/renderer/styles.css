@@ -7,6 +7,27 @@
    ============================================ */
 
 /* ============================================
+   IMPORTANT - Règle Tailwind v4 + CSS Layers
+   ============================================
+
+   En CSS moderne, les styles SANS @layer ont TOUJOURS
+   priorité sur les styles AVEC @layer.
+
+   Tailwind v4 met ses utilities dans @layer utilities.
+   Donc si tu écris du CSS custom hors d'un @layer,
+   il écrasera les classes Tailwind (ex: py-3, mx-4...).
+
+   RÈGLE : Tout CSS custom doit être dans un @layer :
+   - @layer base     → pour les resets, html, body
+   - @layer components → pour les classes custom réutilisables
+   - @layer utilities  → pour les utilities custom
+
+   Les variables CSS (:root) et @keyframes peuvent
+   rester hors @layer car ils ne créent pas de conflit.
+
+   ============================================ */
+
+/* ============================================
    CSS Variables - Dark Mode (Default)
    ============================================ */
 
