@@ -1,6 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/renderer/components/ui'
-import { useDashboard } from '@/renderer/features/dashboard/hooks/useDashboard'
+import { useDashboardContext } from '@/renderer/contexts/DashboardContext'
 import { useDashboardActions } from '@/renderer/features/dashboard/hooks/useDashboardActions'
 import {
   DashboardHeader,
@@ -11,7 +11,7 @@ import {
 } from '@/renderer/features/dashboard/components'
 
 export function DashboardPage() {
-  const { data, loading, error, refetch } = useDashboard()
+  const { data, loading, error, refetch } = useDashboardContext()
   const actions = useDashboardActions({ refetch })
 
   if (loading) {

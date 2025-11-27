@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { useDashboard } from '@/renderer/hooks'
+import { useDashboardContext } from '@/renderer/contexts/DashboardContext'
 
 export function Layout() {
-  const { data, refetch } = useDashboard()
+  const { data, refetch } = useDashboardContext()
 
   return (
     <div className="flex h-screen bg-[var(--color-background)]">

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { DashboardPage } from './pages/DashboardPage'
+import { DashboardProvider } from './contexts/DashboardContext'
 
 // Placeholder pages - will be implemented later
 function LeadsPage() {
@@ -32,14 +33,16 @@ function ConfigPage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="leads" element={<LeadsPage />} />
-        <Route path="automation" element={<AutomationPage />} />
-        <Route path="config" element={<ConfigPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <DashboardProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="leads" element={<LeadsPage />} />
+          <Route path="automation" element={<AutomationPage />} />
+          <Route path="config" element={<ConfigPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </DashboardProvider>
   )
 }

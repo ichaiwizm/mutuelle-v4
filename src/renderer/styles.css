@@ -142,6 +142,21 @@
     background-color: var(--color-primary);
     color: white;
   }
+
+  /* Clickable elements */
+  button,
+  a,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  label[for],
+  summary {
+    cursor: pointer;
+  }
 }
 
 /* ============================================
