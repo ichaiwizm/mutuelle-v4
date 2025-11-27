@@ -95,12 +95,13 @@ describe('parseLead - Detailed tests', () => {
     expect(lead).toBeNull();
   });
 
-  it('generates unique UUIDs for each lead', () => {
+  it('generates deterministic IDs (same data = same ID)', () => {
     const email = email002 as MailMsg;
     const lead1 = parseLead({ text: email.text, subject: email.subject });
     const lead2 = parseLead({ text: email.text, subject: email.subject });
 
-    expect(lead1?.id).not.toBe(lead2?.id);
+    // Same lead data should produce same ID (for deduplication)
+    expect(lead1?.id).toBe(lead2?.id);
     expect(lead1?.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
   });
 

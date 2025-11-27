@@ -9,6 +9,8 @@ import { isLead, detectProvider } from '@/main/leads/detection/detector';
 import { parseLeads } from '@/main/leads/parsing/parser';
 import { LeadsService } from './leadsService';
 
+let currentAbortController: AbortController | null = null;
+
 async function ensureClient(provided: GmailClient | undefined): Promise<GmailClient> {
   if (provided) return provided;
 
@@ -23,7 +25,15 @@ async function ensureClient(provided: GmailClient | undefined): Promise<GmailCli
 }
 
 export const MailService = {
+  abortFetch() {
+    currentAbortController?.abort();
+    currentAbortController = null;
+  },
+
   async fetch(days: number, client?: GmailClient, options?: { verbose?: boolean; concurrency?: number }) {
+    currentAbortController = new AbortController();
+    const signal = currentAbortController.signal;
+
     const q = buildGmailQuery(days);
     const c = await ensureClient(client);
     const ids = await c.listMessages(q);
@@ -38,6 +48,12 @@ export const MailService = {
     const errors: string[] = [];
 
     for (let i = 0; i < ids.length; i += concurrency) {
+      // Check if cancelled
+      if (signal.aborted) {
+        currentAbortController = null;
+        return { fetched: ids.length, matched, detected, parsed, saved, cancelled: true };
+      }
+
       const batch = ids.slice(i, i + concurrency);
       const messages = await Promise.all(batch.map(id => c.getMessage(id)));
 
@@ -91,6 +107,7 @@ export const MailService = {
       }
     }
 
+    currentAbortController = null;
     return {
       fetched: ids.length,
       matched,

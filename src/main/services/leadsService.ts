@@ -107,7 +107,7 @@ export const LeadsService = {
       data: JSON.stringify(lead),
       createdAt: now,
       updatedAt: now,
-    });
+    }).onConflictDoNothing();
 
     return { id: lead.id };
   },

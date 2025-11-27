@@ -3,13 +3,31 @@
  * Can work with plain text or email messages
  */
 
-import { randomUUID } from 'crypto';
+import { createHash } from 'crypto';
 import type { Lead } from '@/shared/types/lead';
 import { isLead, detectProvider, type LeadInput } from '../detection/detector';
 import { parseAssurProspect } from './assurprospect';
 import { parseAssurland } from './assurland';
 import { splitEmailIntoLeadBlocks } from './extractors';
 import type { ParseResult, ExtractedLead } from './types';
+
+/**
+ * Generates a deterministic UUID-like ID from subscriber data
+ * Same lead data = same ID, enabling deduplication via primary key
+ */
+function generateLeadId(subscriber: Record<string, unknown>): string {
+  const key = [
+    subscriber.nom,
+    subscriber.prenom,
+    subscriber.email,
+    subscriber.telephone,
+    subscriber.dateNaissance,
+  ].filter(Boolean).map(v => String(v).toLowerCase().trim()).join('|');
+
+  const hash = createHash('sha256').update(key).digest('hex');
+  // Format as UUID v4-like: xxxxxxxx-xxxx-4xxx-axxx-xxxxxxxxxxxx
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
 
 /**
  * Parses text/email and returns a Lead object ready for database
@@ -88,7 +106,7 @@ function transformToLead(
   }));
 
   return {
-    id: randomUUID(),
+    id: generateLeadId(subscriber),
     subscriber,
     ...(project && { project }),
     ...(children && children.length > 0 && { children }),

@@ -140,7 +140,7 @@ export function registerIpc() {
   );
 
   ipcMain.handle(IPC_CHANNEL.MAIL_CANCEL, async () => {
-    OAuthService.cancelFlow();
+    MailService.abortFetch();
     return success({ cancelled: true });
   });
 
