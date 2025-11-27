@@ -1,5 +1,8 @@
 import 'dotenv/config'
 import { app, BrowserWindow, Menu } from 'electron'
+
+// Disable GPU for WSL2 compatibility
+app.disableHardwareAcceleration()
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerIpc } from './ipc'
@@ -24,6 +27,9 @@ async function createWindow() {
   try { win.setMenuBarVisibility(false) } catch {}
   if (process.env.ELECTRON_RENDERER_URL) await win.loadURL(process.env.ELECTRON_RENDERER_URL)
   else await win.loadFile(path.join(__dirname, '../renderer/index.html'))
+
+  // Open DevTools in development
+  if (process.env.ELECTRON_RENDERER_URL) win.webContents.openDevTools()
 }
 
 app.whenReady().then(async () => {

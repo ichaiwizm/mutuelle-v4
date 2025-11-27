@@ -149,6 +149,8 @@ export type Ipc = {
     fetch: (params: MailFetchParams) => Promise<MailFetchResult>;
     disconnect: () => Promise<{ ok: boolean }>;
     cancel: () => Promise<{ cancelled: boolean }>;
+    isConnecting: () => Promise<{ isConnecting: boolean }>;
+    cancelConnect: () => Promise<{ cancelled: boolean }>;
   };
 
   flows: {

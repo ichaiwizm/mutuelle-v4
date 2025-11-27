@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { useDashboard } from '@/renderer/hooks/useDashboard'
+import { useDashboard } from '@/renderer/hooks'
 
 export function Layout() {
   const { data } = useDashboard()

@@ -34,6 +34,8 @@ const api: Ipc = {
     fetch: (params) => invokeIpc(IPC_CHANNEL.MAIL_FETCH, params),
     disconnect: () => invokeIpc(IPC_CHANNEL.MAIL_DISCONNECT),
     cancel: () => invokeIpc(IPC_CHANNEL.MAIL_CANCEL),
+    isConnecting: () => invokeIpc(IPC_CHANNEL.MAIL_IS_CONNECTING),
+    cancelConnect: () => invokeIpc(IPC_CHANNEL.MAIL_CANCEL_CONNECT),
   },
 
   flows: {

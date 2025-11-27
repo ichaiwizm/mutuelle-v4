@@ -5,6 +5,8 @@ export const IPC_CHANNEL = {
   MAIL_DISCONNECT: "mail:disconnect",
   MAIL_FETCH: "mail:fetch",
   MAIL_CANCEL: "mail:cancel",
+  MAIL_IS_CONNECTING: "mail:isConnecting",
+  MAIL_CANCEL_CONNECT: "mail:cancelConnect",
 
   // Fixtures (dev only)
   FIXTURES_EXPORT: "fixtures:export",

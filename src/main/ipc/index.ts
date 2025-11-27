@@ -144,6 +144,15 @@ export function registerIpc() {
     return success({ cancelled: true });
   });
 
+  ipcMain.handle(IPC_CHANNEL.MAIL_IS_CONNECTING, async () => {
+    return success({ isConnecting: OAuthService.isFlowActive() });
+  });
+
+  ipcMain.handle(IPC_CHANNEL.MAIL_CANCEL_CONNECT, async () => {
+    OAuthService.cancelFlow();
+    return success({ cancelled: true });
+  });
+
   // ========== Fixtures (dev) ==========
   ipcMain.handle(
     IPC_CHANNEL.FIXTURES_EXPORT,
