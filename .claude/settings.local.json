@@ -47,7 +47,8 @@
       "Bash(npx electron-vite build:*)",
       "Bash(pkill:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:ui.shadcn.com)"
+      "WebFetch(domain:ui.shadcn.com)",
+      "Skill(frontend-design:frontend-design)"
     ],
     "deny": [],
     "ask": []
