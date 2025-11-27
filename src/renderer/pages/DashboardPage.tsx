@@ -6,7 +6,6 @@ import {
   DashboardHeader,
   StatsGrid,
   RecentRunsCard,
-  GmailStatusCard,
   ActiveProductsCard,
   RunDetailsModal,
 } from '@/renderer/features/dashboard/components'
@@ -60,21 +59,10 @@ export function DashboardPage() {
           cancellingRunId={actions.cancellingRunId}
         />
 
-        <div className="space-y-4">
-          <GmailStatusCard
-            isConnected={data.mail.ok}
-            email={data.mail.email}
-            isConnecting={actions.isConnecting}
-            onConnect={actions.handleConnect}
-            onDisconnect={actions.handleDisconnect}
-            onCancelConnect={actions.handleCancelConnect}
-          />
-
-          <ActiveProductsCard
-            products={data.products.active}
-            activeCount={data.products.activeCount}
-          />
-        </div>
+        <ActiveProductsCard
+          products={data.products.active}
+          activeCount={data.products.activeCount}
+        />
       </div>
 
       <RunDetailsModal runId={actions.viewingRunId} onClose={actions.handleCloseModal} />

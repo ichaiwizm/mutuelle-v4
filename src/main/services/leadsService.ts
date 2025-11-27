@@ -85,8 +85,9 @@ export const LeadsService = {
 
   /**
    * Create a new lead.
+   * Returns { id, duplicate: true } if lead already exists (skipped).
    */
-  async create(raw: unknown): Promise<{ id: string }> {
+  async create(raw: unknown): Promise<{ id: string; duplicate?: boolean }> {
     // id facultatif à l'entrée → on le force
     const withId =
       typeof raw === "object" && raw
@@ -100,8 +101,18 @@ export const LeadsService = {
     if (typeof lead.subscriber !== "object" || !lead.subscriber) {
       throw new ValidationError("Invalid lead: subscriber is required");
     }
-    const now = new Date();
 
+    // Check if lead already exists (for duplicate detection)
+    const existing = await db.select({ id: schema.leads.id })
+      .from(schema.leads)
+      .where(eq(schema.leads.id, lead.id))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { id: lead.id, duplicate: true };
+    }
+
+    const now = new Date();
     await db.insert(schema.leads).values({
       id: lead.id,
       data: JSON.stringify(lead),

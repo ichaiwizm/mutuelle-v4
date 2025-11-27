@@ -30,6 +30,8 @@ export type MailFetchResult = {
   detected: number;
   parsed: number;
   saved: number;
+  duplicates: number;
+  cancelled?: boolean;
   errors?: string[];
   matchedEmails?: MatchedEmailSummary[];
 };

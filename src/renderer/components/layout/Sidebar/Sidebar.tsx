@@ -5,9 +5,10 @@ import { NavItem } from './NavItem'
 
 interface SidebarProps {
   mailStatus?: { ok: boolean; email?: string }
+  onMailStatusChange?: () => void
 }
 
-export function Sidebar({ mailStatus }: SidebarProps) {
+export function Sidebar({ mailStatus, onMailStatusChange }: SidebarProps) {
   return (
     <aside className="flex h-screen w-56 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
       <SidebarHeader />
@@ -19,7 +20,7 @@ export function Sidebar({ mailStatus }: SidebarProps) {
         <NavItem to="/config" icon={<Settings className="h-4 w-4" />} label="Configuration" />
       </nav>
 
-      <SidebarFooter mailStatus={mailStatus} />
+      <SidebarFooter mailStatus={mailStatus} onMailStatusChange={onMailStatusChange} />
     </aside>
   )
 }

@@ -45,13 +45,14 @@ export const MailService = {
     let detected = 0;
     let parsed = 0;
     let saved = 0;
+    let duplicates = 0;
     const errors: string[] = [];
 
     for (let i = 0; i < ids.length; i += concurrency) {
       // Check if cancelled
       if (signal.aborted) {
         currentAbortController = null;
-        return { fetched: ids.length, matched, detected, parsed, saved, cancelled: true };
+        return { fetched: ids.length, matched, detected, parsed, saved, duplicates, cancelled: true };
       }
 
       const batch = ids.slice(i, i + concurrency);
@@ -79,8 +80,12 @@ export const MailService = {
             for (const lead of leads) {
               parsed++;
               try {
-                await LeadsService.create(lead);
-                saved++;
+                const result = await LeadsService.create(lead);
+                if (result.duplicate) {
+                  duplicates++;
+                } else {
+                  saved++;
+                }
               } catch (error) {
                 errors.push(`Failed to save lead from ${m.subject}: ${error}`);
               }
@@ -114,6 +119,7 @@ export const MailService = {
       detected,
       parsed,
       saved,
+      duplicates,
       errors: errors.length > 0 ? errors : undefined,
       matchedEmails: options?.verbose ? matchedEmails : undefined,
     };
