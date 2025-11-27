@@ -1,5 +1,6 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -37,7 +38,7 @@ export default defineConfig({
     },
   },
   renderer: {
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     resolve: { alias },
     optimizeDeps: { exclude: ['better-sqlite3'] },
     build: { rollupOptions: { input: 'src/renderer/index.html' } },

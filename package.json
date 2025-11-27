@@ -1,16 +1,24 @@
 {
   "main": "out/main/index.js",
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.17",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "better-sqlite3": "^12.4.1",
+    "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.44.7",
     "express": "^5.1.0",
     "googleapis": "^142.0.0",
+    "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.1.12"
+    "react-router-dom": "^7.9.6",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.17",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
   },
   "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40",
   "devDependencies": {
@@ -19,8 +27,11 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.0",
     "@types/prompts": "^2.4.9",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@typescript-eslint/parser": "^8.46.4",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitest/coverage-v8": "^4.0.8",
@@ -46,6 +57,7 @@
     ]
   },
   "scripts": {
+    "platform:switch": "bash scripts/switch-platform.sh",
     "dev": "electron-vite dev",
     "dev:3s": "node -e \"const {spawn}=require('child_process');const p=spawn('pnpm',['dev'],{detached:true,stdio:'ignore'});p.unref();setTimeout(()=>{console.log('Electron dev lancé (pid '+p.pid+').');},3000);\"",
     "build": "eslint . && electron-vite build",

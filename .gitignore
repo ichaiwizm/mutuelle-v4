@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+node_modules.win/
+node_modules.linux/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
