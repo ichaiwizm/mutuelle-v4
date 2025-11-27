@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useDashboard } from '@/renderer/hooks/useDashboard'
 import { Button, Card, CardHeader, CardTitle, CardContent, StatCard, StatusBadge } from '@/renderer/components/ui'
+import { cn } from '@/lib/utils'
 import type { Run } from '@/shared/types/run'
 import type { ProductConfiguration } from '@/shared/types/product'
 
@@ -252,18 +253,20 @@ export function DashboardPage() {
             <CardContent>
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full',
                     data.mail.ok
                       ? 'bg-[var(--color-success-muted)]'
                       : 'bg-[var(--color-surface-hover)]'
-                  }`}
+                  )}
                 >
                   <Mail
-                    className={`h-5 w-5 ${
+                    className={cn(
+                      'h-5 w-5',
                       data.mail.ok
                         ? 'text-[var(--color-success)]'
                         : 'text-[var(--color-text-muted)]'
-                    }`}
+                    )}
                   />
                 </div>
                 <div className="flex-1">
