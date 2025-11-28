@@ -22,6 +22,7 @@ export const IPC_CHANNEL = {
   LEADS_REMOVE: "leads:remove",
   LEADS_PARSE_FROM_TEXT: "leads:parseFromText",
   LEADS_PARSE_AND_CREATE_FROM_TEXT: "leads:parseAndCreateFromText",
+  LEADS_GET_FORM_SCHEMA: "leads:getFormSchema",
 
   // Credentials
   CREDS_UPSERT: "credentials:upsert",

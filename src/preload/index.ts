@@ -53,6 +53,7 @@ const api: Ipc = {
     parseFromText: (params) => invokeIpc(IPC_CHANNEL.LEADS_PARSE_FROM_TEXT, params),
     parseAndCreateFromText: (params) =>
       invokeIpc(IPC_CHANNEL.LEADS_PARSE_AND_CREATE_FROM_TEXT, params),
+    getFormSchema: () => invokeIpc(IPC_CHANNEL.LEADS_GET_FORM_SCHEMA),
   },
 
   credentials: {

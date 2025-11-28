@@ -2,6 +2,7 @@ import { ipcMain, IpcMainInvokeEvent } from "electron";
 import { ZodError, ZodSchema } from "zod";
 import { IPC_CHANNEL } from "./channels";
 import { LeadsService } from "../services/leadsService";
+import { LeadFormSchemaService } from "../services/leadFormSchemaService";
 import { CredentialsService } from "../services/credentialsService";
 import { AutomationService } from "../services/automationService";
 import { FlowsService } from "../services/flowsService";
@@ -228,6 +229,11 @@ export function registerIpc() {
       }
       return { created: ids.length, ids };
     })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.LEADS_GET_FORM_SCHEMA,
+    simpleHandler(async () => LeadFormSchemaService.getSchema())
   );
 
   // ========== Credentials ==========

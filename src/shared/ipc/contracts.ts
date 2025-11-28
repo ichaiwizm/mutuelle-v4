@@ -1,5 +1,6 @@
 import type { Flow } from "@/shared/types/flow";
 import type { Lead } from "@/shared/types/lead";
+import type { LeadFormSchemaResult } from "@/shared/types/form-schema";
 import type { Run, RunItem } from "@/shared/types/run";
 import type {
   ProductConfiguration,
@@ -176,6 +177,7 @@ export type Ipc = {
     parseAndCreateFromText: (
       params: LeadsParseFromTextParams
     ) => Promise<LeadsParseAndCreateFromTextResult>;
+    getFormSchema: () => Promise<LeadFormSchemaResult>;
   };
 
   credentials: {
