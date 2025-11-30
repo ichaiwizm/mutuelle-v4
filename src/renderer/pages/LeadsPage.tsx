@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/renderer/components/ui/Button";
 import { SlideOver } from "@/renderer/components/ui/SlideOver";
 import { Dialog, DialogHeader } from "@/renderer/components/ui/Dialog";
+import { Pagination } from "@/renderer/components/ui/Pagination";
 import { UserPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useLeads, parseLeadRow } from "@/renderer/features/leads/hooks/useLeads";
@@ -35,11 +36,21 @@ export function LeadsPage() {
   // Delete confirmation state
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+  const totalPages = Math.ceil(total / pageSize);
+
+  // Fetch leads when page changes
+  useEffect(() => {
+    const offset = (currentPage - 1) * pageSize;
+    fetchLeads({ limit: pageSize, offset });
+  }, [currentPage, fetchLeads]);
+
   /**
    * Open form for creating new lead
    */
   const handleCreate = useCallback(() => {
-    console.log("[LeadsPage] handleCreate called");
     setEditingLead(null);
     setIsFormOpen(true);
   }, []);
@@ -103,6 +114,9 @@ export function LeadsPage() {
           await updateLead(editingLead.id, leadData);
           console.log("[LeadsPage] updateLead completed");
           toast.success("Lead mis à jour");
+          // Refresh current page
+          const offset = (currentPage - 1) * pageSize;
+          await fetchLeads({ limit: pageSize, offset });
         } else {
           console.log("[LeadsPage] Calling createLead...");
           const result = await createLead(leadData);
@@ -111,6 +125,9 @@ export function LeadsPage() {
             toast.warning("Ce lead existe déjà");
           } else {
             toast.success("Lead créé");
+            // Go to first page to see new lead (sorted by createdAt desc)
+            setCurrentPage(1);
+            await fetchLeads({ limit: pageSize, offset: 0 });
           }
         }
         handleCloseForm();
@@ -125,7 +142,7 @@ export function LeadsPage() {
         setIsSubmitting(false);
       }
     },
-    [editingLead, createLead, updateLead, handleCloseForm]
+    [editingLead, createLead, updateLead, handleCloseForm, currentPage, pageSize, fetchLeads]
   );
 
   /**
@@ -155,20 +172,31 @@ export function LeadsPage() {
       await deleteLead(deleteConfirm.id);
       console.log("[LeadsPage] deleteLead completed");
       toast.success("Lead supprimé");
+      // Refresh current page
+      const offset = (currentPage - 1) * pageSize;
+      await fetchLeads({ limit: pageSize, offset });
     } catch (error) {
       console.error("[LeadsPage] confirmDelete error:", error);
       toast.error("Erreur lors de la suppression");
     } finally {
       setDeleteConfirm(null);
     }
-  }, [deleteConfirm, deleteLead]);
+  }, [deleteConfirm, deleteLead, currentPage, pageSize, fetchLeads]);
 
   /**
    * Refresh leads list
    */
   const handleRefresh = useCallback(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+    const offset = (currentPage - 1) * pageSize;
+    fetchLeads({ limit: pageSize, offset });
+  }, [currentPage, pageSize, fetchLeads]);
+
+  /**
+   * Handle page change
+   */
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -210,6 +238,19 @@ export function LeadsPage() {
           onCreate={handleCreate}
         />
       </div>
+
+      {/* Pagination */}
+      {total > 0 && (
+        <div className="px-6 py-3 border-t border-[var(--color-border)]">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={total}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
 
       {/* Form SlideOver */}
       <SlideOver

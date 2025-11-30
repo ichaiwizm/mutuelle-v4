@@ -101,6 +101,7 @@ export function useLeads(): UseLeadsResult {
 
   /**
    * Create a new lead
+   * Note: Caller should refresh the list with proper pagination after success
    */
   const createLead = useCallback(
     async (lead: Partial<Lead>): Promise<{ id: string; duplicate?: boolean }> => {
@@ -111,8 +112,6 @@ export function useLeads(): UseLeadsResult {
       try {
         const result = await window.api.leads.create(lead);
         console.log("[useLeads] createLead result:", result);
-        // Refresh the list after creating
-        await fetchLeads();
         return result;
       } catch (err) {
         console.error("[useLeads] createLead error:", err);
@@ -123,11 +122,12 @@ export function useLeads(): UseLeadsResult {
         setCreating(false);
       }
     },
-    [fetchLeads]
+    []
   );
 
   /**
    * Update an existing lead
+   * Note: Caller should refresh the list with proper pagination after success
    */
   const updateLead = useCallback(
     async (id: string, data: Partial<Lead>): Promise<void> => {
@@ -139,11 +139,6 @@ export function useLeads(): UseLeadsResult {
         console.log("[useLeads] Calling window.api.leads.update...");
         await window.api.leads.update(id, data);
         console.log("[useLeads] updateLead API call completed");
-        // Refresh the list and current lead after updating
-        await fetchLeads();
-        if (currentLead?.id === id) {
-          await fetchLead(id);
-        }
       } catch (err) {
         console.error("[useLeads] updateLead error:", err);
         const error = err instanceof Error ? err : new Error("Failed to update lead");
@@ -153,11 +148,12 @@ export function useLeads(): UseLeadsResult {
         setUpdating(false);
       }
     },
-    [fetchLeads, fetchLead, currentLead?.id]
+    []
   );
 
   /**
    * Delete a lead
+   * Note: Caller should refresh the list with proper pagination after success
    */
   const deleteLead = useCallback(
     async (id: string): Promise<void> => {
@@ -169,12 +165,6 @@ export function useLeads(): UseLeadsResult {
         console.log("[useLeads] Calling window.api.leads.remove...");
         await window.api.leads.remove(id);
         console.log("[useLeads] deleteLead API call completed");
-        // Refresh the list after deleting
-        await fetchLeads();
-        // Clear current lead if it was deleted
-        if (currentLead?.id === id) {
-          setCurrentLead(null);
-        }
       } catch (err) {
         console.error("[useLeads] deleteLead error:", err);
         const error = err instanceof Error ? err : new Error("Failed to delete lead");
@@ -184,7 +174,7 @@ export function useLeads(): UseLeadsResult {
         setDeleting(false);
       }
     },
-    [fetchLeads, currentLead?.id]
+    []
   );
 
   /**
@@ -201,10 +191,7 @@ export function useLeads(): UseLeadsResult {
     setCurrentLead(null);
   }, []);
 
-  // Fetch leads on mount
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+  // Note: Auto-fetch removed - consuming component should call fetchLeads with pagination params
 
   return {
     leads,
