@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/renderer/components/ui/Button";
 import { SlideOver } from "@/renderer/components/ui/SlideOver";
+import { Dialog, DialogHeader } from "@/renderer/components/ui/Dialog";
 import { UserPlus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useLeads, parseLeadRow } from "@/renderer/features/leads/hooks/useLeads";
@@ -30,6 +31,9 @@ export function LeadsPage() {
 
   // View state
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
 
   /**
    * Open form for creating new lead
@@ -125,32 +129,39 @@ export function LeadsPage() {
   );
 
   /**
-   * Delete lead with confirmation
+   * Open delete confirmation dialog
    */
   const handleDelete = useCallback(
-    async (id: string) => {
+    (id: string) => {
       console.log("[LeadsPage] handleDelete called with id:", id);
-      // Find the lead to show its name
       const leadRow = leads.find((l) => l.id === id);
       const lead = leadRow ? parseLeadRow(leadRow) : null;
       const name = lead
         ? `${lead.subscriber.prenom} ${lead.subscriber.nom}`
         : "ce lead";
-
-      if (!confirm(`Supprimer ${name} ?`)) return;
-
-      try {
-        console.log("[LeadsPage] Calling deleteLead...");
-        await deleteLead(id);
-        console.log("[LeadsPage] deleteLead completed");
-        toast.success("Lead supprimé");
-      } catch (error) {
-        console.error("[LeadsPage] handleDelete error:", error);
-        toast.error("Erreur lors de la suppression");
-      }
+      setDeleteConfirm({ id, name });
     },
-    [leads, deleteLead]
+    [leads]
   );
+
+  /**
+   * Confirm and execute delete
+   */
+  const confirmDelete = useCallback(async () => {
+    if (!deleteConfirm) return;
+    console.log("[LeadsPage] confirmDelete called with id:", deleteConfirm.id);
+    try {
+      console.log("[LeadsPage] Calling deleteLead...");
+      await deleteLead(deleteConfirm.id);
+      console.log("[LeadsPage] deleteLead completed");
+      toast.success("Lead supprimé");
+    } catch (error) {
+      console.error("[LeadsPage] confirmDelete error:", error);
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setDeleteConfirm(null);
+    }
+  }, [deleteConfirm, deleteLead]);
 
   /**
    * Refresh leads list
@@ -240,6 +251,26 @@ export function LeadsPage() {
           />
         )}
       </SlideOver>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="sm">
+        <DialogHeader
+          title="Supprimer le lead"
+          description={`Voulez-vous vraiment supprimer ${deleteConfirm?.name} ?`}
+        />
+        <div className="flex justify-end gap-3 p-4 border-t border-[var(--color-border)]">
+          <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
+            Annuler
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={confirmDelete}
+            className="bg-[var(--color-error)] text-white hover:bg-[var(--color-error)]/90"
+          >
+            Supprimer
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }
