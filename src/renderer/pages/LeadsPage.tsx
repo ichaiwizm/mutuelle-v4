@@ -35,6 +35,7 @@ export function LeadsPage() {
    * Open form for creating new lead
    */
   const handleCreate = useCallback(() => {
+    console.log("[LeadsPage] handleCreate called");
     setEditingLead(null);
     setIsFormOpen(true);
   }, []);
@@ -43,6 +44,7 @@ export function LeadsPage() {
    * Open form for editing lead
    */
   const handleEdit = useCallback((lead: Lead) => {
+    console.log("[LeadsPage] handleEdit called with lead:", lead);
     setEditingLead(lead);
     setIsFormOpen(true);
   }, []);
@@ -85,13 +87,22 @@ export function LeadsPage() {
    */
   const handleSubmit = useCallback(
     async (leadData: Partial<Lead>) => {
+      console.log("[LeadsPage] handleSubmit called", {
+        isEditing: !!editingLead,
+        editingLeadId: editingLead?.id,
+        leadData,
+      });
       setIsSubmitting(true);
       try {
         if (editingLead) {
+          console.log("[LeadsPage] Calling updateLead...");
           await updateLead(editingLead.id, leadData);
+          console.log("[LeadsPage] updateLead completed");
           toast.success("Lead mis à jour");
         } else {
+          console.log("[LeadsPage] Calling createLead...");
           const result = await createLead(leadData);
+          console.log("[LeadsPage] createLead result:", result);
           if (result.duplicate) {
             toast.warning("Ce lead existe déjà");
           } else {
@@ -100,6 +111,7 @@ export function LeadsPage() {
         }
         handleCloseForm();
       } catch (error) {
+        console.error("[LeadsPage] handleSubmit error:", error);
         toast.error(
           editingLead
             ? "Erreur lors de la mise à jour"
@@ -117,6 +129,7 @@ export function LeadsPage() {
    */
   const handleDelete = useCallback(
     async (id: string) => {
+      console.log("[LeadsPage] handleDelete called with id:", id);
       // Find the lead to show its name
       const leadRow = leads.find((l) => l.id === id);
       const lead = leadRow ? parseLeadRow(leadRow) : null;
@@ -127,9 +140,12 @@ export function LeadsPage() {
       if (!confirm(`Supprimer ${name} ?`)) return;
 
       try {
+        console.log("[LeadsPage] Calling deleteLead...");
         await deleteLead(id);
+        console.log("[LeadsPage] deleteLead completed");
         toast.success("Lead supprimé");
       } catch (error) {
+        console.error("[LeadsPage] handleDelete error:", error);
         toast.error("Erreur lors de la suppression");
       }
     },

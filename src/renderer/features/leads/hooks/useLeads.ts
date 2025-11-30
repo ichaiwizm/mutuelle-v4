@@ -58,14 +58,17 @@ export function useLeads(): UseLeadsResult {
    */
   const fetchLeads = useCallback(
     async (options?: { limit?: number; offset?: number }) => {
+      console.log("[useLeads] fetchLeads called with options:", options);
       setLoading(true);
       setError(null);
 
       try {
         const result = await window.api.leads.list(options);
+        console.log("[useLeads] fetchLeads result:", { count: result.leads.length, total: result.total });
         setLeads(result.leads);
         setTotal(result.total);
       } catch (err) {
+        console.error("[useLeads] fetchLeads error:", err);
         const error = err instanceof Error ? err : new Error("Failed to fetch leads");
         setError(error);
         throw error;
@@ -101,15 +104,18 @@ export function useLeads(): UseLeadsResult {
    */
   const createLead = useCallback(
     async (lead: Partial<Lead>): Promise<{ id: string; duplicate?: boolean }> => {
+      console.log("[useLeads] createLead called with:", lead);
       setCreating(true);
       setError(null);
 
       try {
         const result = await window.api.leads.create(lead);
+        console.log("[useLeads] createLead result:", result);
         // Refresh the list after creating
         await fetchLeads();
         return result;
       } catch (err) {
+        console.error("[useLeads] createLead error:", err);
         const error = err instanceof Error ? err : new Error("Failed to create lead");
         setError(error);
         throw error;
@@ -125,17 +131,21 @@ export function useLeads(): UseLeadsResult {
    */
   const updateLead = useCallback(
     async (id: string, data: Partial<Lead>): Promise<void> => {
+      console.log("[useLeads] updateLead called with:", { id, data });
       setUpdating(true);
       setError(null);
 
       try {
+        console.log("[useLeads] Calling window.api.leads.update...");
         await window.api.leads.update(id, data);
+        console.log("[useLeads] updateLead API call completed");
         // Refresh the list and current lead after updating
         await fetchLeads();
         if (currentLead?.id === id) {
           await fetchLead(id);
         }
       } catch (err) {
+        console.error("[useLeads] updateLead error:", err);
         const error = err instanceof Error ? err : new Error("Failed to update lead");
         setError(error);
         throw error;
@@ -151,11 +161,14 @@ export function useLeads(): UseLeadsResult {
    */
   const deleteLead = useCallback(
     async (id: string): Promise<void> => {
+      console.log("[useLeads] deleteLead called with id:", id);
       setDeleting(true);
       setError(null);
 
       try {
+        console.log("[useLeads] Calling window.api.leads.remove...");
         await window.api.leads.remove(id);
+        console.log("[useLeads] deleteLead API call completed");
         // Refresh the list after deleting
         await fetchLeads();
         // Clear current lead if it was deleted
@@ -163,6 +176,7 @@ export function useLeads(): UseLeadsResult {
           setCurrentLead(null);
         }
       } catch (err) {
+        console.error("[useLeads] deleteLead error:", err);
         const error = err instanceof Error ? err : new Error("Failed to delete lead");
         setError(error);
         throw error;

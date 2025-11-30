@@ -12,9 +12,9 @@ export const LeadsCreateSchema = LeadSchema;
 export const LeadsUpdateSchema = z.object({
   id: z.string().uuid(),
   data: z.object({
-    subscriber: z.record(z.any()).optional(),
-    project: z.record(z.any()).optional(),
-    children: z.array(z.record(z.any())).optional(),
+    subscriber: z.record(z.string(), z.any()).optional(),
+    project: z.record(z.string(), z.any()).optional(),
+    children: z.array(z.record(z.string(), z.any())).optional(),
   }),
 });
 
