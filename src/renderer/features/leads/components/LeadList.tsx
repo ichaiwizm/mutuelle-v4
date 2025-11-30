@@ -13,7 +13,7 @@ import { EmptyState } from "@/renderer/components/ui/EmptyState";
 import { Skeleton } from "@/renderer/components/ui/Skeleton";
 import { Eye, Edit2, Trash2, Users, Baby } from "lucide-react";
 import type { Lead } from "@/shared/types/lead";
-import type { LeadRow } from "../hooks/useLeads";
+import { parseLeadRow, type LeadRow } from "../hooks/useLeads";
 
 interface LeadListProps {
   leads: LeadRow[];
@@ -22,13 +22,6 @@ interface LeadListProps {
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
   onCreate: () => void;
-}
-
-/**
- * Parse lead row to get Lead object
- */
-function parseLead(row: LeadRow): Lead {
-  return JSON.parse(row.data) as Lead;
 }
 
 /**
@@ -47,11 +40,11 @@ function formatDate(date: Date | string): string {
  * Lead List Component
  */
 export function LeadList({ leads, loading, onView, onEdit, onDelete, onCreate }: LeadListProps) {
-  // Parse all leads
+  // Parse all leads (using shared parseLeadRow with error handling)
   const parsedLeads = useMemo(() => {
     return leads.map((row) => ({
       row,
-      lead: parseLead(row),
+      lead: parseLeadRow(row),
     }));
   }, [leads]);
 

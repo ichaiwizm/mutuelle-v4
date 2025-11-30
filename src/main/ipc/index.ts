@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent } from "electron";
+import { ipcMain, IpcMainInvokeEvent, shell } from "electron";
 import { ZodError, ZodSchema } from "zod";
 import { IPC_CHANNEL } from "./channels";
 import { LeadsService } from "../services/leadsService";
@@ -307,24 +307,29 @@ export function registerIpc() {
   );
 
   // ========== Products ==========
+  // Note: ProductConfiguration contains functions (conditionalRules) that cannot be cloned via IPC
+  // We must remove them before returning to the renderer process
   ipcMain.handle(
     IPC_CHANNEL.PRODUCTS_LIST_CONFIGS,
     simpleHandler(async () => {
-      return ProductConfigCore.listAllProducts();
+      const products = ProductConfigCore.listAllProducts();
+      return products.map((p) => ({ ...p, conditionalRules: undefined }));
     })
   );
 
   ipcMain.handle(
     IPC_CHANNEL.PRODUCTS_GET_CONFIG,
     handler(ProductGetConfigSchema, async ({ flowKey }) => {
-      return ProductConfigCore.getProductConfig(flowKey) ?? null;
+      const config = ProductConfigCore.getProductConfig(flowKey);
+      return config ? { ...config, conditionalRules: undefined } : null;
     })
   );
 
   ipcMain.handle(
     IPC_CHANNEL.PRODUCTS_LIST_ACTIVE_CONFIGS,
     simpleHandler(async () => {
-      return ProductConfigQuery.listActiveProducts();
+      const products = await ProductConfigQuery.listActiveProducts();
+      return products.map((p) => ({ ...p, conditionalRules: undefined }));
     })
   );
 
@@ -426,6 +431,23 @@ export function registerIpc() {
           })),
         },
       };
+    })
+  );
+
+  // ========== Shell (system utilities) ==========
+  ipcMain.handle(
+    IPC_CHANNEL.SHELL_OPEN_PATH,
+    handler(null, async (input: { path: string }) => {
+      const { path } = input as { path: string };
+      if (!path || typeof path !== "string") {
+        throw new ValidationError("Path is required");
+      }
+      // shell.openPath returns an empty string on success, or an error message
+      const errorMessage = await shell.openPath(path);
+      if (errorMessage) {
+        throw new AppError("UNKNOWN", `Failed to open path: ${errorMessage}`);
+      }
+      return { success: true };
     })
   );
 }

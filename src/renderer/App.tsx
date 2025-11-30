@@ -2,18 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { DashboardPage } from './pages/DashboardPage'
 import { LeadsPage } from './pages/LeadsPage'
+import { AutomationPage } from './pages/AutomationPage'
 import { DashboardProvider } from './contexts/DashboardContext'
 
-// Placeholder pages - will be implemented later
-function AutomationPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold">Automation</h1>
-      <p className="mt-2 text-[var(--color-text-secondary)]">Coming soon...</p>
-    </div>
-  )
-}
-
+// Placeholder page - will be implemented later
 function ConfigPage() {
   return (
     <div className="p-6">

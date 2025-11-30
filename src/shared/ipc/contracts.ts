@@ -215,4 +215,8 @@ export type Ipc = {
   dashboard: {
     overview: () => Promise<DashboardOverview>;
   };
+
+  shell: {
+    openPath: (path: string) => Promise<{ success: boolean }>;
+  };
 };

@@ -1,0 +1,348 @@
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { toast } from 'sonner'
+import { Play, Package, Users, Loader2 } from 'lucide-react'
+import { Modal } from '@/renderer/components/ui/Modal/Modal'
+import { ModalHeader } from '@/renderer/components/ui/Modal/ModalHeader'
+import { Button } from '@/renderer/components/ui/Button'
+import { Card } from '@/renderer/components/ui/Card'
+import { SearchInput } from '@/renderer/components/ui/SearchInput'
+import { Skeleton } from '@/renderer/components/ui/Skeleton'
+import type { ProductConfiguration } from '@/shared/types/product'
+import type { Lead } from '@/shared/types/lead'
+
+interface NewRunModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
+  // Data state
+  const [products, setProducts] = useState<ProductConfiguration[]>([])
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
+  const [loadingLeads, setLoadingLeads] = useState(true)
+
+  // Selection state
+  const [selectedFlows, setSelectedFlows] = useState<Set<string>>(new Set())
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set())
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Submission state
+  const [submitting, setSubmitting] = useState(false)
+
+  // Fetch products and leads when modal opens
+  useEffect(() => {
+    if (!isOpen) return
+
+    // Reset state when opening
+    setSelectedFlows(new Set())
+    setSelectedLeads(new Set())
+    setSearchQuery('')
+
+    // Fetch active products
+    setLoadingProducts(true)
+    window.api.products
+      .listActiveConfigs()
+      .then((configs) => {
+        setProducts(configs)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch products:', error)
+        toast.error('Erreur lors du chargement des produits')
+      })
+      .finally(() => setLoadingProducts(false))
+
+    // Fetch leads
+    setLoadingLeads(true)
+    window.api.leads
+      .list({ limit: 100, offset: 0 })
+      .then((result) => {
+        // Parse lead data from JSON string
+        const parsedLeads = result.leads.map((row) => ({
+          id: row.id,
+          ...JSON.parse(row.data),
+        })) as Lead[]
+        setLeads(parsedLeads)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch leads:', error)
+        toast.error('Erreur lors du chargement des leads')
+      })
+      .finally(() => setLoadingLeads(false))
+  }, [isOpen])
+
+  // Filter leads by search query
+  const filteredLeads = useMemo(() => {
+    if (!searchQuery.trim()) return leads
+
+    const query = searchQuery.toLowerCase()
+    return leads.filter((lead) => {
+      const nom = lead.subscriber?.nom?.toLowerCase() ?? ''
+      const prenom = lead.subscriber?.prenom?.toLowerCase() ?? ''
+      const fullName = `${prenom} ${nom}`
+      return fullName.includes(query) || nom.includes(query) || prenom.includes(query)
+    })
+  }, [leads, searchQuery])
+
+  // Toggle flow selection
+  const toggleFlow = useCallback((flowKey: string) => {
+    setSelectedFlows((prev) => {
+      const next = new Set(prev)
+      if (next.has(flowKey)) {
+        next.delete(flowKey)
+      } else {
+        next.add(flowKey)
+      }
+      return next
+    })
+  }, [])
+
+  // Toggle lead selection
+  const toggleLead = useCallback((leadId: string) => {
+    setSelectedLeads((prev) => {
+      const next = new Set(prev)
+      if (next.has(leadId)) {
+        next.delete(leadId)
+      } else {
+        next.add(leadId)
+      }
+      return next
+    })
+  }, [])
+
+  // Select/deselect all flows
+  const toggleAllFlows = useCallback(() => {
+    if (selectedFlows.size === products.length) {
+      setSelectedFlows(new Set())
+    } else {
+      setSelectedFlows(new Set(products.map((p) => p.flowKey)))
+    }
+  }, [products, selectedFlows.size])
+
+  // Select/deselect all visible leads
+  const toggleAllLeads = useCallback(() => {
+    if (selectedLeads.size === filteredLeads.length) {
+      setSelectedLeads(new Set())
+    } else {
+      setSelectedLeads(new Set(filteredLeads.map((l) => l.id)))
+    }
+  }, [filteredLeads, selectedLeads.size])
+
+  // Calculate total tasks
+  const totalTasks = selectedFlows.size * selectedLeads.size
+  const canSubmit = selectedFlows.size > 0 && selectedLeads.size > 0 && !submitting
+
+  // Handle submit
+  const handleSubmit = useCallback(async () => {
+    if (!canSubmit) return
+
+    setSubmitting(true)
+
+    try {
+      // Generate matrix of flowKey × leadId
+      const items: Array<{ flowKey: string; leadId: string }> = []
+      for (const flowKey of selectedFlows) {
+        for (const leadId of selectedLeads) {
+          items.push({ flowKey, leadId })
+        }
+      }
+
+      await window.api.automation.enqueue(items)
+      toast.success(`${items.length} tâche${items.length > 1 ? 's' : ''} lancée${items.length > 1 ? 's' : ''}`)
+      onSuccess()
+      onClose()
+    } catch (error) {
+      console.error('Failed to enqueue automation:', error)
+      toast.error("Erreur lors du lancement de l'automation")
+    } finally {
+      setSubmitting(false)
+    }
+  }, [canSubmit, selectedFlows, selectedLeads, onSuccess, onClose])
+
+  // Get lead display name
+  const getLeadDisplayName = (lead: Lead) => {
+    const nom = lead.subscriber?.nom ?? ''
+    const prenom = lead.subscriber?.prenom ?? ''
+    return `${prenom} ${nom}`.trim() || 'Lead sans nom'
+  }
+
+  // Get lead subtitle
+  const getLeadSubtitle = (lead: Lead) => {
+    const dateNaissance = lead.subscriber?.dateNaissance ?? ''
+    const codePostal = lead.subscriber?.codePostal ?? ''
+    return [dateNaissance, codePostal].filter(Boolean).join(' - ')
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
+      <ModalHeader title="Nouvelle Automation" onClose={onClose} />
+
+      <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+        {/* Products Section */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-[var(--color-primary)]" />
+              <h3 className="font-semibold text-[var(--color-text-primary)]">Produits</h3>
+              <span className="text-sm text-[var(--color-text-muted)]">
+                ({selectedFlows.size} sélectionné{selectedFlows.size > 1 ? 's' : ''})
+              </span>
+            </div>
+            {products.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleAllFlows}
+                className="text-sm text-[var(--color-primary)] hover:underline"
+              >
+                {selectedFlows.size === products.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+              </button>
+            )}
+          </div>
+
+          {loadingProducts ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : products.length === 0 ? (
+            <p className="text-sm text-[var(--color-text-muted)] text-center py-4">
+              Aucun produit actif disponible
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {products.map((product) => (
+                <label
+                  key={product.flowKey}
+                  className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedFlows.has(product.flowKey)}
+                    onChange={() => toggleFlow(product.flowKey)}
+                    className="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--color-text-primary)]">
+                      {product.displayName}
+                    </div>
+                    <div className="text-xs text-[var(--color-text-muted)]">
+                      {product.platform} - {product.category}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Leads Section */}
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-[var(--color-primary)]" />
+              <h3 className="font-semibold text-[var(--color-text-primary)]">Leads</h3>
+              <span className="text-sm text-[var(--color-text-muted)]">
+                ({selectedLeads.size} sélectionné{selectedLeads.size > 1 ? 's' : ''})
+              </span>
+            </div>
+            {filteredLeads.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleAllLeads}
+                className="text-sm text-[var(--color-primary)] hover:underline"
+              >
+                {selectedLeads.size === filteredLeads.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+              </button>
+            )}
+          </div>
+
+          {/* Search */}
+          <SearchInput
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+            placeholder="Rechercher un lead..."
+            className="mb-4"
+          />
+
+          {loadingLeads ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : leads.length === 0 ? (
+            <p className="text-sm text-[var(--color-text-muted)] text-center py-4">
+              Aucun lead disponible
+            </p>
+          ) : filteredLeads.length === 0 ? (
+            <p className="text-sm text-[var(--color-text-muted)] text-center py-4">
+              Aucun lead trouvé pour "{searchQuery}"
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {filteredLeads.map((lead) => (
+                <label
+                  key={lead.id}
+                  className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedLeads.has(lead.id)}
+                    onChange={() => toggleLead(lead.id)}
+                    className="h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] focus:ring-offset-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-[var(--color-text-primary)] truncate">
+                      {getLeadDisplayName(lead)}
+                    </div>
+                    <div className="text-xs text-[var(--color-text-muted)] truncate">
+                      {getLeadSubtitle(lead)}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Summary */}
+        {(selectedFlows.size > 0 || selectedLeads.size > 0) && (
+          <Card className="p-4 bg-[var(--color-surface-alt)]">
+            <div className="text-center">
+              <span className="text-lg font-semibold text-[var(--color-text-primary)]">
+                {selectedFlows.size} produit{selectedFlows.size > 1 ? 's' : ''} × {selectedLeads.size} lead
+                {selectedLeads.size > 1 ? 's' : ''} ={' '}
+                <span className="text-[var(--color-primary)]">
+                  {totalTasks} tâche{totalTasks > 1 ? 's' : ''}
+                </span>
+              </span>
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)]">
+        <Button variant="secondary" onClick={onClose} disabled={submitting}>
+          Annuler
+        </Button>
+        <Button onClick={handleSubmit} disabled={!canSubmit}>
+          {submitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Lancement...
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4" />
+              Lancer {totalTasks > 0 ? `${totalTasks} tâche${totalTasks > 1 ? 's' : ''}` : ''}
+            </>
+          )}
+        </Button>
+      </div>
+    </Modal>
+  )
+}

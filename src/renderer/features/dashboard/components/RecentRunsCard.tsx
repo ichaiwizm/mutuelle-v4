@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Button, Card, CardHeader, CardTitle, CardContent } from '@/renderer/components/ui'
 import { RecentRunsTable } from './RecentRunsTable'
 import type { Run } from '@/shared/types/run'
@@ -14,7 +15,9 @@ export function RecentRunsCard({ runs, cancellingRunId, onCancel, onView }: Rece
     <Card className="col-span-2">
       <CardHeader>
         <CardTitle>Recent Runs</CardTitle>
-        <Button variant="ghost" size="sm">View All</Button>
+        <Link to="/automation">
+          <Button variant="ghost" size="sm">View All</Button>
+        </Link>
       </CardHeader>
       <CardContent className="p-0">
         <RecentRunsTable

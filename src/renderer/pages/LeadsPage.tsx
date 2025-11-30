@@ -155,14 +155,27 @@ export function LeadsPage() {
     try {
       await deleteLead(deleteConfirm.id);
       toast.success("Lead supprimé");
-      const offset = (currentPage - 1) * pageSize;
-      await fetchLeads({ limit: pageSize, offset });
+
+      // Handle pagination after deletion:
+      // If this was the last item on the current page and we're not on page 1,
+      // go back to the previous page
+      const isLastItemOnPage = leads.length === 1;
+      const shouldGoToPreviousPage = isLastItemOnPage && currentPage > 1;
+
+      if (shouldGoToPreviousPage) {
+        // Setting currentPage will trigger useEffect to fetch
+        setCurrentPage(currentPage - 1);
+      } else {
+        // Stay on current page, just refresh
+        const offset = (currentPage - 1) * pageSize;
+        await fetchLeads({ limit: pageSize, offset });
+      }
     } catch (error) {
       toast.error("Erreur lors de la suppression");
     } finally {
       setDeleteConfirm(null);
     }
-  }, [deleteConfirm, deleteLead, currentPage, pageSize, fetchLeads]);
+  }, [deleteConfirm, deleteLead, currentPage, pageSize, fetchLeads, leads.length]);
 
   /**
    * Refresh leads list

@@ -54,4 +54,7 @@ export const IPC_CHANNEL = {
 
   // Dashboard
   DASHBOARD_OVERVIEW: "dashboard:overview",
+
+  // Shell (system utilities)
+  SHELL_OPEN_PATH: "shell:openPath",
 } as const;

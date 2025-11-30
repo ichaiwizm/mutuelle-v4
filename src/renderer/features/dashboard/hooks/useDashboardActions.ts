@@ -48,11 +48,19 @@ export function useDashboardActions({ refetch }: UseDashboardActionsProps) {
     setIsResuming(true)
     try {
       const pausedFlows = await window.api.flowStates.listPaused()
-      let resumed = 0, failed = 0
-      for (const flow of pausedFlows) {
-        try { await window.api.flowStates.resume(flow.id); resumed++ }
-        catch { failed++ }
+      if (pausedFlows.length === 0) {
+        toast.info('No paused flows to resume')
+        return
       }
+
+      // Resume all flows in parallel for better performance
+      const results = await Promise.allSettled(
+        pausedFlows.map((flow) => window.api.flowStates.resume(flow.id))
+      )
+
+      const resumed = results.filter((r) => r.status === 'fulfilled').length
+      const failed = results.filter((r) => r.status === 'rejected').length
+
       toast[failed ? 'warning' : 'success'](`Resumed ${resumed} flows${failed ? `, ${failed} failed` : ''}`)
       refetch()
     } catch { toast.error('Failed to resume flows') }

@@ -94,6 +94,10 @@ const api: Ipc = {
   dashboard: {
     overview: () => invokeIpc(IPC_CHANNEL.DASHBOARD_OVERVIEW),
   },
+
+  shell: {
+    openPath: (path: string) => invokeIpc(IPC_CHANNEL.SHELL_OPEN_PATH, { path }),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

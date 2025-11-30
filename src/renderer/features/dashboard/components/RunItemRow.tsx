@@ -46,7 +46,16 @@ export function RunItemRow({ item }: RunItemRowProps) {
           {item.status}
         </span>
         {item.artifactsDir && (
-          <Button variant="ghost" size="sm" onClick={() => console.log('Artifacts:', item.artifactsDir)} title="View artifacts">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              window.api.shell.openPath(item.artifactsDir!).catch((err) => {
+                console.error('Failed to open artifacts folder:', err);
+              });
+            }}
+            title="View artifacts"
+          >
             <Folder className="h-3.5 w-3.5" />
           </Button>
         )}

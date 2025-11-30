@@ -200,7 +200,20 @@ export function useLeads(): UseLeadsResult {
 
 /**
  * Parse a LeadRow to get the Lead object
+ * Returns a fallback Lead with empty subscriber if parsing fails
  */
 export function parseLeadRow(row: LeadRow): Lead {
-  return JSON.parse(row.data) as Lead;
+  try {
+    return JSON.parse(row.data) as Lead;
+  } catch {
+    console.error(`Failed to parse lead data for row ${row.id}`);
+    // Return a minimal fallback Lead to prevent crashes
+    return {
+      id: row.id,
+      subscriber: {
+        nom: "[Données corrompues]",
+        prenom: "",
+      },
+    };
+  }
 }
