@@ -57,7 +57,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:stackoverflow.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(xargs -I{} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && sqlite3 \"\"\"\"{}\"\"\"\" \"\"\"\"SELECT COUNT(*) FROM leads;\"\"\"\" 2>/dev/null || echo \"\"\"\"no leads table\"\"\"\"')"
     ],
     "deny": [],
     "ask": []

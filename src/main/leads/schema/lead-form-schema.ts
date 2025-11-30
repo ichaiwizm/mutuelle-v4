@@ -5,25 +5,25 @@ import type {
 } from "@/shared/types/form-schema";
 
 /**
- * Section definitions for the Lead form
+ * Section definitions for the simplified Lead form
  */
 const SECTIONS: SectionDefinition[] = [
   {
     id: "subscriber",
     label: "Adhérent",
-    description: "Informations personnelles de l'adhérent principal",
+    description: "Informations de l'adhérent principal",
     icon: "User",
     order: 1,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
   },
   {
     id: "project",
     label: "Projet",
-    description: "Détails du projet d'assurance",
+    description: "Date d'effet du contrat",
     icon: "FileText",
     order: 2,
-    collapsible: true,
+    collapsible: false,
     defaultCollapsed: false,
   },
   {
@@ -42,7 +42,7 @@ const SECTIONS: SectionDefinition[] = [
   {
     id: "children",
     label: "Enfants",
-    description: "Informations des enfants à charge",
+    description: "Enfants à charge",
     icon: "Baby",
     order: 4,
     collapsible: true,
@@ -52,19 +52,9 @@ const SECTIONS: SectionDefinition[] = [
     maxItems: 10,
     itemLabel: "Enfant {index}",
     visible: {
-      field: "subscriber.nombreEnfants",
-      operator: "gt",
-      value: 0,
+      field: "children",
+      operator: "notEmpty",
     },
-  },
-  {
-    id: "coverage",
-    label: "Niveaux de garantie",
-    description: "Niveaux de couverture souhaités",
-    icon: "Shield",
-    order: 5,
-    collapsible: true,
-    defaultCollapsed: false,
   },
 ];
 
@@ -75,15 +65,45 @@ const PATTERNS = {
   date: "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\\d{4}$",
   codePostal: "^\\d{5}$",
   nom: "^[a-zA-ZÀ-ÿ\\-\\s']+$",
-  email: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-  tel: "^[0-9\\s\\.\\-\\+]+$",
 };
 
 /**
- * Field definitions for the Lead form
+ * Profession options (aligned with Alptis mapper)
+ */
+const PROFESSION_OPTIONS = [
+  { value: "profession libérale", label: "Profession libérale" },
+  { value: "chef d'entreprise", label: "Chef d'entreprise" },
+  { value: "commerçant", label: "Commerçant" },
+  { value: "artisan", label: "Artisan" },
+  { value: "salarié", label: "Salarié" },
+  { value: "cadre", label: "Cadre" },
+  { value: "ouvrier", label: "Ouvrier" },
+  { value: "retraité", label: "Retraité" },
+  { value: "fonction publique", label: "Fonction publique" },
+  { value: "exploitant agricole", label: "Exploitant agricole" },
+  { value: "en recherche d'emploi", label: "En recherche d'emploi" },
+  { value: "sans activité", label: "Sans activité" },
+  { value: "autre", label: "Autre" },
+];
+
+/**
+ * Régime social options (aligned with Alptis mapper)
+ */
+const REGIME_SOCIAL_OPTIONS = [
+  { value: "salarié", label: "Salarié" },
+  { value: "salarié (ou retraité)", label: "Retraité (ex-salarié)" },
+  { value: "tns : régime des indépendants", label: "TNS (Indépendant)" },
+  { value: "alsace", label: "Alsace-Moselle" },
+  { value: "exploitant agricole", label: "Exploitant agricole (MSA)" },
+  { value: "amexa", label: "AMEXA" },
+  { value: "autre", label: "Autre" },
+];
+
+/**
+ * Simplified field definitions for the Lead form (12 fields max)
  */
 const FIELDS: FieldDefinition[] = [
-  // ========== SUBSCRIBER SECTION ==========
+  // ========== SUBSCRIBER SECTION (7 fields) ==========
   {
     name: "civilite",
     path: "subscriber.civilite",
@@ -156,46 +176,8 @@ const FIELDS: FieldDefinition[] = [
     pattern: PATTERNS.date,
     patternMessage: "Format attendu: JJ/MM/AAAA",
     helpText: "L'adhérent doit avoir entre 18 et 110 ans",
-    computed: {
-      type: "age",
-      sourceField: "subscriber.dateNaissance",
-    },
     section: "subscriber",
     order: 4,
-  },
-  {
-    name: "email",
-    path: "subscriber.email",
-    label: "Email",
-    placeholder: "jean.dupont@email.com",
-    type: "email",
-    required: false,
-    pattern: PATTERNS.email,
-    patternMessage: "Adresse email invalide",
-    section: "subscriber",
-    order: 5,
-  },
-  {
-    name: "telephone",
-    path: "subscriber.telephone",
-    label: "Téléphone",
-    placeholder: "06 12 34 56 78",
-    type: "tel",
-    required: false,
-    pattern: PATTERNS.tel,
-    patternMessage: "Numéro de téléphone invalide",
-    section: "subscriber",
-    order: 6,
-  },
-  {
-    name: "adresse",
-    path: "subscriber.adresse",
-    label: "Adresse",
-    placeholder: "12 rue de la Paix",
-    type: "text",
-    required: false,
-    section: "subscriber",
-    order: 7,
   },
   {
     name: "codePostal",
@@ -207,150 +189,44 @@ const FIELDS: FieldDefinition[] = [
     pattern: PATTERNS.codePostal,
     patternMessage: "Le code postal doit contenir 5 chiffres",
     section: "subscriber",
-    order: 8,
-  },
-  {
-    name: "ville",
-    path: "subscriber.ville",
-    label: "Ville",
-    placeholder: "Paris",
-    type: "text",
-    required: false,
-    section: "subscriber",
-    order: 9,
+    order: 5,
   },
   {
     name: "profession",
     path: "subscriber.profession",
     label: "Profession",
-    placeholder: "Cadre",
-    type: "text",
-    required: false,
+    type: "select",
+    options: PROFESSION_OPTIONS,
+    required: true,
     section: "subscriber",
-    order: 10,
+    order: 6,
   },
   {
     name: "regimeSocial",
     path: "subscriber.regimeSocial",
     label: "Régime social",
     type: "select",
-    options: [
-      { value: "salarie", label: "Salarié" },
-      { value: "tns", label: "TNS (Travailleur Non Salarié)" },
-      { value: "retraite", label: "Retraité" },
-      { value: "fonctionnaire", label: "Fonctionnaire" },
-      { value: "sans_emploi", label: "Sans emploi" },
-      { value: "etudiant", label: "Étudiant" },
-      { value: "autre", label: "Autre" },
-    ],
-    required: false,
+    options: REGIME_SOCIAL_OPTIONS,
+    required: true,
     section: "subscriber",
-    order: 11,
-  },
-  {
-    name: "nombreEnfants",
-    path: "subscriber.nombreEnfants",
-    label: "Nombre d'enfants",
-    type: "number",
-    min: 0,
-    max: 10,
-    defaultValue: 0,
-    helpText: "Enfants à charge de moins de 27 ans",
-    section: "subscriber",
-    order: 12,
+    order: 7,
   },
 
-  // ========== PROJECT SECTION ==========
+  // ========== PROJECT SECTION (1 field) ==========
   {
     name: "dateEffet",
     path: "project.dateEffet",
     label: "Date d'effet souhaitée",
     placeholder: "JJ/MM/AAAA",
     type: "date",
-    required: false,
+    required: true,
     pattern: PATTERNS.date,
     patternMessage: "Format attendu: JJ/MM/AAAA",
     section: "project",
     order: 1,
   },
-  {
-    name: "moisEcheance",
-    path: "project.moisEcheance",
-    label: "Mois d'échéance",
-    type: "select",
-    options: [
-      { value: "01", label: "Janvier" },
-      { value: "02", label: "Février" },
-      { value: "03", label: "Mars" },
-      { value: "04", label: "Avril" },
-      { value: "05", label: "Mai" },
-      { value: "06", label: "Juin" },
-      { value: "07", label: "Juillet" },
-      { value: "08", label: "Août" },
-      { value: "09", label: "Septembre" },
-      { value: "10", label: "Octobre" },
-      { value: "11", label: "Novembre" },
-      { value: "12", label: "Décembre" },
-    ],
-    required: false,
-    section: "project",
-    order: 2,
-  },
-  {
-    name: "actuellementAssure",
-    path: "project.actuellementAssure",
-    label: "Actuellement assuré",
-    type: "checkbox",
-    defaultValue: false,
-    section: "project",
-    order: 3,
-  },
-  {
-    name: "assureurActuel",
-    path: "project.assureurActuel",
-    label: "Assureur actuel",
-    placeholder: "Nom de l'assureur",
-    type: "text",
-    required: false,
-    visible: {
-      field: "project.actuellementAssure",
-      operator: "eq",
-      value: true,
-    },
-    section: "project",
-    order: 4,
-  },
-  {
-    name: "formuleChoisie",
-    path: "project.formuleChoisie",
-    label: "Formule choisie",
-    type: "text",
-    required: false,
-    section: "project",
-    order: 5,
-  },
-  {
-    name: "besoinAssuranceSante",
-    path: "project.besoinAssuranceSante",
-    label: "Besoin en assurance santé",
-    type: "text",
-    required: false,
-    helpText: "Décrivez vos besoins spécifiques",
-    section: "project",
-    order: 6,
-  },
-  {
-    name: "source",
-    path: "project.source",
-    label: "Source du lead",
-    type: "text",
-    required: false,
-    readOnly: true,
-    section: "project",
-    order: 7,
-  },
 
-  // ========== CONJOINT SECTION ==========
+  // ========== CONJOINT SECTION (3 fields) ==========
   {
     name: "conjoint.dateNaissance",
     path: "project.conjoint.dateNaissance",
@@ -363,11 +239,7 @@ const FIELDS: FieldDefinition[] = [
     },
     pattern: PATTERNS.date,
     patternMessage: "Format attendu: JJ/MM/AAAA",
-    helpText: "Le conjoint doit avoir entre 18 et 110 ans",
-    computed: {
-      type: "age",
-      sourceField: "project.conjoint.dateNaissance",
-    },
+    helpText: "Le conjoint doit avoir entre 16 et 110 ans",
     section: "conjoint",
     order: 1,
   },
@@ -375,8 +247,8 @@ const FIELDS: FieldDefinition[] = [
     name: "conjoint.profession",
     path: "project.conjoint.profession",
     label: "Profession",
-    placeholder: "Cadre",
-    type: "text",
+    type: "select",
+    options: PROFESSION_OPTIONS,
     required: false,
     section: "conjoint",
     order: 2,
@@ -386,21 +258,13 @@ const FIELDS: FieldDefinition[] = [
     path: "project.conjoint.regimeSocial",
     label: "Régime social",
     type: "select",
-    options: [
-      { value: "salarie", label: "Salarié" },
-      { value: "tns", label: "TNS (Travailleur Non Salarié)" },
-      { value: "retraite", label: "Retraité" },
-      { value: "fonctionnaire", label: "Fonctionnaire" },
-      { value: "sans_emploi", label: "Sans emploi" },
-      { value: "etudiant", label: "Étudiant" },
-      { value: "autre", label: "Autre" },
-    ],
+    options: REGIME_SOCIAL_OPTIONS,
     required: false,
     section: "conjoint",
     order: 3,
   },
 
-  // ========== CHILDREN SECTION (template for repeatable) ==========
+  // ========== CHILDREN SECTION (1 field per child) ==========
   {
     name: "children[].dateNaissance",
     path: "children[].dateNaissance",
@@ -411,89 +275,16 @@ const FIELDS: FieldDefinition[] = [
     pattern: PATTERNS.date,
     patternMessage: "Format attendu: JJ/MM/AAAA",
     helpText: "L'enfant doit avoir entre 0 et 27 ans",
-    computed: {
-      type: "age",
-      sourceField: "children[].dateNaissance",
-    },
     section: "children",
     order: 1,
-  },
-  {
-    name: "children[].regimeSocial",
-    path: "children[].regimeSocial",
-    label: "Régime social",
-    type: "select",
-    options: [
-      { value: "salarie", label: "Salarié" },
-      { value: "etudiant", label: "Étudiant" },
-      { value: "sans_emploi", label: "Sans emploi" },
-      { value: "autre", label: "Autre" },
-    ],
-    required: false,
-    section: "children",
-    order: 2,
-  },
-
-  // ========== COVERAGE SECTION ==========
-  {
-    name: "soinsMedicaux",
-    path: "project.soinsMedicaux",
-    label: "Soins médicaux",
-    helpText: "Niveau de remboursement souhaité (1 = minimum, 4 = maximum)",
-    type: "slider",
-    min: 1,
-    max: 4,
-    step: 1,
-    defaultValue: 2,
-    section: "coverage",
-    order: 1,
-  },
-  {
-    name: "hospitalisation",
-    path: "project.hospitalisation",
-    label: "Hospitalisation",
-    helpText: "Niveau de remboursement souhaité (1 = minimum, 4 = maximum)",
-    type: "slider",
-    min: 1,
-    max: 4,
-    step: 1,
-    defaultValue: 2,
-    section: "coverage",
-    order: 2,
-  },
-  {
-    name: "optique",
-    path: "project.optique",
-    label: "Optique",
-    helpText: "Niveau de remboursement souhaité (1 = minimum, 4 = maximum)",
-    type: "slider",
-    min: 1,
-    max: 4,
-    step: 1,
-    defaultValue: 2,
-    section: "coverage",
-    order: 3,
-  },
-  {
-    name: "dentaire",
-    path: "project.dentaire",
-    label: "Dentaire",
-    helpText: "Niveau de remboursement souhaité (1 = minimum, 4 = maximum)",
-    type: "slider",
-    min: 1,
-    max: 4,
-    step: 1,
-    defaultValue: 2,
-    section: "coverage",
-    order: 4,
   },
 ];
 
 /**
- * Complete Lead Form Schema
+ * Complete simplified Lead Form Schema
  */
 export const LEAD_FORM_SCHEMA: LeadFormSchema = {
-  version: "1.0.0",
+  version: "2.0.0",
   sections: SECTIONS,
   fields: FIELDS,
   computedFields: [
