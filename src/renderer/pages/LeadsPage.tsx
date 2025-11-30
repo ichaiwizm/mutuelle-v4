@@ -59,7 +59,6 @@ export function LeadsPage() {
    * Open form for editing lead
    */
   const handleEdit = useCallback((lead: Lead) => {
-    console.log("[LeadsPage] handleEdit called with lead:", lead);
     setEditingLead(lead);
     setIsFormOpen(true);
   }, []);
@@ -102,37 +101,25 @@ export function LeadsPage() {
    */
   const handleSubmit = useCallback(
     async (leadData: Partial<Lead>) => {
-      console.log("[LeadsPage] handleSubmit called", {
-        isEditing: !!editingLead,
-        editingLeadId: editingLead?.id,
-        leadData,
-      });
       setIsSubmitting(true);
       try {
         if (editingLead) {
-          console.log("[LeadsPage] Calling updateLead...");
           await updateLead(editingLead.id, leadData);
-          console.log("[LeadsPage] updateLead completed");
           toast.success("Lead mis à jour");
-          // Refresh current page
           const offset = (currentPage - 1) * pageSize;
           await fetchLeads({ limit: pageSize, offset });
         } else {
-          console.log("[LeadsPage] Calling createLead...");
           const result = await createLead(leadData);
-          console.log("[LeadsPage] createLead result:", result);
           if (result.duplicate) {
             toast.warning("Ce lead existe déjà");
           } else {
             toast.success("Lead créé");
-            // Go to first page to see new lead (sorted by createdAt desc)
             setCurrentPage(1);
             await fetchLeads({ limit: pageSize, offset: 0 });
           }
         }
         handleCloseForm();
       } catch (error) {
-        console.error("[LeadsPage] handleSubmit error:", error);
         toast.error(
           editingLead
             ? "Erreur lors de la mise à jour"
@@ -150,7 +137,6 @@ export function LeadsPage() {
    */
   const handleDelete = useCallback(
     (id: string) => {
-      console.log("[LeadsPage] handleDelete called with id:", id);
       const leadRow = leads.find((l) => l.id === id);
       const lead = leadRow ? parseLeadRow(leadRow) : null;
       const name = lead
@@ -166,17 +152,12 @@ export function LeadsPage() {
    */
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirm) return;
-    console.log("[LeadsPage] confirmDelete called with id:", deleteConfirm.id);
     try {
-      console.log("[LeadsPage] Calling deleteLead...");
       await deleteLead(deleteConfirm.id);
-      console.log("[LeadsPage] deleteLead completed");
       toast.success("Lead supprimé");
-      // Refresh current page
       const offset = (currentPage - 1) * pageSize;
       await fetchLeads({ limit: pageSize, offset });
     } catch (error) {
-      console.error("[LeadsPage] confirmDelete error:", error);
       toast.error("Erreur lors de la suppression");
     } finally {
       setDeleteConfirm(null);
