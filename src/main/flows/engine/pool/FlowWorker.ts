@@ -63,6 +63,22 @@ export class FlowWorker {
     } catch (error) {
       this._status = "error";
 
+      // Log the error that prevented flow execution
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      console.log('\n========================================');
+      console.log('FLOW WORKER ERROR');
+      console.log('========================================');
+      console.log(`Flow: ${task.flowKey}`);
+      console.log(`Lead ID: ${task.leadId?.substring(0, 8)}...`);
+      console.log(`Error: ${errorMsg}`);
+      if (errorStack) {
+        console.log('\nStack trace:');
+        console.log(errorStack);
+      }
+      console.log('========================================\n');
+
       // Return a failed result
       return {
         success: false,

@@ -29,6 +29,7 @@ export const LeadsRemoveSchema = z.object({
 export const LeadsListSchema = z.object({
   limit: z.number().int().positive().max(1000).optional(),
   offset: z.number().int().min(0).optional(),
+  search: z.string().optional(),
 }).optional();
 
 // Intelligent paste / parsing from raw text
@@ -90,6 +91,14 @@ export const AutomationListSchema = z.object({
 
 export const AutomationCancelSchema = z.object({
   runId: z.string().uuid(),
+});
+
+export const AutomationGetItemSchema = z.object({
+  itemId: z.string().uuid(),
+});
+
+export const AutomationReadScreenshotSchema = z.object({
+  path: z.string().min(1),
 });
 
 // ========== Fixtures (dev) ==========

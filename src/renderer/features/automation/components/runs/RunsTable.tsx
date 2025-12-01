@@ -19,7 +19,6 @@ interface RunsTableProps {
   loading?: boolean
   cancelling?: string | null
   onCancel: (runId: string) => void
-  onView: (runId: string) => void
   onNewRun: () => void
 }
 
@@ -28,7 +27,6 @@ export function RunsTable({
   loading,
   cancelling,
   onCancel,
-  onView,
   onNewRun,
 }: RunsTableProps) {
   if (loading) {
@@ -79,7 +77,6 @@ export function RunsTable({
               index={index}
               isCancelling={cancelling === run.id}
               onCancel={() => onCancel(run.id)}
-              onView={() => onView(run.id)}
             />
           ))}
         </TableBody>

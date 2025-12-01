@@ -104,6 +104,9 @@ export class QueueProcessor {
   ): void {
     task.status = "completed";
     results.set(task.id, result);
+
+    console.log(`[TASK_COMPLETE] ${task.flowKey} (Lead: ${task.leadId?.substring(0, 8)}...) | Success: ${result.success} | Duration: ${result.totalDuration}ms`);
+
     this.deps.config.onTaskComplete?.(task.id, result);
     this.deps.emitter.emit("task:complete", task.id, result);
   }
@@ -115,6 +118,9 @@ export class QueueProcessor {
   ): void {
     task.status = "failed";
     const err = error instanceof Error ? error : new Error(String(error));
+
+    console.log(`[TASK_ERROR] ${task.flowKey} (Lead: ${task.leadId?.substring(0, 8)}...) | Error: ${err.message}`);
+
     const failedResult: FlowExecutionResult = {
       success: false,
       flowKey: task.flowKey,

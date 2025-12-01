@@ -38,6 +38,8 @@ import {
   AutomationGetSchema,
   AutomationListSchema,
   AutomationCancelSchema,
+  AutomationGetItemSchema,
+  AutomationReadScreenshotSchema,
   FixturesExportSchema,
   LeadsParseFromTextSchema,
   ProductGetConfigSchema,
@@ -46,6 +48,8 @@ import {
   ProductUpdateStatusSchema,
   FlowStateIdSchema,
 } from "@/shared/validation/ipc.zod";
+import { readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { parseLeads } from "@/main/leads/parsing/parser";
 
 /**
@@ -303,6 +307,24 @@ export function registerIpc() {
     IPC_CHANNEL.AUTO_CANCEL,
     handler(AutomationCancelSchema, async ({ runId }) => {
       return AutomationService.cancel(runId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_GET_ITEM,
+    handler(AutomationGetItemSchema, async ({ itemId }) => {
+      return AutomationService.getItem(itemId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_READ_SCREENSHOT,
+    handler(AutomationReadScreenshotSchema, async ({ path }) => {
+      if (!existsSync(path)) {
+        throw new ValidationError(`Screenshot not found: ${path}`);
+      }
+      const buffer = await readFile(path);
+      return `data:image/png;base64,${buffer.toString("base64")}`;
     })
   );
 

@@ -133,6 +133,9 @@ export class FlowPool extends EventEmitter {
     for (const r of results.values()) {
       r.success ? successful++ : failed++;
     }
+
+    console.log(`[POOL_SUMMARY] Total: ${results.size} | Successful: ${successful} | Failed: ${failed}`);
+
     return { total: results.size, successful, failed, duration: Date.now() - startTime, results };
   }
 }

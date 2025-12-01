@@ -1,5 +1,5 @@
 import { db, schema } from "../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, like, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NotFoundError, ValidationError } from "@/shared/errors";
 
@@ -21,19 +21,26 @@ export type LeadRow = {
 
 export const LeadsService = {
   /**
-   * List all leads with optional pagination.
+   * List all leads with optional pagination and search.
    */
-  async list(options?: { limit?: number; offset?: number }): Promise<LeadRow[]> {
+  async list(options?: { limit?: number; offset?: number; search?: string }): Promise<LeadRow[]> {
     const limit = options?.limit ?? 100;
     const offset = options?.offset ?? 0;
+    const search = options?.search?.trim();
 
-    const rows = await db
+    let query = db
       .select()
       .from(schema.leads)
       .orderBy(desc(schema.leads.createdAt))
       .limit(limit)
       .offset(offset);
 
+    // Search in the JSON data field (nom, prenom)
+    if (search) {
+      query = query.where(like(schema.leads.data, `%${search}%`)) as typeof query;
+    }
+
+    const rows = await query;
     return rows;
   },
 

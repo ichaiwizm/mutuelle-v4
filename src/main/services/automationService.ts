@@ -2,13 +2,18 @@ import { db, schema } from "../db";
 import { eq, desc, sql, and, ne } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, basename } from "node:path";
 import { FlowPool } from "../flows/engine";
 import { LeadsService } from "./leadsService";
 import { getUserDataDir } from "@/main/env";
 import { NotFoundError } from "@/shared/errors";
 import { transformLeadForFlow, hasTransformerForFlow } from "../flows/transformers";
+import { AutomationBroadcaster } from "./automationBroadcaster";
+import { getProductConfig } from "./productConfig/productConfigCore";
 import type { FlowTask } from "../flows/engine";
+import type { FlowHooks } from "../flows/engine/types/hooks";
+import type { StepProgressData, StepProgress } from "@/shared/types/step-progress";
+import type { RunItem } from "@/shared/types/run";
 
 function artifactsRoot() {
   return join(getUserDataDir(), "artifacts");
@@ -25,18 +30,137 @@ export type Run = {
   createdAt: Date;
 };
 
-export type RunItem = {
-  id: string;
-  runId: string;
-  flowKey: string;
-  leadId: string;
-  status: string;
-  artifactsDir: string;
-};
-
 export type RunWithItems = Run & {
   items: RunItem[];
 };
+
+/**
+ * Parse stepsData JSON from database
+ */
+function parseStepsData(stepsDataJson: string | null): StepProgressData | null {
+  if (!stepsDataJson) return null;
+  try {
+    return JSON.parse(stepsDataJson) as StepProgressData;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Map a database row to RunItem type
+ */
+function mapRunItem(row: typeof schema.runItems.$inferSelect): RunItem {
+  return {
+    id: row.id,
+    runId: row.runId,
+    flowKey: row.flowKey,
+    leadId: row.leadId,
+    status: row.status,
+    artifactsDir: row.artifactsDir,
+    stepsData: parseStepsData(row.stepsData ?? null),
+    startedAt: row.startedAt ?? null,
+    completedAt: row.completedAt ?? null,
+    errorMessage: row.errorMessage ?? null,
+  };
+}
+
+/**
+ * Update steps data in database
+ */
+async function updateItemStepsData(itemId: string, stepsData: StepProgressData): Promise<void> {
+  await db
+    .update(schema.runItems)
+    .set({ stepsData: JSON.stringify(stepsData) })
+    .where(eq(schema.runItems.id, itemId));
+}
+
+/**
+ * Create flow hooks for broadcasting and persisting step progress
+ */
+function createProgressHooks(
+  runId: string,
+  itemId: string,
+  stepsData: StepProgressData
+): FlowHooks {
+  return {
+    beforeStep: async (context, stepDef) => {
+      const stepIndex = stepsData.steps.findIndex((s) => s.id === stepDef.id);
+      if (stepIndex !== -1) {
+        stepsData.steps[stepIndex].status = "running";
+        stepsData.steps[stepIndex].startedAt = Date.now();
+        stepsData.currentStepIndex = stepIndex;
+
+        // Broadcast and persist
+        AutomationBroadcaster.stepStarted(runId, itemId, stepDef.id, stepIndex);
+        await updateItemStepsData(itemId, stepsData);
+      }
+    },
+
+    afterStep: async (context, stepDef, result) => {
+      const stepIndex = stepsData.steps.findIndex((s) => s.id === stepDef.id);
+      if (stepIndex !== -1) {
+        const step = stepsData.steps[stepIndex];
+        step.status = result.success ? "completed" : "failed";
+        step.completedAt = Date.now();
+        step.duration = result.duration;
+        step.retries = result.retries;
+
+        if (!result.success && result.error) {
+          step.error = result.error.message;
+        }
+
+        // Extract screenshot path from artifacts if present
+        const screenshotPath = result.metadata?.screenshotPath as string | undefined;
+        if (screenshotPath) {
+          step.screenshot = screenshotPath;
+        }
+
+        // Broadcast and persist
+        if (result.success) {
+          AutomationBroadcaster.stepCompleted(
+            runId,
+            itemId,
+            stepDef.id,
+            stepIndex,
+            result.duration,
+            screenshotPath
+          );
+        } else {
+          AutomationBroadcaster.stepFailed(
+            runId,
+            itemId,
+            stepDef.id,
+            stepIndex,
+            result.error?.message ?? "Unknown error",
+            screenshotPath
+          );
+        }
+
+        await updateItemStepsData(itemId, stepsData);
+      }
+    },
+
+    onSkip: async (context, stepDef, reason) => {
+      const stepIndex = stepsData.steps.findIndex((s) => s.id === stepDef.id);
+      if (stepIndex !== -1) {
+        stepsData.steps[stepIndex].status = "skipped";
+
+        AutomationBroadcaster.stepSkipped(runId, itemId, stepDef.id, stepIndex, reason);
+        await updateItemStepsData(itemId, stepsData);
+      }
+    },
+
+    onError: async (context, error, stepDef) => {
+      if (stepDef) {
+        const stepIndex = stepsData.steps.findIndex((s) => s.id === stepDef.id);
+        if (stepIndex !== -1) {
+          stepsData.steps[stepIndex].status = "failed";
+          stepsData.steps[stepIndex].error = error.message;
+        }
+      }
+    },
+  };
+}
 
 export const AutomationService = {
   /**
@@ -58,8 +182,21 @@ export const AutomationService = {
     return {
       ...runs[0],
       status: runs[0].status as RunStatus,
-      items,
+      items: items.map(mapRunItem),
     };
+  },
+
+  /**
+   * Get a single run item by ID.
+   */
+  async getItem(itemId: string): Promise<RunItem | null> {
+    const items = await db
+      .select()
+      .from(schema.runItems)
+      .where(eq(schema.runItems.id, itemId));
+
+    if (items.length === 0) return null;
+    return mapRunItem(items[0]);
   },
 
   /**
@@ -85,7 +222,12 @@ export const AutomationService = {
 
     const [runs, countResult] = await Promise.all([
       db
-        .select()
+        .select({
+          id: schema.runs.id,
+          status: schema.runs.status,
+          createdAt: schema.runs.createdAt,
+          itemsCount: sql<number>`(SELECT COUNT(*) FROM run_items WHERE run_items.run_id = ${schema.runs.id})`.as('items_count'),
+        })
         .from(schema.runs)
         .orderBy(desc(schema.runs.createdAt))
         .limit(limit)
@@ -173,10 +315,7 @@ export const AutomationService = {
         try {
           transformedData = transformLeadForFlow(item.flowKey, lead);
         } catch (error) {
-          console.error(
-            `Failed to transform lead ${item.leadId} for flow ${item.flowKey}:`,
-            error
-          );
+          console.log(`[TRANSFORM_ERROR] Lead ${item.leadId.substring(0, 8)}... | Flow: ${item.flowKey} | Error: ${error instanceof Error ? error.message : String(error)}`);
           // Persist a failed run item so the UI sees the failure explicitly
           await db.insert(schema.runItems).values({
             id: itemId,
@@ -185,12 +324,28 @@ export const AutomationService = {
             leadId: item.leadId,
             status: "failed",
             artifactsDir: dir,
+            errorMessage: error instanceof Error ? error.message : String(error),
           });
           continue;
         }
       }
 
-      // Only insert run_items for tasks that will actually be enqueued
+      // Get product config to extract step definitions
+      const productConfig = getProductConfig(item.flowKey);
+      const stepDefs = productConfig?.steps ?? [];
+
+      // Initialize steps data
+      const stepsData: StepProgressData = {
+        steps: stepDefs.map((s) => ({
+          id: s.id,
+          name: s.name,
+          status: "pending" as const,
+        })),
+        totalSteps: stepDefs.length,
+        currentStepIndex: 0,
+      };
+
+      // Insert run item with initial steps data
       await db.insert(schema.runItems).values({
         id: itemId,
         runId,
@@ -198,7 +353,11 @@ export const AutomationService = {
         leadId: item.leadId,
         status: "queued",
         artifactsDir: dir,
+        stepsData: JSON.stringify(stepsData),
       });
+
+      // Create hooks for this specific task
+      const hooks = createProgressHooks(runId, itemId, stepsData);
 
       tasks.push({
         id: itemId,
@@ -207,14 +366,16 @@ export const AutomationService = {
         lead,
         transformedData,
         artifactsDir: dir,
-        // Enable pause/resume for all automated flows
         flowConfig: {
           enablePauseResume: true,
+          hooks,
         },
       });
     }
 
     if (tasks.length === 0) {
+      console.log(`[RUN_ERROR] Run ${runId} | No valid tasks to execute (all transformations failed or no flows selected)`);
+
       await db
         .update(schema.runs)
         .set({ status: "failed" })
@@ -224,41 +385,106 @@ export const AutomationService = {
 
     const pool = new FlowPool({
       maxConcurrent: options?.maxConcurrent ?? 3,
+      onTaskStart: async (taskId) => {
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task) return;
+
+        // Update item status to running
+        await db
+          .update(schema.runItems)
+          .set({ status: "running", startedAt: new Date() })
+          .where(eq(schema.runItems.id, taskId));
+
+        // Get steps data for broadcast
+        const item = await this.getItem(taskId);
+        const steps = item?.stepsData?.steps ?? [];
+
+        AutomationBroadcaster.itemStarted(
+          runId,
+          taskId,
+          task.flowKey,
+          task.leadId,
+          steps.map((s) => ({ id: s.id, name: s.name }))
+        );
+      },
+      onTaskComplete: async (taskId, result) => {
+        // Update item status
+        await db
+          .update(schema.runItems)
+          .set({
+            status: result.success ? "completed" : "failed",
+            completedAt: new Date(),
+            errorMessage: result.error?.message ?? null,
+          })
+          .where(eq(schema.runItems.id, taskId));
+
+        AutomationBroadcaster.itemCompleted(runId, taskId, result.success, result.totalDuration);
+      },
+      onTaskError: async (taskId, error) => {
+        await db
+          .update(schema.runItems)
+          .set({
+            status: "failed",
+            completedAt: new Date(),
+            errorMessage: error.message,
+          })
+          .where(eq(schema.runItems.id, taskId));
+
+        AutomationBroadcaster.itemFailed(runId, taskId, error.message);
+      },
     });
 
     // Track pool for potential cancellation
     activePools.set(runId, pool);
 
-    try {
-      pool.enqueue(tasks);
+    // Broadcast run started
+    AutomationBroadcaster.runStarted(runId, tasks.length);
 
-      await db
-        .update(schema.runs)
-        .set({ status: "running" })
-        .where(eq(schema.runs.id, runId));
+    // Enqueue tasks and start pool
+    pool.enqueue(tasks);
 
-      const result = await pool.start();
+    await db
+      .update(schema.runs)
+      .set({ status: "running" })
+      .where(eq(schema.runs.id, runId));
 
-      // Atomic update: only update status if not already cancelled
-      // This prevents race condition where cancel() runs between our check and update
-      const finalStatus = result.failed > 0 ? "failed" : "done";
-      const updateResult = await db
-        .update(schema.runs)
-        .set({ status: finalStatus })
-        .where(and(
-          eq(schema.runs.id, runId),
-          ne(schema.runs.status, "cancelled")
-        ));
+    // Start pool execution in background (don't await!)
+    // This allows the IPC call to return immediately
+    pool.start().then(async (result) => {
+      try {
+        // Atomic update: only update status if not already cancelled
+        const finalStatus = result.failed > 0 ? "failed" : "done";
 
-      // If no rows were updated, the run was cancelled
-      if (updateResult.changes === 0) {
-        return { runId, result: null };
+        console.log('\n========================================');
+        console.log('RUN COMPLETION');
+        console.log('========================================');
+        console.log(`Run ID: ${runId}`);
+        console.log(`Total tasks: ${result.total}`);
+        console.log(`Successful: ${result.successful}`);
+        console.log(`Failed: ${result.failed}`);
+        console.log(`Final status: ${finalStatus.toUpperCase()}`);
+        console.log('========================================\n');
+
+        await db
+          .update(schema.runs)
+          .set({ status: finalStatus })
+          .where(and(
+            eq(schema.runs.id, runId),
+            ne(schema.runs.status, "cancelled")
+          ));
+
+        // Broadcast run completed
+        AutomationBroadcaster.runCompleted(runId, result.failed === 0);
+      } finally {
+        // Always clean up tracking
+        activePools.delete(runId);
       }
-
-      return { runId, result };
-    } finally {
-      // Always clean up tracking, even if pool.start throws
+    }).catch((error) => {
+      console.error(`Pool execution failed for run ${runId}:`, error);
       activePools.delete(runId);
-    }
+    });
+
+    // Return immediately so the UI can navigate to the live view
+    return { runId, result: null };
   },
 };

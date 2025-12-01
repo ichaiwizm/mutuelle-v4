@@ -15,8 +15,9 @@ const DEFAULT_SCREENSHOTS_DIR = "./e2e/test-results/screenshots";
 
 /**
  * Handles screenshot capture for steps
+ * Returns the path to the screenshot if successful, null otherwise
  */
-export async function captureScreenshot(options: ScreenshotOptions): Promise<void> {
+export async function captureScreenshot(options: ScreenshotOptions): Promise<string | null> {
   const { page, artifactsDir, stepId, type, logger } = options;
 
   try {
@@ -29,7 +30,9 @@ export async function captureScreenshot(options: ScreenshotOptions): Promise<voi
     const path = `${screenshotsDir}/screenshot-${type}-${stepId}-${Date.now()}.png`;
     await page.screenshot({ path, fullPage: true });
     logger.info(`Screenshot saved: ${path}`, { screenshotPath: path });
+    return path;
   } catch (err) {
     logger.warn(`Failed to take screenshot: ${err}`);
+    return null;
   }
 }

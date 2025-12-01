@@ -1,6 +1,7 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 import { IPC_CHANNEL } from "@/main/ipc/channels";
 import type { Ipc } from "@/shared/ipc/contracts";
+import type { AutomationProgressEvent } from "@/shared/types/step-progress";
 
 type IpcResult<T> =
   | { ok: true; data: T }
@@ -69,8 +70,15 @@ const api: Ipc = {
   automation: {
     enqueue: (items) => invokeIpc(IPC_CHANNEL.AUTO_ENQUEUE, { items }),
     get: (runId) => invokeIpc(IPC_CHANNEL.AUTO_GET, { runId }),
+    getItem: (itemId) => invokeIpc(IPC_CHANNEL.AUTO_GET_ITEM, { itemId }),
     list: (options) => invokeIpc(IPC_CHANNEL.AUTO_LIST, options),
     cancel: (runId) => invokeIpc(IPC_CHANNEL.AUTO_CANCEL, { runId }),
+    readScreenshot: (path) => invokeIpc(IPC_CHANNEL.AUTO_READ_SCREENSHOT, { path }),
+    onProgress: (callback: (event: AutomationProgressEvent) => void) => {
+      const handler = (_event: IpcRendererEvent, data: AutomationProgressEvent) => callback(data);
+      ipcRenderer.on(IPC_CHANNEL.AUTO_PROGRESS, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNEL.AUTO_PROGRESS, handler);
+    },
   },
 
   products: {

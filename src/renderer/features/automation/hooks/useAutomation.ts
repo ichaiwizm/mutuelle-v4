@@ -50,6 +50,7 @@ export function useAutomation(): UseAutomationResult {
     status: 'all',
     productKey: 'all',
     search: '',
+    dateRange: 'all',
   })
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = DEFAULT_PAGE_SIZE
@@ -64,7 +65,7 @@ export function useAutomation(): UseAutomationResult {
       const offset = (currentPage - 1) * pageSize
       const result = await window.api.automation.list({ limit: pageSize, offset })
 
-      // Apply client-side filtering (status, search)
+      // Apply client-side filtering (status, search, dateRange)
       let filteredRuns = result.runs
 
       if (filters.status !== 'all') {
@@ -76,6 +77,31 @@ export function useAutomation(): UseAutomationResult {
         filteredRuns = filteredRuns.filter(
           (r) => r.id.toLowerCase().includes(search)
         )
+      }
+
+      // Filter by date range
+      if (filters.dateRange !== 'all') {
+        const now = new Date()
+        let cutoffDate: Date
+
+        switch (filters.dateRange) {
+          case 'today':
+            cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+            break
+          case '7days':
+            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+            break
+          case '30days':
+            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+            break
+          default:
+            cutoffDate = new Date(0)
+        }
+
+        filteredRuns = filteredRuns.filter((r) => {
+          const runDate = new Date(r.createdAt)
+          return runDate >= cutoffDate
+        })
       }
 
       setRuns(filteredRuns)

@@ -1,6 +1,7 @@
+import { useNavigate } from 'react-router-dom'
 import { TableRow, TableCell } from '@/renderer/components/ui/Table'
 import { Button } from '@/renderer/components/ui/Button'
-import { Eye, XCircle, Loader2 } from 'lucide-react'
+import { XCircle, Loader2, Activity } from 'lucide-react'
 import { StatusIndicator } from '../shared/StatusIndicator'
 import type { Run } from '@/shared/types/run'
 
@@ -9,7 +10,6 @@ interface RunRowProps {
   index: number
   isCancelling?: boolean
   onCancel: () => void
-  onView: () => void
 }
 
 function formatTimeAgo(date: Date | string): string {
@@ -32,20 +32,25 @@ function formatTimeAgo(date: Date | string): string {
   })
 }
 
-export function RunRow({ run, index, isCancelling, onCancel, onView }: RunRowProps) {
+export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
+  const navigate = useNavigate()
   const canCancel = run.status === 'running' || run.status === 'queued'
-  const canView = ['done', 'failed', 'cancelled'].includes(run.status)
+  const isRunning = run.status === 'running'
+
+  const handleViewRun = () => {
+    navigate(`/automation/runs/${run.id}`)
+  }
 
   return (
     <TableRow
-      className="hover:bg-[var(--color-surface-hover)] animate-table-row-in"
+      className="hover:bg-[var(--color-surface-hover)] animate-table-row-in cursor-pointer"
       style={{ '--row-index': index } as React.CSSProperties}
+      onClick={handleViewRun}
     >
       {/* ID (truncated) */}
       <TableCell className="font-mono text-xs">
         <span
-          className="cursor-pointer hover:text-[var(--color-primary)] transition-colors"
-          onClick={onView}
+          className="hover:text-[var(--color-primary)] transition-colors"
           title={run.id}
         >
           {run.id.slice(0, 12)}...
@@ -57,9 +62,9 @@ export function RunRow({ run, index, isCancelling, onCancel, onView }: RunRowPro
         <StatusIndicator status={run.status as any} showLabel size="md" />
       </TableCell>
 
-      {/* Items count - placeholder, will be enhanced */}
+      {/* Items count */}
       <TableCell className="text-[var(--color-text-muted)]">
-        -
+        {run.itemsCount ?? '-'}
       </TableCell>
 
       {/* Created */}
@@ -69,7 +74,7 @@ export function RunRow({ run, index, isCancelling, onCancel, onView }: RunRowPro
 
       {/* Actions */}
       <TableCell>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           {canCancel && (
             <Button
               variant="ghost"
@@ -86,14 +91,12 @@ export function RunRow({ run, index, isCancelling, onCancel, onView }: RunRowPro
               )}
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onView}
-            title="View details"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+          {isRunning && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-500/10">
+              <Activity className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+              <span className="text-xs text-cyan-400 font-medium">Live</span>
+            </div>
+          )}
         </div>
       </TableCell>
     </TableRow>

@@ -28,9 +28,13 @@ export async function executeStepWithRetry<T>(
 
   const step = registry.get(stepClass);
 
+  console.log(`[STEP_START] ${stepDef.name || stepDef.id}`);
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     if (attempt > 0) {
       context.logger?.info(`Retrying step ${stepDef.id}`, { attempt, maxRetries });
+
+      console.log(`[STEP_RETRY] ${stepDef.name || stepDef.id} | Attempt ${attempt}/${maxRetries}`);
 
       emitter.emit("step:retry", {
         flowKey: context.flowKey,
@@ -42,6 +46,13 @@ export async function executeStepWithRetry<T>(
     }
 
     lastResult = await step.execute(context);
+
+    if (lastResult.success) {
+      console.log(`[STEP_SUCCESS] ${stepDef.name || stepDef.id} | Duration: ${lastResult.duration || 0}ms`);
+    } else {
+      const errorMsg = lastResult.error?.message || 'Unknown error';
+      console.log(`[STEP_ERROR] ${stepDef.name || stepDef.id} | Error: ${errorMsg}`);
+    }
 
     if (lastResult.success) {
       lastResult.retries = attempt;

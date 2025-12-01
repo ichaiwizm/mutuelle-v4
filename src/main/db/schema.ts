@@ -44,6 +44,10 @@ export const runItems = sqliteTable("run_items", {
   leadId: text("lead_id").notNull().references(() => leads.id, { onDelete: "restrict" }),
   status: text("status").notNull(),
   artifactsDir: text("artifacts_dir").notNull(), // chemin dossier screenshots/vidéos
+  stepsData: text("steps_data"),                 // JSON: StepProgressData for live tracking
+  startedAt: integer("started_at", { mode: "timestamp_ms" }),
+  completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+  errorMessage: text("error_message"),
 });
 
 // OAuth tokens (Google)

@@ -7,6 +7,7 @@ import type {
   ProductStatus,
   ProductStatusValue,
 } from "@/shared/types/product";
+import type { AutomationProgressEvent } from "@/shared/types/step-progress";
 
 // ========== Mail ==========
 
@@ -161,7 +162,7 @@ export type Ipc = {
   };
 
   leads: {
-    list: (options?: { limit?: number; offset?: number }) => Promise<LeadsListResult>;
+    list: (options?: { limit?: number; offset?: number; search?: string }) => Promise<LeadsListResult>;
     get: (id: string) => Promise<Lead | null>;
     create: (lead: unknown) => Promise<{ id: string }>;
     update: (
@@ -191,8 +192,11 @@ export type Ipc = {
   automation: {
     enqueue: (items: AutomationEnqueueItem[]) => Promise<AutomationEnqueueResult>;
     get: (runId: string) => Promise<AutomationGetResult>;
+    getItem: (itemId: string) => Promise<RunItem | null>;
     list: (options?: { limit?: number; offset?: number }) => Promise<AutomationListResult>;
     cancel: (runId: string) => Promise<{ cancelled: boolean }>;
+    readScreenshot: (path: string) => Promise<string>; // base64 encoded image
+    onProgress: (callback: (event: AutomationProgressEvent) => void) => () => void;
   };
 
   products: {

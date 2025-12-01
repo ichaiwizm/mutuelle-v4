@@ -5,7 +5,6 @@ import {
   AutomationTabs,
   RunsTable,
   RunFilters,
-  RunDetailsSlideOver,
   PausedFlowsGrid,
   ProductsTab,
   NewRunModal,
@@ -18,7 +17,6 @@ import type { TabType } from '@/renderer/features/automation/types'
 export function AutomationPage() {
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('runs')
-  const [viewingRunId, setViewingRunId] = useState<string | null>(null)
   const [showNewRunModal, setShowNewRunModal] = useState(false)
 
   // Hooks
@@ -36,14 +34,6 @@ export function AutomationPage() {
     automation.fetchRuns()
     pausedFlows.fetchPausedFlows()
   }, [automation, pausedFlows])
-
-  const handleViewRun = useCallback((runId: string) => {
-    setViewingRunId(runId)
-  }, [])
-
-  const handleCloseRunDetails = useCallback(() => {
-    setViewingRunId(null)
-  }, [])
 
   const handleRefresh = useCallback(() => {
     automation.fetchRuns()
@@ -98,7 +88,6 @@ export function AutomationPage() {
                 loading={automation.loading}
                 cancelling={automation.cancelling}
                 onCancel={automation.cancelRun}
-                onView={handleViewRun}
                 onNewRun={handleNewRun}
               />
             </div>
@@ -139,13 +128,6 @@ export function AutomationPage() {
           />
         )}
       </div>
-
-      {/* Run Details SlideOver */}
-      <RunDetailsSlideOver
-        runId={viewingRunId}
-        onClose={handleCloseRunDetails}
-        onCancel={automation.cancelRun}
-      />
 
       {/* New Run Modal */}
       <NewRunModal

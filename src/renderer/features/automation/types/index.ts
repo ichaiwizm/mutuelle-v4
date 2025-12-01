@@ -17,10 +17,13 @@ export interface AutomationStats {
   paused: number
 }
 
+export type DateRangeFilter = 'all' | 'today' | '7days' | '30days'
+
 export interface RunFilters {
   status: RunStatus | 'all'
   productKey: string | 'all'
   search: string
+  dateRange: DateRangeFilter
 }
 
 export interface PausedFlowWithLead extends FlowStateDTO {

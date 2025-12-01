@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Play, Package, Users, Loader2 } from 'lucide-react'
 import { Modal } from '@/renderer/components/ui/Modal/Modal'
@@ -17,6 +18,8 @@ interface NewRunModalProps {
 }
 
 export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
+  const navigate = useNavigate()
+
   // Data state
   const [products, setProducts] = useState<ProductConfiguration[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
@@ -33,7 +36,7 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
   // Submission state
   const [submitting, setSubmitting] = useState(false)
 
-  // Fetch products and leads when modal opens
+  // Fetch products when modal opens
   useEffect(() => {
     if (!isOpen) return
 
@@ -54,38 +57,36 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
         toast.error('Erreur lors du chargement des produits')
       })
       .finally(() => setLoadingProducts(false))
-
-    // Fetch leads
-    setLoadingLeads(true)
-    window.api.leads
-      .list({ limit: 100, offset: 0 })
-      .then((result) => {
-        // Parse lead data from JSON string
-        const parsedLeads = result.leads.map((row) => ({
-          id: row.id,
-          ...JSON.parse(row.data),
-        })) as Lead[]
-        setLeads(parsedLeads)
-      })
-      .catch((error) => {
-        console.error('Failed to fetch leads:', error)
-        toast.error('Erreur lors du chargement des leads')
-      })
-      .finally(() => setLoadingLeads(false))
   }, [isOpen])
 
-  // Filter leads by search query
-  const filteredLeads = useMemo(() => {
-    if (!searchQuery.trim()) return leads
+  // Fetch leads with server-side search (debounced)
+  useEffect(() => {
+    if (!isOpen) return
 
-    const query = searchQuery.toLowerCase()
-    return leads.filter((lead) => {
-      const nom = lead.subscriber?.nom?.toLowerCase() ?? ''
-      const prenom = lead.subscriber?.prenom?.toLowerCase() ?? ''
-      const fullName = `${prenom} ${nom}`
-      return fullName.includes(query) || nom.includes(query) || prenom.includes(query)
-    })
-  }, [leads, searchQuery])
+    setLoadingLeads(true)
+    const timeoutId = setTimeout(() => {
+      window.api.leads
+        .list({ limit: 500, offset: 0, search: searchQuery || undefined })
+        .then((result) => {
+          // Parse lead data from JSON string
+          const parsedLeads = result.leads.map((row) => ({
+            id: row.id,
+            ...JSON.parse(row.data),
+          })) as Lead[]
+          setLeads(parsedLeads)
+        })
+        .catch((error) => {
+          console.error('Failed to fetch leads:', error)
+          toast.error('Erreur lors du chargement des leads')
+        })
+        .finally(() => setLoadingLeads(false))
+    }, searchQuery ? 300 : 0) // Debounce only when searching
+
+    return () => clearTimeout(timeoutId)
+  }, [isOpen, searchQuery])
+
+  // Leads are already filtered server-side
+  const filteredLeads = leads
 
   // Toggle flow selection
   const toggleFlow = useCallback((flowKey: string) => {
@@ -150,17 +151,20 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
         }
       }
 
-      await window.api.automation.enqueue(items)
+      const result = await window.api.automation.enqueue(items)
       toast.success(`${items.length} tâche${items.length > 1 ? 's' : ''} lancée${items.length > 1 ? 's' : ''}`)
       onSuccess()
       onClose()
+
+      // Navigate to live view
+      navigate(`/automation/runs/${result.runId}`)
     } catch (error) {
       console.error('Failed to enqueue automation:', error)
       toast.error("Erreur lors du lancement de l'automation")
     } finally {
       setSubmitting(false)
     }
-  }, [canSubmit, selectedFlows, selectedLeads, onSuccess, onClose])
+  }, [canSubmit, selectedFlows, selectedLeads, onSuccess, onClose, navigate])
 
   // Get lead display name
   const getLeadDisplayName = (lead: Lead) => {

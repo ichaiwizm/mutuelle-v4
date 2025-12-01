@@ -59,6 +59,18 @@ export class FlowEngine extends EventEmitter {
       if (this.config.stateId) await this.hooksManager.flowResumed(flowKey, context.lead?.id, this.pauseManager.state?.id);
 
       logger.info(`Starting flow: ${flowKey} (${productConfig.steps.length} steps)`);
+
+      console.log('\n========================================');
+      console.log('FLOW EXECUTION START');
+      console.log('========================================');
+      console.log(`Flow: ${flowKey}`);
+      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
+      console.log(`Steps: ${productConfig.steps.length}`);
+      if (this.config.stateId) {
+        console.log(`Resuming from state: ${this.config.stateId}`);
+      }
+      console.log('');
+
       await this.hooksManager.flowStart(flowKey, context.lead?.id, this.pauseManager.state?.id);
       await this.hooksManager.beforeFlow(baseContext);
 
@@ -78,23 +90,68 @@ export class FlowEngine extends EventEmitter {
         await this.hooksManager.stepStart(flowKey, stepDef, stepCtx);
         const result = await executeStepWithRetry(stepDef, stepCtx, { registry: this.registry, hooks: this.hooks, emitter: this });
         stepResults.push(result);
+
+        // Capture screenshot BEFORE afterStep hook so it's included in the broadcast
+        if (context.page) {
+          const shouldCapture = result.success ? this.config.screenshotOnSuccess : this.config.screenshotOnError;
+          if (shouldCapture) {
+            const screenshotPath = await captureScreenshot({
+              page: context.page,
+              artifactsDir: context.artifactsDir,
+              stepId: stepDef.id,
+              type: result.success ? "success" : "error",
+              logger: stepCtx.logger!,
+            });
+            if (screenshotPath) {
+              result.metadata = { ...result.metadata, screenshotPath };
+            }
+          }
+        }
+
         await this.hooksManager.afterStep(stepCtx, stepDef, result);
 
         if (!result.success) {
-          await this.handleStepError(flowKey, stepDef, result, stepCtx, context);
+          await this.handleStepError(flowKey, stepDef, result, stepCtx);
           if (this.config.stopOnError) throw result.error || new Error(`Step ${stepDef.id} failed`);
         } else {
-          await this.handleStepSuccess(flowKey, stepDef, result, i, context, logger);
+          await this.handleStepSuccess(flowKey, stepDef, result, i);
         }
       }
 
       await this.pauseManager.markCompleted();
       const finalResult = buildFlowResult({ flowKey, leadId: context.lead?.id, steps: stepResults, startTime, stateId: this.pauseManager.state?.id });
+
+      console.log('\n========================================');
+      console.log('FLOW EXECUTION COMPLETE');
+      console.log('========================================');
+      console.log(`Flow: ${flowKey}`);
+      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
+      console.log(`Total steps: ${stepResults.length}`);
+      console.log(`Successful steps: ${stepResults.filter(s => s.success).length}`);
+      console.log(`Failed steps: ${stepResults.filter(s => !s.success).length}`);
+      console.log(`Total duration: ${finalResult.totalDuration}ms`);
+      console.log(`Result: ${finalResult.success ? '✅ SUCCESS' : '❌ FAILED'}`);
+      console.log('');
+
       await this.hooksManager.flowComplete(flowKey, finalResult, baseContext);
       return finalResult;
     } catch (error) {
       await this.pauseManager.markFailed();
       const errorObj = error instanceof Error ? error : new Error(String(error));
+
+      console.log('\n========================================');
+      console.log('FLOW EXECUTION FAILED');
+      console.log('========================================');
+      console.log(`Flow: ${flowKey}`);
+      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
+      console.log(`Steps completed: ${stepResults.length}`);
+      console.log(`Error: ${errorObj.message}`);
+      if (stepResults.length > 0) {
+        const lastStep = stepResults[stepResults.length - 1];
+        console.log(`Last step: ${lastStep.stepId} (${lastStep.success ? 'success' : 'failed'})`);
+      }
+      console.log('');
+
       const result = buildFlowResult({ flowKey, leadId: context.lead?.id, steps: stepResults, startTime, stateId: this.pauseManager.state?.id, error: errorObj });
       await this.hooksManager.flowError(flowKey, errorObj, baseContext);
       await this.hooksManager.afterFlow(baseContext, result);
@@ -109,15 +166,15 @@ export class FlowEngine extends EventEmitter {
     return null;
   }
 
-  private async handleStepError(flowKey: string, stepDef: any, result: StepResult, ctx: ExecutionContext, context: any) {
+  private async handleStepError(flowKey: string, stepDef: any, result: StepResult, ctx: ExecutionContext) {
     await this.hooksManager.stepError(flowKey, stepDef, result, ctx);
-    if (this.config.screenshotOnError && context.page) await captureScreenshot({ page: context.page, artifactsDir: context.artifactsDir, stepId: stepDef.id, type: "error", logger: ctx.logger! });
+    // Screenshot is now captured before afterStep hook
   }
 
-  private async handleStepSuccess(flowKey: string, stepDef: any, result: StepResult, index: number, context: any, logger: FlowLogger) {
+  private async handleStepSuccess(flowKey: string, stepDef: any, result: StepResult, index: number) {
     await this.hooksManager.stepComplete(flowKey, stepDef, result);
     await this.pauseManager.checkpoint(index, stepDef.id);
-    if (this.config.screenshotOnSuccess && context.page) await captureScreenshot({ page: context.page, artifactsDir: context.artifactsDir, stepId: stepDef.id, type: "success", logger });
+    // Screenshot is now captured before afterStep hook
   }
 
   requestPause(): void { this.pauseManager.requestPause(); }
