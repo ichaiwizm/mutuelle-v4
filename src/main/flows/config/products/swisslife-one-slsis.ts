@@ -23,7 +23,7 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
       required: true,
       method: "login",
       stepClass: "SwissLifeAuthStep",
-      needsCredentials: true,
+      needsCredentials: false, // Credentials are now loaded via services.auth
       needsLead: false,
       maxRetries: 2,
       estimatedDuration: 10000,

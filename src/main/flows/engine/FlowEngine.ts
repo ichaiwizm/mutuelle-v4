@@ -41,7 +41,7 @@ export class FlowEngine extends EventEmitter {
     this.pauseManager.reset();
 
     const logger = new FlowLogger(flowKey, context.lead?.id, this.config.verbose);
-    const services = getServicesForFlow(flowKey);
+    const services = await getServicesForFlow(flowKey);
     const baseContext = { ...context, flowKey, logger, services } as ExecutionContext<T>;
 
     try {

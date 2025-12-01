@@ -23,7 +23,7 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
       required: true,
       method: "login",
       stepClass: "AlptisAuthStep",
-      needsCredentials: true,
+      needsCredentials: false, // Credentials are now loaded via services.auth
       needsLead: false,
       maxRetries: 2,
       estimatedDuration: 5000,

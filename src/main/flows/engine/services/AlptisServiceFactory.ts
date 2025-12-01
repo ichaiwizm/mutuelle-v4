@@ -5,28 +5,36 @@
  */
 
 import type { PlatformServices } from "./types";
-import { AlptisAuth } from "../../platforms/alptis/lib/AlptisAuth";
+import { AlptisAuth, type AlptisAuthConfig } from "../../platforms/alptis/lib/AlptisAuth";
 import { NavigationStep } from "../../platforms/alptis/products/sante-select/steps/navigation";
 import { FormFillOrchestrator } from "../../platforms/alptis/products/sante-select/steps/form-fill/FormFillOrchestrator";
-import { getAlptisCredentials } from "../../config";
 
-// Singleton cache
+// Singleton cache with credentials hash to detect changes
 let cachedServices: PlatformServices | null = null;
+let cachedCredentialsHash: string | null = null;
+
+function hashCredentials(creds: AlptisAuthConfig): string {
+  return `${creds.username}:${creds.password.length}`;
+}
 
 /**
  * Creates Alptis platform services
- * Uses lazy singleton pattern for caching
+ * @param credentials - Platform credentials loaded from CredentialsService
  */
-export function createAlptisServices(): PlatformServices {
-  if (cachedServices) {
+export function createAlptisServices(credentials: AlptisAuthConfig): PlatformServices {
+  const hash = hashCredentials(credentials);
+
+  // Return cached if credentials haven't changed
+  if (cachedServices && cachedCredentialsHash === hash) {
     return cachedServices;
   }
 
   cachedServices = {
-    auth: new AlptisAuth(getAlptisCredentials()),
+    auth: new AlptisAuth(credentials),
     navigation: new NavigationStep(),
     formFill: new FormFillOrchestrator(),
   };
+  cachedCredentialsHash = hash;
 
   return cachedServices;
 }
@@ -36,4 +44,5 @@ export function createAlptisServices(): PlatformServices {
  */
 export function resetAlptisServices(): void {
   cachedServices = null;
+  cachedCredentialsHash = null;
 }

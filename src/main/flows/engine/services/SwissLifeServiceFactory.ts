@@ -5,28 +5,36 @@
  */
 
 import type { PlatformServices } from "./types";
-import { SwissLifeOneAuth } from "../../platforms/swisslifeone/lib/SwissLifeOneAuth";
+import { SwissLifeOneAuth, type SwissLifeOneAuthConfig } from "../../platforms/swisslifeone/lib/SwissLifeOneAuth";
 import { SwissLifeNavigationStep } from "../../platforms/swisslifeone/products/slsis/steps/navigation";
 import { FormFillOrchestrator } from "../../platforms/swisslifeone/products/slsis/steps/form-fill/FormFillOrchestrator";
-import { getSwissLifeOneCredentials } from "../../config";
 
-// Singleton cache
+// Singleton cache with credentials hash to detect changes
 let cachedServices: PlatformServices | null = null;
+let cachedCredentialsHash: string | null = null;
+
+function hashCredentials(creds: SwissLifeOneAuthConfig): string {
+  return `${creds.username}:${creds.password.length}`;
+}
 
 /**
  * Creates SwissLife One platform services
- * Uses lazy singleton pattern for caching
+ * @param credentials - Platform credentials loaded from CredentialsService
  */
-export function createSwissLifeServices(): PlatformServices {
-  if (cachedServices) {
+export function createSwissLifeServices(credentials: SwissLifeOneAuthConfig): PlatformServices {
+  const hash = hashCredentials(credentials);
+
+  // Return cached if credentials haven't changed
+  if (cachedServices && cachedCredentialsHash === hash) {
     return cachedServices;
   }
 
   cachedServices = {
-    auth: new SwissLifeOneAuth(getSwissLifeOneCredentials()),
+    auth: new SwissLifeOneAuth(credentials),
     navigation: new SwissLifeNavigationStep(),
     formFill: new FormFillOrchestrator(),
   };
+  cachedCredentialsHash = hash;
 
   return cachedServices;
 }
@@ -36,4 +44,5 @@ export function createSwissLifeServices(): PlatformServices {
  */
 export function resetSwissLifeServices(): void {
   cachedServices = null;
+  cachedCredentialsHash = null;
 }

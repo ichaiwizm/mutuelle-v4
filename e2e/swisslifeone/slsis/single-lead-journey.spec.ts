@@ -13,7 +13,7 @@ import { FlowEngine } from '@/main/flows/engine';
 import { SwissLifeOneLeadTransformer } from '@/main/flows/platforms/swisslifeone/products/slsis/transformers/LeadTransformer';
 import { createSwissLifeServices } from '@/main/flows/engine/services';
 import type { SwissLifeNavigationStep } from '@/main/flows/platforms/swisslifeone/products/slsis/steps/navigation';
-import { hasSwissLifeOneCredentials } from '../helpers/credentials';
+import { hasSwissLifeOneCredentials, getSwissLifeOneCredentials } from '../helpers/credentials';
 import { selectLead } from '../../leads';
 import {
   verifyStep1Section1,
@@ -62,7 +62,7 @@ test('Complete journey with FlowEngine', async ({ page, authenticatedPage }) => 
 
   // Verify all sections
   console.log('\n🔍 Verifying all sections...');
-  const services = createSwissLifeServices();
+  const services = createSwissLifeServices(getSwissLifeOneCredentials());
   const nav = services.navigation as SwissLifeNavigationStep;
   const frame = await nav.getIframe(page);
 

@@ -133,7 +133,7 @@ export class BulkTestRunner extends BaseBulkTestRunner {
     this.logger.logStep('Vérifications', 'post-exécution');
 
     // Get iframe for verification
-    const services = createSwissLifeServices();
+    const services = createSwissLifeServices(getSwissLifeOneCredentials());
     const nav = services.navigation as SwissLifeNavigationStep;
     const frame = await nav.getIframe(page);
 

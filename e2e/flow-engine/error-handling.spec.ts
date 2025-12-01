@@ -13,6 +13,7 @@ import { FlowEngine } from "../../src/main/flows/engine";
 import { flowStateService } from "../../src/main/flows/state";
 import { selectLead } from "../leads";
 import { createAlptisServices } from "../../src/main/flows/engine/services";
+import { getAlptisCredentials } from "../../src/main/flows/config";
 import { LeadTransformer } from "../../src/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer";
 import * as fs from "fs";
 import * as path from "path";
@@ -49,7 +50,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Navigate to form first
@@ -87,7 +88,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Use data that might cause intermittent failures
@@ -131,7 +132,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Navigate first
@@ -168,7 +169,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Navigate first
@@ -237,7 +238,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Navigate first
@@ -278,7 +279,7 @@ test.describe("FlowEngine Error Handling", () => {
     });
 
     // Pre-authenticate
-    const services = createAlptisServices();
+    const services = createAlptisServices(getAlptisCredentials());
     await services.auth.login(page);
 
     // Navigate first

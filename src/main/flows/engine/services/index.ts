@@ -17,22 +17,52 @@ export { hasIframeSupport } from "./types";
 // Import pour utilisation locale
 import { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
 import { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
+import { CredentialsService } from "../../../services/credentialsService";
 
 // Export pour les autres modules
 export { createAlptisServices, resetAlptisServices };
 export { createSwissLifeServices, resetSwissLifeServices };
 
 /**
- * Get platform services by flow key
+ * Get platform name from flow key
  */
-export function getServicesForFlow(flowKey: string) {
+function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslifeone" {
   if (flowKey.startsWith("alptis_")) {
-    return createAlptisServices();
+    return "alptis";
   }
   if (flowKey.startsWith("swisslife_")) {
-    return createSwissLifeServices();
+    return "swisslifeone";
   }
-  throw new Error(`No services configured for flow: ${flowKey}`);
+  throw new Error(`Unknown platform for flow: ${flowKey}`);
+}
+
+/**
+ * Get platform services by flow key
+ * Loads credentials from database via CredentialsService
+ */
+export async function getServicesForFlow(flowKey: string) {
+  const platform = getPlatformFromFlowKey(flowKey);
+
+  const credentials = await CredentialsService.getByPlatform(platform);
+  if (!credentials) {
+    throw new Error(
+      `No credentials found for platform "${platform}". ` +
+      `Please configure credentials in the app settings before running automations.`
+    );
+  }
+
+  if (platform === "alptis") {
+    return createAlptisServices({
+      username: credentials.login,
+      password: credentials.password,
+    });
+  }
+
+  // swisslifeone
+  return createSwissLifeServices({
+    username: credentials.login,
+    password: credentials.password,
+  });
 }
 
 /**
