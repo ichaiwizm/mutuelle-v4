@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/renderer/components/ui/Card";
 import { Button } from "@/renderer/components/ui/Button";
@@ -9,9 +9,8 @@ import {
   XCircle,
   Loader2,
   User,
-  Package,
   Clock,
-  Image as ImageIcon,
+  Camera,
 } from "lucide-react";
 import { LiveStepTimeline } from "./LiveStepTimeline";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
@@ -32,6 +31,25 @@ function formatDuration(ms?: number): string {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;
+}
+
+/**
+ * Hook to detect if we're on a mobile screen
+ */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
 }
 
 function getStatusConfig(status: LiveItemState["status"]) {
@@ -82,7 +100,20 @@ export function FlowProgressCard({
   onScreenshotClick,
   className,
 }: FlowProgressCardProps) {
-  const [isExpanded, setIsExpanded] = useState(item.status === "running");
+  const isMobile = useIsMobile();
+
+  // Default: collapsed on mobile, expanded on desktop when running or few items
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (isMobile) return false;
+    return item.status === "running" || item.steps.length <= 5;
+  });
+
+  // Auto-expand when status changes to running (only on desktop)
+  useEffect(() => {
+    if (item.status === "running" && !isMobile) {
+      setIsExpanded(true);
+    }
+  }, [item.status, isMobile]);
 
   const statusConfig = getStatusConfig(item.status);
   const StatusIcon = statusConfig.icon;
@@ -171,11 +202,24 @@ export function FlowProgressCard({
                     </span>
                   </div>
                 )}
+                {/* Screenshot badge with count */}
                 {screenshotCount > 0 && (
-                  <div className="flex items-center gap-1">
-                    <ImageIcon className="h-3.5 w-3.5" />
-                    <span>{screenshotCount}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Open first screenshot
+                      const firstScreenshot = item.steps.find(s => s.screenshot);
+                      if (firstScreenshot?.screenshot && onScreenshotClick) {
+                        onScreenshotClick(firstScreenshot.screenshot);
+                      }
+                    }}
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                    title={`${screenshotCount} capture${screenshotCount > 1 ? 's' : ''} - Cliquer pour voir`}
+                  >
+                    <Camera className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">{screenshotCount}</span>
+                  </button>
                 )}
               </div>
 

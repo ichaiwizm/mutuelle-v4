@@ -225,6 +225,38 @@
   75% { transform: translateX(4px); }
 }
 
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes progress-shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes value-update {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @layer components {
   .animate-fade-in {
     animation: fade-in var(--transition-base) ease-out;
@@ -251,6 +283,33 @@
     animation: shake 0.4s ease-in-out;
   }
 
+  .animate-scale-in {
+    animation: scale-in var(--transition-base) ease-out;
+  }
+
+  .animate-value-update {
+    animation: value-update var(--transition-fast) ease-out;
+  }
+
+  /* Progress bar shine effect for running states */
+  .progress-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent
+    );
+    animation: progress-shine 1.5s ease-in-out infinite;
+  }
+
   /* Typography utility */
   .font-display {
     font-family: var(--font-display);
@@ -259,4 +318,21 @@
   .font-body {
     font-family: var(--font-body);
   }
+
+  /* Interactive card hover effect */
+  .card-hover {
+    transition: transform var(--transition-fast) ease-out, box-shadow var(--transition-fast) ease-out;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Staggered animation delay utility */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
 }

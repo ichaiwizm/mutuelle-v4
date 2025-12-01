@@ -27,6 +27,49 @@ interface UseAutomationResult {
 }
 
 const DEFAULT_PAGE_SIZE = 20
+const FILTERS_STORAGE_KEY = 'automation-filters'
+
+const DEFAULT_FILTERS: RunFilters = {
+  status: 'all',
+  productKey: 'all',
+  search: '',
+  dateRange: 'all',
+}
+
+/**
+ * Load filters from localStorage with fallback to defaults
+ */
+function loadFiltersFromStorage(): RunFilters {
+  try {
+    const stored = localStorage.getItem(FILTERS_STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      // Validate and merge with defaults to ensure all keys exist
+      return {
+        ...DEFAULT_FILTERS,
+        ...parsed,
+        // Don't persist search to avoid confusion on reload
+        search: '',
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return DEFAULT_FILTERS
+}
+
+/**
+ * Save filters to localStorage
+ */
+function saveFiltersToStorage(filters: RunFilters): void {
+  try {
+    // Don't persist search query
+    const toStore = { ...filters, search: '' }
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(toStore))
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 export function useAutomation(): UseAutomationResult {
   // Data state
@@ -45,13 +88,8 @@ export function useAutomation(): UseAutomationResult {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<string | null>(null)
 
-  // Filters & pagination
-  const [filters, setFiltersState] = useState<RunFilters>({
-    status: 'all',
-    productKey: 'all',
-    search: '',
-    dateRange: 'all',
-  })
+  // Filters & pagination - initialize from localStorage
+  const [filters, setFiltersState] = useState<RunFilters>(loadFiltersFromStorage)
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = DEFAULT_PAGE_SIZE
   const totalPages = Math.ceil(total / pageSize)
@@ -153,10 +191,15 @@ export function useAutomation(): UseAutomationResult {
   }, [fetchRuns])
 
   /**
-   * Update filters
+   * Update filters and persist to localStorage
    */
   const setFilters = useCallback((newFilters: Partial<RunFilters>) => {
-    setFiltersState((prev) => ({ ...prev, ...newFilters }))
+    setFiltersState((prev) => {
+      const updated = { ...prev, ...newFilters }
+      // Persist to localStorage (excluding search)
+      saveFiltersToStorage(updated)
+      return updated
+    })
     setCurrentPage(1) // Reset to first page when filters change
   }, [])
 

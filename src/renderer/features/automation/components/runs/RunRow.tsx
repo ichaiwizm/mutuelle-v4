@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { TableRow, TableCell } from '@/renderer/components/ui/Table'
 import { Button } from '@/renderer/components/ui/Button'
-import { XCircle, Loader2, Activity } from 'lucide-react'
+import { XCircle, Loader2, Activity, Hash } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { StatusIndicator } from '../shared/StatusIndicator'
 import type { Run } from '@/shared/types/run'
 
@@ -32,6 +33,17 @@ function formatTimeAgo(date: Date | string): string {
   })
 }
 
+function formatAbsoluteTime(date: Date | string): string {
+  const d = new Date(date)
+  return d.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
   const navigate = useNavigate()
   const canCancel = run.status === 'running' || run.status === 'queued'
@@ -47,29 +59,51 @@ export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
       style={{ '--row-index': index } as React.CSSProperties}
       onClick={handleViewRun}
     >
-      {/* ID (truncated) */}
-      <TableCell className="font-mono text-xs">
-        <span
-          className="hover:text-[var(--color-primary)] transition-colors"
-          title={run.id}
-        >
-          {run.id.slice(0, 12)}...
-        </span>
-      </TableCell>
-
-      {/* Status */}
+      {/* Run info - ID badge + items summary */}
       <TableCell>
-        <StatusIndicator status={run.status as any} showLabel size="md" />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
+            <Hash className="h-3 w-3" />
+            <span className="font-mono text-xs">{run.id.slice(0, 8)}</span>
+          </div>
+          {run.itemsCount && run.itemsCount > 0 && (
+            <span className="text-sm text-[var(--color-text-secondary)]">
+              {run.itemsCount} tâche{run.itemsCount > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
       </TableCell>
 
-      {/* Items count */}
-      <TableCell className="text-[var(--color-text-muted)]">
-        {run.itemsCount ?? '-'}
+      {/* Status with inline progress for running */}
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <StatusIndicator status={run.status as any} showLabel size="md" />
+          {isRunning && (
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10">
+              <Activity className="h-3 w-3 text-cyan-400 animate-pulse" />
+              <span className="text-xs text-cyan-400 font-medium">Live</span>
+            </div>
+          )}
+        </div>
       </TableCell>
 
-      {/* Created */}
+      {/* Items count - with progress indicator for running */}
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            "tabular-nums",
+            run.status === 'running' ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"
+          )}>
+            {run.itemsCount ?? '-'}
+          </span>
+        </div>
+      </TableCell>
+
+      {/* Created - relative with absolute tooltip */}
       <TableCell className="text-[var(--color-text-muted)]">
-        {formatTimeAgo(run.createdAt)}
+        <span title={formatAbsoluteTime(run.createdAt)}>
+          {formatTimeAgo(run.createdAt)}
+        </span>
       </TableCell>
 
       {/* Actions */}
@@ -90,12 +124,6 @@ export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
                 <XCircle className="h-4 w-4" />
               )}
             </Button>
-          )}
-          {isRunning && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded bg-cyan-500/10">
-              <Activity className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
-              <span className="text-xs text-cyan-400 font-medium">Live</span>
-            </div>
           )}
         </div>
       </TableCell>

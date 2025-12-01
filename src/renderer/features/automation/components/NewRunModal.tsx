@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Play, Package, Users, Loader2 } from 'lucide-react'
+import { Play, Package, Users, Loader2, ChevronDown, Clock } from 'lucide-react'
 import { Modal } from '@/renderer/components/ui/Modal/Modal'
 import { ModalHeader } from '@/renderer/components/ui/Modal/ModalHeader'
 import { Button } from '@/renderer/components/ui/Button'
@@ -10,6 +10,19 @@ import { SearchInput } from '@/renderer/components/ui/SearchInput'
 import { Skeleton } from '@/renderer/components/ui/Skeleton'
 import type { ProductConfiguration } from '@/shared/types/product'
 import type { Lead } from '@/shared/types/lead'
+
+/**
+ * Format duration in human-readable format
+ */
+function formatEstimatedTime(ms: number): string {
+  if (ms < 60000) return '< 1 min'
+  const minutes = Math.ceil(ms / 60000)
+  if (minutes < 60) return `~${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  if (remainingMinutes === 0) return `~${hours}h`
+  return `~${hours}h ${remainingMinutes}min`
+}
 
 interface NewRunModalProps {
   isOpen: boolean
@@ -132,9 +145,43 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
     }
   }, [filteredLeads, selectedLeads.size])
 
+  // Quick select last N leads
+  const selectLastN = useCallback((n: number) => {
+    const lastN = filteredLeads.slice(0, n).map((l) => l.id)
+    setSelectedLeads(new Set(lastN))
+  }, [filteredLeads])
+
   // Calculate total tasks
   const totalTasks = selectedFlows.size * selectedLeads.size
   const canSubmit = selectedFlows.size > 0 && selectedLeads.size > 0 && !submitting
+
+  // Calculate estimated duration
+  const estimatedDuration = useMemo(() => {
+    if (selectedFlows.size === 0 || selectedLeads.size === 0) return 0
+
+    // Get average duration per product
+    const selectedProducts = products.filter((p) => selectedFlows.has(p.flowKey))
+    const avgDurationPerTask = selectedProducts.reduce((acc, p) => {
+      // Use metadata.estimatedTotalDuration if available, otherwise default to 60s
+      const duration = p.metadata?.estimatedTotalDuration ?? 60000
+      return acc + duration
+    }, 0) / (selectedProducts.length || 1)
+
+    // Calculate total with parallelism factor (3 concurrent tasks)
+    const parallelFactor = 3
+    const totalDuration = (totalTasks * avgDurationPerTask) / parallelFactor
+
+    return totalDuration
+  }, [products, selectedFlows, selectedLeads.size, totalTasks])
+
+  // Quick select options
+  const quickSelectOptions = useMemo(() => {
+    const options = []
+    if (filteredLeads.length >= 10) options.push(10)
+    if (filteredLeads.length >= 50) options.push(50)
+    if (filteredLeads.length >= 100) options.push(100)
+    return options
+  }, [filteredLeads.length])
 
   // Handle submit
   const handleSubmit = useCallback(async () => {
@@ -252,15 +299,41 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
                 ({selectedLeads.size} sélectionné{selectedLeads.size > 1 ? 's' : ''})
               </span>
             </div>
-            {filteredLeads.length > 0 && (
-              <button
-                type="button"
-                onClick={toggleAllLeads}
-                className="text-sm text-[var(--color-primary)] hover:underline"
-              >
-                {selectedLeads.size === filteredLeads.length ? 'Tout désélectionner' : 'Tout sélectionner'}
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Quick select dropdown */}
+              {quickSelectOptions.length > 0 && (
+                <div className="relative group">
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
+                  >
+                    Sélection rapide
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 py-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 min-w-[140px]">
+                    {quickSelectOptions.map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => selectLastN(n)}
+                        className="w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+                      >
+                        {n} derniers
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {filteredLeads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={toggleAllLeads}
+                  className="text-sm text-[var(--color-primary)] hover:underline"
+                >
+                  {selectedLeads.size === filteredLeads.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Search */}
@@ -286,7 +359,7 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
               Aucun lead trouvé pour "{searchQuery}"
             </p>
           ) : (
-            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+            <div className="space-y-2 max-h-[350px] overflow-y-auto">
               {filteredLeads.map((lead) => (
                 <label
                   key={lead.id}
@@ -315,7 +388,7 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
         {/* Summary */}
         {(selectedFlows.size > 0 || selectedLeads.size > 0) && (
           <Card className="p-4 bg-[var(--color-surface-alt)]">
-            <div className="text-center">
+            <div className="flex items-center justify-center gap-4">
               <span className="text-lg font-semibold text-[var(--color-text-primary)]">
                 {selectedFlows.size} produit{selectedFlows.size > 1 ? 's' : ''} × {selectedLeads.size} lead
                 {selectedLeads.size > 1 ? 's' : ''} ={' '}
@@ -323,6 +396,16 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
                   {totalTasks} tâche{totalTasks > 1 ? 's' : ''}
                 </span>
               </span>
+              {/* Estimated duration */}
+              {estimatedDuration > 0 && (
+                <>
+                  <div className="w-px h-6 bg-[var(--color-border)]" />
+                  <div className="flex items-center gap-1.5 text-[var(--color-text-muted)]">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm">{formatEstimatedTime(estimatedDuration)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </Card>
         )}
