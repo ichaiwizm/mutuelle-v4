@@ -43,6 +43,13 @@
       "when": 1764162695724,
       "tag": "0005_woozy_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1764627923853,
+      "tag": "0006_futuristic_juggernaut",
+      "breakpoints": true
     }
   ]
 }

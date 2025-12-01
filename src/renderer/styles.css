@@ -257,6 +257,26 @@
   }
 }
 
+/* Row selection micro-animation */
+@keyframes row-select {
+  from { transform: scale(1); }
+  50% { transform: scale(1.005); }
+  to { transform: scale(1); }
+}
+
+/* Counter bump animation */
+@keyframes counter-bump {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Running status glow effect */
+@keyframes status-glow {
+  0%, 100% { box-shadow: inset 4px 0 0 var(--color-info); }
+  50% { box-shadow: inset 4px 0 8px var(--color-info); }
+}
+
 @layer components {
   .animate-fade-in {
     animation: fade-in var(--transition-base) ease-out;
@@ -335,4 +355,19 @@
   .stagger-3 { animation-delay: 150ms; }
   .stagger-4 { animation-delay: 200ms; }
   .stagger-5 { animation-delay: 250ms; }
+
+  /* Row selection animation */
+  .animate-row-select {
+    animation: row-select 200ms ease-out;
+  }
+
+  /* Counter bump for stat updates */
+  .animate-counter-bump {
+    animation: counter-bump 300ms ease-out;
+  }
+
+  /* Running status glow on left border */
+  .animate-status-glow {
+    animation: status-glow 2s ease-in-out infinite;
+  }
 }
