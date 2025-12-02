@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/renderer/components/ui/Card";
 import { Button } from "@/renderer/components/ui/Button";
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { LiveStepTimeline } from "./LiveStepTimeline";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
+import { useElapsedTime } from "../../hooks/useElapsedTime";
 
 type FlowProgressCardProps = {
   item: LiveItemState;
@@ -129,12 +130,14 @@ export function FlowProgressCard({
   // Count screenshots
   const screenshotCount = item.steps.filter((s) => s.screenshot).length;
 
-  // Get elapsed time
-  const elapsedTime = useMemo(() => {
-    if (item.duration) return item.duration;
-    if (item.startedAt) return Date.now() - item.startedAt;
-    return 0;
-  }, [item.duration, item.startedAt]);
+  // Get elapsed time - updates every second when running
+  const isRunning = item.status === "running";
+  const elapsedTime = useElapsedTime(
+    item.startedAt,
+    item.completedAt,
+    item.duration,
+    isRunning
+  );
 
   // Get current step name
   const currentStep = item.steps[item.currentStepIndex];

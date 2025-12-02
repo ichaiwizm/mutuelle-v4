@@ -1,9 +1,9 @@
-import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { TableRow, TableCell } from "@/renderer/components/ui/Table";
 import { StatusIndicator } from "../shared/StatusIndicator";
-import { Camera, Activity, Hash } from "lucide-react";
+import { Camera, Hash } from "lucide-react";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
+import { useElapsedTime } from "../../hooks/useElapsedTime";
 
 type FlowTableRowProps = {
   item: LiveItemState;
@@ -23,6 +23,10 @@ function formatDuration(ms?: number): string {
 }
 
 export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowProps) {
+  // Status flags - defined first for use in hooks
+  const isRunning = item.status === "running";
+  const isCancelled = item.status === "cancelled";
+
   // Calculate progress
   const completedSteps = item.steps.filter(
     (s) => s.status === "completed" || s.status === "skipped"
@@ -34,22 +38,13 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
   // Count screenshots
   const screenshotCount = item.steps.filter((s) => s.screenshot).length;
 
-  // Get elapsed time - freeze if cancelled/completed/failed
-  const elapsedTime = useMemo(() => {
-    // If we have a final duration, use it
-    if (item.duration) return item.duration;
-
-    // If cancelled/completed/failed, calculate final duration from timestamps
-    if (item.status === "cancelled" || item.status === "completed" || item.status === "failed") {
-      if (item.startedAt && item.completedAt) {
-        return item.completedAt - item.startedAt;
-      }
-    }
-
-    // Still running - calculate live
-    if (item.startedAt) return Date.now() - item.startedAt;
-    return 0;
-  }, [item.duration, item.startedAt, item.completedAt, item.status]);
+  // Get elapsed time - updates every second when running
+  const elapsedTime = useElapsedTime(
+    item.startedAt,
+    item.completedAt,
+    item.duration,
+    isRunning
+  );
 
   // Flow name formatted
   const flowName = item.flowKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -57,18 +52,14 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
   // Map status for StatusIndicator
   const statusForIndicator = item.status === "completed" ? "done" : item.status;
 
-  const isCancelled = item.status === "cancelled";
-
-  const isRunning = item.status === "running";
-
   return (
     <TableRow
       index={index}
       onClick={onClick}
       className={cn(
-        "cursor-pointer transition-all duration-200",
+        "cursor-pointer transition-all duration-300",
         isSelected && "bg-[var(--color-primary)]/5 ring-1 ring-inset ring-[var(--color-primary)]/30",
-        isRunning && !isSelected && "bg-cyan-500/5",
+        isRunning && !isSelected && "bg-cyan-500/5 border-l-2 border-l-cyan-500",
         isCancelled && !isSelected && "bg-amber-500/5 opacity-70"
       )}
     >
@@ -84,8 +75,11 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
             {flowName}
           </span>
           {isRunning && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10">
-              <Activity className="h-3 w-3 text-cyan-400 animate-pulse" />
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
+              </span>
               <span className="text-xs text-cyan-400 font-medium">Live</span>
             </div>
           )}
@@ -123,8 +117,19 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
       </TableCell>
 
       {/* Duration */}
-      <TableCell className="text-right font-mono text-sm text-[var(--color-text-muted)]">
-        {formatDuration(elapsedTime)}
+      <TableCell className="text-right">
+        <div className={cn(
+          "inline-flex items-center gap-1.5 font-mono text-sm",
+          isRunning ? "text-cyan-400 font-medium" : "text-[var(--color-text-muted)]"
+        )}>
+          {isRunning && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+            </span>
+          )}
+          <span className="tabular-nums">{formatDuration(elapsedTime)}</span>
+        </div>
       </TableCell>
 
       {/* Screenshot count */}

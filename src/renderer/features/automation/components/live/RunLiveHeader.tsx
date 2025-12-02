@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/renderer/components/ui/Button";
 import { StatCard } from "@/renderer/components/ui/StatCard";
-import { ProgressRing } from "../shared/ProgressRing";
 import {
   ArrowLeft,
   RefreshCw,
@@ -151,20 +150,29 @@ export function RunLiveHeader({
         </div>
       </div>
 
-      {/* Stats bar - matching AutomationHeader style */}
+      {/* Stats bar */}
       <div className="px-6 py-4 bg-[var(--color-background)]">
         <div className="flex items-center gap-4">
-          {/* Progress Ring */}
-          <div className="flex-shrink-0 p-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
-            <ProgressRing
-              progress={overallProgress}
-              size="lg"
-              color={progressColor}
-              showPercentage
-            />
+          {/* Progress Bar - compact horizontal */}
+          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-surface)] min-w-[140px]">
+            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  isRunning && "progress-shine"
+                )}
+                style={{
+                  width: `${overallProgress}%`,
+                  backgroundColor: progressColor,
+                }}
+              />
+            </div>
+            <span className="text-sm font-semibold tabular-nums text-[var(--color-text-primary)]">
+              {overallProgress}%
+            </span>
           </div>
 
-          {/* Stats using existing StatCard component */}
+          {/* Stats */}
           <div className="flex-1 grid grid-cols-5 gap-3">
             <StatCard
               label="Total"
@@ -200,19 +208,6 @@ export function RunLiveHeader({
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="mt-4 h-1.5 bg-[var(--color-surface)] rounded-full overflow-hidden">
-          <div
-            className={cn(
-              "h-full rounded-full transition-all duration-500 ease-out",
-              isRunning && "progress-shine"
-            )}
-            style={{
-              width: `${overallProgress}%`,
-              backgroundColor: progressColor,
-            }}
-          />
-        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { TableRow, TableCell } from '@/renderer/components/ui/Table'
 import { Button } from '@/renderer/components/ui/Button'
-import { XCircle, Loader2, Activity, Hash, Trash2, RefreshCw } from 'lucide-react'
+import { XCircle, Loader2, Hash, Trash2, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StatusIndicator } from '../shared/StatusIndicator'
 import type { Run } from '@/shared/types/run'
@@ -85,8 +85,11 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
         <div className="flex items-center gap-2">
           <StatusIndicator status={run.status as any} showLabel size="md" />
           {isRunning && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10">
-              <Activity className="h-3 w-3 text-cyan-400 animate-pulse" />
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
+              </span>
               <span className="text-xs text-cyan-400 font-medium">Live</span>
             </div>
           )}
