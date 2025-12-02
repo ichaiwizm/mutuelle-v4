@@ -291,6 +291,56 @@ export const AutomationService = {
   },
 
   /**
+   * Delete a run and all its items.
+   * Cannot delete running or queued runs.
+   */
+  async delete(runId: string): Promise<{ deleted: boolean }> {
+    const run = await this.get(runId);
+    if (!run) {
+      throw new NotFoundError("Run", runId);
+    }
+
+    // Cannot delete running or queued runs
+    if (run.status === "running" || run.status === "queued") {
+      throw new Error("Cannot delete a running or queued run");
+    }
+
+    // Delete items first (foreign key constraint)
+    await db.delete(schema.runItems).where(eq(schema.runItems.runId, runId));
+
+    // Delete run
+    await db.delete(schema.runs).where(eq(schema.runs.id, runId));
+
+    return { deleted: true };
+  },
+
+  /**
+   * Retry failed/cancelled items from a run by creating a new run.
+   */
+  async retry(runId: string): Promise<{ newRunId: string }> {
+    const originalRun = await this.getOrThrow(runId);
+
+    // Filter failed/cancelled items
+    const failedItems = originalRun.items.filter(
+      (item) => item.status === "failed" || item.status === "cancelled"
+    );
+
+    if (failedItems.length === 0) {
+      throw new Error("No failed or cancelled items to retry");
+    }
+
+    // Create new items for enqueue
+    const retryItems = failedItems.map((item) => ({
+      flowKey: item.flowKey,
+      leadId: item.leadId,
+    }));
+
+    // Enqueue creates a new run
+    const result = await this.enqueue(retryItems);
+    return { newRunId: result.runId };
+  },
+
+  /**
    * Enqueue flows for parallel execution
    */
   async enqueue(

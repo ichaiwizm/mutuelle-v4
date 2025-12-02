@@ -195,6 +195,8 @@ export type Ipc = {
     getItem: (itemId: string) => Promise<RunItem | null>;
     list: (options?: { limit?: number; offset?: number }) => Promise<AutomationListResult>;
     cancel: (runId: string) => Promise<{ cancelled: boolean }>;
+    delete: (runId: string) => Promise<{ deleted: boolean }>;
+    retry: (runId: string) => Promise<{ newRunId: string }>;
     readScreenshot: (path: string) => Promise<string>; // base64 encoded image
     onProgress: (callback: (event: AutomationProgressEvent) => void) => () => void;
   };

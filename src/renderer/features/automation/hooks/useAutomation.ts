@@ -12,6 +12,8 @@ interface UseAutomationResult {
   // Loading states
   loading: boolean
   cancelling: string | null
+  deleting: string | null
+  retrying: string | null
 
   // Filters & pagination
   filters: RunFilters
@@ -22,6 +24,8 @@ interface UseAutomationResult {
   // Actions
   fetchRuns: () => Promise<void>
   cancelRun: (runId: string) => Promise<void>
+  deleteRun: (runId: string) => Promise<void>
+  retryRun: (runId: string) => Promise<string | null>
   setFilters: (filters: Partial<RunFilters>) => void
   setCurrentPage: (page: number) => void
 }
@@ -86,6 +90,8 @@ export function useAutomation(): UseAutomationResult {
   // Loading states
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState<string | null>(null)
 
   // Filters & pagination - initialize from localStorage
   const [filters, setFiltersState] = useState<RunFilters>(loadFiltersFromStorage)
@@ -179,6 +185,42 @@ export function useAutomation(): UseAutomationResult {
   }, [fetchRuns])
 
   /**
+   * Delete a run
+   */
+  const deleteRun = useCallback(async (runId: string) => {
+    setDeleting(runId)
+    try {
+      await window.api.automation.delete(runId)
+      toast.success('Run supprimé')
+      await fetchRuns()
+    } catch (err) {
+      toast.error('Impossible de supprimer le run')
+      console.error('Failed to delete run:', err)
+    } finally {
+      setDeleting(null)
+    }
+  }, [fetchRuns])
+
+  /**
+   * Retry failed/cancelled items from a run
+   */
+  const retryRun = useCallback(async (runId: string): Promise<string | null> => {
+    setRetrying(runId)
+    try {
+      const { newRunId } = await window.api.automation.retry(runId)
+      toast.success('Nouveau run créé')
+      await fetchRuns()
+      return newRunId
+    } catch (err) {
+      toast.error('Impossible de relancer le run')
+      console.error('Failed to retry run:', err)
+      return null
+    } finally {
+      setRetrying(null)
+    }
+  }, [fetchRuns])
+
+  /**
    * Update filters and persist to localStorage
    */
   const setFilters = useCallback((newFilters: Partial<RunFilters>) => {
@@ -202,12 +244,16 @@ export function useAutomation(): UseAutomationResult {
     stats,
     loading,
     cancelling,
+    deleting,
+    retrying,
     filters,
     currentPage,
     pageSize,
     totalPages,
     fetchRuns,
     cancelRun,
+    deleteRun,
+    retryRun,
     setFilters,
     setCurrentPage,
   }

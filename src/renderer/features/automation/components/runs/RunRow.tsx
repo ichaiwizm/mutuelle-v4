@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { TableRow, TableCell } from '@/renderer/components/ui/Table'
 import { Button } from '@/renderer/components/ui/Button'
-import { XCircle, Loader2, Activity, Hash } from 'lucide-react'
+import { XCircle, Loader2, Activity, Hash, Trash2, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StatusIndicator } from '../shared/StatusIndicator'
 import type { Run } from '@/shared/types/run'
@@ -10,7 +10,11 @@ interface RunRowProps {
   run: Run
   index: number
   isCancelling?: boolean
+  isDeleting?: boolean
+  isRetrying?: boolean
   onCancel: () => void
+  onDelete: () => void
+  onRetry: () => void
 }
 
 function formatTimeAgo(date: Date | string): string {
@@ -44,9 +48,11 @@ function formatAbsoluteTime(date: Date | string): string {
   })
 }
 
-export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
+export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCancel, onDelete, onRetry }: RunRowProps) {
   const navigate = useNavigate()
   const canCancel = run.status === 'running' || run.status === 'queued'
+  const canRetry = run.status === 'failed' || run.status === 'cancelled'
+  const canDelete = run.status === 'done' || run.status === 'failed' || run.status === 'cancelled'
   const isRunning = run.status === 'running'
 
   const handleViewRun = () => {
@@ -115,13 +121,45 @@ export function RunRow({ run, index, isCancelling, onCancel }: RunRowProps) {
               size="sm"
               onClick={onCancel}
               disabled={isCancelling}
-              title={run.status === 'running' ? 'Stop' : 'Cancel'}
+              title={run.status === 'running' ? 'Arrêter' : 'Annuler'}
               className="text-[var(--color-error)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
             >
               {isCancelling ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <XCircle className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          {canRetry && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRetry}
+              disabled={isRetrying}
+              title="Relancer les échoués"
+              className="text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info)]/10"
+            >
+              {isRetrying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              disabled={isDeleting}
+              title="Supprimer"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
               )}
             </Button>
           )}

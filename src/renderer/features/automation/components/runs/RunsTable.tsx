@@ -27,7 +27,11 @@ interface RunsTableProps {
   runs: Run[]
   loading?: boolean
   cancelling?: string | null
+  deleting?: string | null
+  retrying?: string | null
   onCancel: (runId: string) => void
+  onDelete: (runId: string) => void
+  onRetry: (runId: string) => void
   onNewRun: () => void
 }
 
@@ -55,7 +59,11 @@ export function RunsTable({
   runs,
   loading,
   cancelling,
+  deleting,
+  retrying,
   onCancel,
+  onDelete,
+  onRetry,
   onNewRun,
 }: RunsTableProps) {
   // Sorting state
@@ -170,7 +178,11 @@ export function RunsTable({
               run={run}
               index={index}
               isCancelling={cancelling === run.id}
+              isDeleting={deleting === run.id}
+              isRetrying={retrying === run.id}
               onCancel={() => onCancel(run.id)}
+              onDelete={() => onDelete(run.id)}
+              onRetry={() => onRetry(run.id)}
             />
           ))}
         </TableBody>

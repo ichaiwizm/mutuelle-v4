@@ -73,7 +73,11 @@ export function AutomationPage() {
                 runs={automation.runs}
                 loading={automation.loading}
                 cancelling={automation.cancelling}
+                deleting={automation.deleting}
+                retrying={automation.retrying}
                 onCancel={automation.cancelRun}
+                onDelete={automation.deleteRun}
+                onRetry={automation.retryRun}
                 onNewRun={handleNewRun}
               />
             </div>

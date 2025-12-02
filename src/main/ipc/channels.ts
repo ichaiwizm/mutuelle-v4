@@ -36,6 +36,8 @@ export const IPC_CHANNEL = {
   AUTO_GET: "automation:get",
   AUTO_LIST: "automation:list",
   AUTO_CANCEL: "automation:cancel",
+  AUTO_DELETE: "automation:delete",
+  AUTO_RETRY: "automation:retry",
   AUTO_PROGRESS: "automation:progress", // Push channel (main -> renderer)
   AUTO_GET_ITEM: "automation:getItem",
   AUTO_READ_SCREENSHOT: "automation:readScreenshot",

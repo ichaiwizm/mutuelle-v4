@@ -328,6 +328,20 @@ export function registerIpc() {
     })
   );
 
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_DELETE,
+    handler(AutomationCancelSchema, async ({ runId }) => {
+      return AutomationService.delete(runId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_RETRY,
+    handler(AutomationCancelSchema, async ({ runId }) => {
+      return AutomationService.retry(runId);
+    })
+  );
+
   // ========== Products ==========
   // Note: ProductConfiguration contains functions (conditionalRules) that cannot be cloned via IPC
   // We must remove them before returning to the renderer process
