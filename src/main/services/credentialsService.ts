@@ -1,6 +1,11 @@
 import { db, schema } from "../db";
 import { eq } from "drizzle-orm";
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+// Apply stealth plugin to avoid headless detection
+chromium.use(StealthPlugin());
+
 import { EncryptionService } from "./encryptionService";
 import { AlptisAuth, ALPTIS_LOGIN_SELECTORS } from "../flows/platforms/alptis/lib/AlptisAuth";
 import { SwissLifeOneAuth } from "../flows/platforms/swisslifeone/lib/SwissLifeOneAuth";
@@ -270,46 +275,33 @@ async function testAlptisCredentials(creds: PlatformCredentials): Promise<Creden
  */
 async function testSwissLifeOneCredentials(creds: PlatformCredentials): Promise<CredentialsTestResult> {
   let browser;
+  let page: Page | undefined;
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: true,
     });
-    const page = await context.newPage();
+    page = await context.newPage();
 
-    // Setup cookie interception
     await setupSwissLifeCookieInterception(page, { debug: false });
 
-    // Create auth instance
     const auth = new SwissLifeOneAuth({
       username: creds.login,
       password: creds.password,
     });
 
-    // Navigate to login
     await auth.navigateToLogin(page);
-
-    // Click "Se connecter" button
     await auth.clickSeConnecter(page);
-
-    // Wait for ADFS page
     await auth.waitForAdfsPage(page);
-
-    // Fill credentials
     await auth.fillCredentials(page);
-
-    // Submit login
     await auth.submitLogin(page);
 
     // Wait for either dashboard (success) or error
     const result = await Promise.race([
-      // Success: Dashboard loads
       page
         .waitForURL(/\/accueil/, { timeout: TEST_TIMEOUT })
         .then(() => ({ success: true as const })),
-
-      // Failure: Error on ADFS page
       page
         .waitForSelector("#errorText, .error-message, .adfs-error", {
           state: "visible",
