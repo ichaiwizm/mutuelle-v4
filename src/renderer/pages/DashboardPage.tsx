@@ -46,9 +46,6 @@ export function DashboardPage() {
         totalLeads={data.leads.total}
         totalRuns={data.automation.totalRuns}
         recentRuns={data.automation.recentRuns}
-        pausedCount={data.flowStates.pausedCount}
-        isResuming={actions.isResuming}
-        onResumeAll={actions.handleResumeAll}
       />
 
       <div className="grid grid-cols-3 gap-4">

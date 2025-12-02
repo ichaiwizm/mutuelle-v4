@@ -5,12 +5,10 @@ import {
   AutomationTabs,
   RunsTable,
   RunFilters,
-  PausedFlowsGrid,
   ProductsTab,
   NewRunModal,
 } from '@/renderer/features/automation/components'
 import { useAutomation } from '@/renderer/features/automation/hooks/useAutomation'
-import { usePausedFlows } from '@/renderer/features/automation/hooks/usePausedFlows'
 import { useProducts } from '@/renderer/features/automation/hooks/useProducts'
 import type { TabType } from '@/renderer/features/automation/types'
 
@@ -21,7 +19,6 @@ export function AutomationPage() {
 
   // Hooks
   const automation = useAutomation()
-  const pausedFlows = usePausedFlows()
   const products = useProducts()
 
   // Handlers
@@ -32,32 +29,22 @@ export function AutomationPage() {
   const handleNewRunSuccess = useCallback(() => {
     setShowNewRunModal(false)
     automation.fetchRuns()
-    pausedFlows.fetchPausedFlows()
-  }, [automation, pausedFlows])
+  }, [automation])
 
   const handleRefresh = useCallback(() => {
     automation.fetchRuns()
-    pausedFlows.fetchPausedFlows()
     products.fetchProducts()
-  }, [automation, pausedFlows, products])
-
-  // Update stats with paused count
-  const stats = {
-    ...automation.stats,
-    paused: pausedFlows.pausedFlows.length,
-  }
+  }, [automation, products])
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
       {/* Header with stats */}
       <div className="px-6 py-4 border-b border-[var(--color-border)]">
         <AutomationHeader
-          stats={stats}
+          stats={automation.stats}
           loading={automation.loading}
           onNewRun={handleNewRun}
           onRefresh={handleRefresh}
-          onResumeAll={pausedFlows.resumeAll}
-          isResuming={pausedFlows.resumingAll}
         />
       </div>
 
@@ -66,7 +53,6 @@ export function AutomationPage() {
         <AutomationTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          pausedCount={pausedFlows.pausedFlows.length}
           productsCount={products.products.filter((p) => p.isActive).length}
         />
       </div>
@@ -105,18 +91,6 @@ export function AutomationPage() {
               </div>
             )}
           </div>
-        )}
-
-        {activeTab === 'paused' && (
-          <PausedFlowsGrid
-            flows={pausedFlows.pausedFlows}
-            loading={pausedFlows.loading}
-            resuming={pausedFlows.resuming}
-            resumingAll={pausedFlows.resumingAll}
-            onResume={pausedFlows.resumeFlow}
-            onResumeAll={pausedFlows.resumeAll}
-            onDelete={pausedFlows.deleteFlow}
-          />
         )}
 
         {activeTab === 'products' && (

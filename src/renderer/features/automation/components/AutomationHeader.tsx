@@ -8,8 +8,6 @@ interface AutomationHeaderProps {
   loading?: boolean
   onNewRun: () => void
   onRefresh: () => void
-  onResumeAll?: () => void
-  isResuming?: boolean
 }
 
 export function AutomationHeader({
@@ -17,11 +15,7 @@ export function AutomationHeader({
   loading,
   onNewRun,
   onRefresh,
-  onResumeAll,
-  isResuming,
 }: AutomationHeaderProps) {
-  // Check if there are active tasks
-  const hasActiveTasks = stats.queued > 0 || stats.running > 0
 
   return (
     <div className="space-y-4">
@@ -78,7 +72,7 @@ export function AutomationHeader({
         <div className="hidden sm:block w-px bg-[var(--color-border)] self-stretch my-1" />
 
         {/* Completed stats group */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:flex sm:gap-3 flex-1">
+        <div className="grid grid-cols-3 gap-3 sm:flex sm:gap-3 flex-1">
           <StatCard
             label="Done"
             value={stats.done}
@@ -100,30 +94,6 @@ export function AutomationHeader({
             size="compact"
             className="sm:w-28"
           />
-          <div className="flex items-center gap-2">
-            <StatCard
-              label="Paused"
-              value={stats.paused}
-              variant="warning"
-              size="compact"
-              className="flex-1 sm:w-28"
-            />
-            {stats.paused > 0 && onResumeAll && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onResumeAll}
-                disabled={isResuming}
-                className="h-full shrink-0"
-              >
-                {isResuming ? (
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  'Resume All'
-                )}
-              </Button>
-            )}
-          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { List, PauseCircle, Package } from 'lucide-react'
+import { List, Package } from 'lucide-react'
 import type { TabType } from '../types'
 
 interface Tab {
@@ -12,24 +12,16 @@ interface Tab {
 interface AutomationTabsProps {
   activeTab: TabType
   onTabChange: (tab: TabType) => void
-  pausedCount?: number
   productsCount?: number
 }
 
 export function AutomationTabs({
   activeTab,
   onTabChange,
-  pausedCount = 0,
   productsCount = 0,
 }: AutomationTabsProps) {
   const tabs: Tab[] = [
     { id: 'runs', label: 'Runs', icon: <List className="h-4 w-4" /> },
-    {
-      id: 'paused',
-      label: 'Paused Flows',
-      icon: <PauseCircle className="h-4 w-4" />,
-      count: pausedCount,
-    },
     {
       id: 'products',
       label: 'Products',

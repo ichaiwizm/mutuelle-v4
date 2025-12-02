@@ -81,7 +81,6 @@ export function useAutomation(): UseAutomationResult {
     done: 0,
     failed: 0,
     cancelled: 0,
-    paused: 0,
   })
 
   // Loading states
@@ -147,24 +146,13 @@ export function useAutomation(): UseAutomationResult {
 
       // Calculate stats from all runs
       const allRuns = result.runs
-      const newStats: AutomationStats = {
+      setStats({
         queued: allRuns.filter((r) => r.status === 'queued').length,
         running: allRuns.filter((r) => r.status === 'running').length,
         done: allRuns.filter((r) => r.status === 'done').length,
         failed: allRuns.filter((r) => r.status === 'failed').length,
         cancelled: allRuns.filter((r) => r.status === 'cancelled').length,
-        paused: 0, // Will be updated separately
-      }
-
-      // Get paused count
-      try {
-        const pausedFlows = await window.api.flowStates.listPaused()
-        newStats.paused = pausedFlows.length
-      } catch {
-        // Ignore error for paused count
-      }
-
-      setStats(newStats)
+      })
     } catch (err) {
       toast.error('Failed to load automation runs')
       console.error('Failed to fetch runs:', err)

@@ -1,6 +1,5 @@
 import type { Run, RunItem } from '@/shared/types/run'
 import type { ProductConfiguration } from '@/shared/types/product'
-import type { FlowStateDTO } from '@/shared/ipc/contracts'
 
 export type RunStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
@@ -14,7 +13,6 @@ export interface AutomationStats {
   done: number
   failed: number
   cancelled: number
-  paused: number
 }
 
 export type DateRangeFilter = 'all' | 'today' | '7days' | '30days'
@@ -26,15 +24,9 @@ export interface RunFilters {
   dateRange: DateRangeFilter
 }
 
-export interface PausedFlowWithLead extends FlowStateDTO {
-  leadName?: string
-  productName?: string
-  totalSteps?: number
-}
-
 export interface ProductWithStatus extends ProductConfiguration {
   isActive: boolean
   runsThisWeek?: number
 }
 
-export type TabType = 'runs' | 'paused' | 'products'
+export type TabType = 'runs' | 'products'
