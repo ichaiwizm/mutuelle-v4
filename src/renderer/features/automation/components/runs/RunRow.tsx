@@ -119,13 +119,18 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
               size="sm"
               onClick={onRetry}
               disabled={isRetrying}
-              title="Relancer"
-              className="h-8 w-8 p-0 text-[var(--color-text-muted)] hover:text-[var(--color-info)] hover:bg-[var(--color-info)]/10"
+              title={`Relancer ${run.failedCount || 0} item${(run.failedCount || 0) > 1 ? 's' : ''} échoué${(run.failedCount || 0) > 1 ? 's' : ''}`}
+              className="h-8 px-2 gap-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-info)] hover:bg-[var(--color-info)]/10"
             >
               {isRetrying ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <RefreshCw className="h-4 w-4" />
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="text-xs font-medium tabular-nums bg-[var(--color-error)]/20 text-[var(--color-error)] px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                    {run.failedCount || 0}
+                  </span>
+                </>
               )}
             </Button>
           )}

@@ -5,6 +5,7 @@ export type Run = {
   status: "queued" | "running" | "done" | "failed" | "cancelled";
   createdAt: Date | string;
   itemsCount?: number;
+  failedCount?: number;
 };
 
 export type RunItem = {

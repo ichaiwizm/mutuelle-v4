@@ -255,6 +255,7 @@ export const AutomationService = {
           status: schema.runs.status,
           createdAt: schema.runs.createdAt,
           itemsCount: sql<number>`(SELECT COUNT(*) FROM run_items WHERE run_items.run_id = runs.id)`,
+          failedCount: sql<number>`(SELECT COUNT(*) FROM run_items WHERE run_items.run_id = runs.id AND run_items.status IN ('failed', 'cancelled'))`,
         })
         .from(schema.runs)
         .orderBy(desc(schema.runs.createdAt))
@@ -270,6 +271,7 @@ export const AutomationService = {
         ...r,
         status: r.status as RunStatus,
         itemsCount: Number(r.itemsCount) || 0,
+        failedCount: Number(r.failedCount) || 0,
       })),
       total: Number(countResult[0]?.count) || 0,
     };
