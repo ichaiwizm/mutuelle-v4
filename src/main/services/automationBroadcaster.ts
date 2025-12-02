@@ -161,6 +161,20 @@ class AutomationBroadcasterImpl {
       error,
     });
   }
+
+  /**
+   * Emit run cancelled event
+   */
+  runCancelled(runId: string): void {
+    this.broadcast({ type: "run:cancelled", runId });
+  }
+
+  /**
+   * Emit item cancelled event
+   */
+  itemCancelled(runId: string, itemId: string): void {
+    this.broadcast({ type: "item:cancelled", runId, itemId });
+  }
 }
 
 // Singleton instance

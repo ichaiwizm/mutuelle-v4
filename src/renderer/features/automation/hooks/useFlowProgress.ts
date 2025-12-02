@@ -8,18 +8,19 @@ import type { RunItem } from "@/shared/types/run";
 
 export type LiveRunState = {
   runId: string;
-  status: "running" | "completed" | "failed";
+  status: "running" | "completed" | "failed" | "cancelled";
   items: Map<string, LiveItemState>;
   itemCount: number;
   completedCount: number;
   failedCount: number;
+  cancelledCount: number;
 };
 
 export type LiveItemState = {
   itemId: string;
   flowKey: string;
   leadId: string;
-  status: "queued" | "running" | "completed" | "failed";
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
   steps: StepProgress[];
   currentStepIndex: number;
   startedAt?: number;
@@ -74,6 +75,7 @@ export function useFlowProgress(options: UseFlowProgressOptions = {}) {
               itemCount: 0,
               completedCount: 0,
               failedCount: 0,
+              cancelledCount: 0,
             };
             next.set(runId, run);
           }
@@ -188,6 +190,45 @@ export function useFlowProgress(options: UseFlowProgressOptions = {}) {
               run.failedCount++;
 
               callbacksRef.current.onItemCompleted?.(event.runId, event.itemId, false);
+            }
+            break;
+          }
+
+          case "run:cancelled": {
+            const run = next.get(event.runId);
+            if (run) {
+              run.status = "cancelled";
+              // Mark all running/queued items as cancelled
+              for (const item of run.items.values()) {
+                if (item.status === "running" || item.status === "queued") {
+                  item.status = "cancelled";
+                  item.completedAt = Date.now();
+                  run.cancelledCount++;
+                  // Mark running/pending steps as cancelled
+                  for (const step of item.steps) {
+                    if (step.status === "running" || step.status === "pending") {
+                      step.status = "cancelled";
+                    }
+                  }
+                }
+              }
+            }
+            break;
+          }
+
+          case "item:cancelled": {
+            const run = next.get(event.runId);
+            const item = run?.items.get(event.itemId);
+            if (run && item) {
+              item.status = "cancelled";
+              item.completedAt = Date.now();
+              run.cancelledCount++;
+              // Mark running/pending steps as cancelled
+              for (const step of item.steps) {
+                if (step.status === "running" || step.status === "pending") {
+                  step.status = "cancelled";
+                }
+              }
             }
             break;
           }

@@ -21,5 +21,6 @@ export type FlowExecutionResult = {
   totalDuration: number;
   error?: Error;
   paused?: boolean;
+  aborted?: boolean;
   stateId?: string;
 };

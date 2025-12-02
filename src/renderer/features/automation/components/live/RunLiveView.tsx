@@ -70,9 +70,13 @@ export function RunLiveView({ runId, onBack }: RunLiveViewProps) {
     return () => clearInterval(interval);
   }, [runData?.status, liveRun?.status, fetchRunData]);
 
-  // Refresh when live run completes
+  // Refresh when live run completes or is cancelled
   useEffect(() => {
-    if (liveRun?.status === "completed" || liveRun?.status === "failed") {
+    if (
+      liveRun?.status === "completed" ||
+      liveRun?.status === "failed" ||
+      liveRun?.status === "cancelled"
+    ) {
       fetchRunData();
     }
   }, [liveRun?.status, fetchRunData]);
@@ -118,9 +122,10 @@ export function RunLiveView({ runId, onBack }: RunLiveViewProps) {
     const completed = mergedItems.filter((i) => i.status === "completed").length;
     const failed = mergedItems.filter((i) => i.status === "failed").length;
     const running = mergedItems.filter((i) => i.status === "running").length;
+    const cancelled = mergedItems.filter((i) => i.status === "cancelled").length;
     const total = mergedItems.length;
 
-    return { completed, failed, running, total };
+    return { completed, failed, running, cancelled, total };
   }, [mergedItems]);
 
   // Get selected item

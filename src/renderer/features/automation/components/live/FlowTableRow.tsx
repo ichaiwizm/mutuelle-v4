@@ -34,18 +34,30 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
   // Count screenshots
   const screenshotCount = item.steps.filter((s) => s.screenshot).length;
 
-  // Get elapsed time
+  // Get elapsed time - freeze if cancelled/completed/failed
   const elapsedTime = useMemo(() => {
+    // If we have a final duration, use it
     if (item.duration) return item.duration;
+
+    // If cancelled/completed/failed, calculate final duration from timestamps
+    if (item.status === "cancelled" || item.status === "completed" || item.status === "failed") {
+      if (item.startedAt && item.completedAt) {
+        return item.completedAt - item.startedAt;
+      }
+    }
+
+    // Still running - calculate live
     if (item.startedAt) return Date.now() - item.startedAt;
     return 0;
-  }, [item.duration, item.startedAt]);
+  }, [item.duration, item.startedAt, item.completedAt, item.status]);
 
   // Flow name formatted
   const flowName = item.flowKey.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   // Map status for StatusIndicator
   const statusForIndicator = item.status === "completed" ? "done" : item.status;
+
+  const isCancelled = item.status === "cancelled";
 
   const isRunning = item.status === "running";
 
@@ -56,7 +68,8 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
       className={cn(
         "cursor-pointer transition-all duration-200",
         isSelected && "bg-[var(--color-primary)]/5 ring-1 ring-inset ring-[var(--color-primary)]/30",
-        isRunning && !isSelected && "bg-cyan-500/5"
+        isRunning && !isSelected && "bg-cyan-500/5",
+        isCancelled && !isSelected && "bg-amber-500/5 opacity-70"
       )}
     >
       {/* Status */}
@@ -100,7 +113,8 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
                 item.status === "running" && "bg-cyan-500",
                 item.status === "completed" && "bg-emerald-500",
                 item.status === "failed" && "bg-red-500",
-                item.status === "queued" && "bg-blue-500"
+                item.status === "queued" && "bg-blue-500",
+                item.status === "cancelled" && "bg-amber-500"
               )}
               style={{ width: `${progress}%` }}
             />

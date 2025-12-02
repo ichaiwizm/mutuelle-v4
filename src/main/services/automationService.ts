@@ -1,5 +1,5 @@
 import { db, schema } from "../db";
-import { eq, desc, sql, and, ne } from "drizzle-orm";
+import { eq, desc, sql, and, ne, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { join, basename } from "node:path";
@@ -258,10 +258,12 @@ export const AutomationService = {
       return { cancelled: false };
     }
 
-    // Stop the pool if running
+    const cancellationTime = new Date();
+
+    // Abort the pool if running (this actually stops execution)
     const pool = activePools.get(runId);
     if (pool) {
-      pool.pauseAll();
+      await pool.abort();
       activePools.delete(runId);
     }
 
@@ -271,11 +273,19 @@ export const AutomationService = {
       .set({ status: "cancelled" })
       .where(eq(schema.runs.id, runId));
 
-    // Mark all not-finalized items as cancelled for consistency
+    // Mark only queued/running items as cancelled (don't touch completed/failed)
     await db
       .update(schema.runItems)
-      .set({ status: "cancelled" })
-      .where(eq(schema.runItems.runId, runId));
+      .set({ status: "cancelled", completedAt: cancellationTime })
+      .where(
+        and(
+          eq(schema.runItems.runId, runId),
+          inArray(schema.runItems.status, ["queued", "running"])
+        )
+      );
+
+    // Broadcast cancellation
+    AutomationBroadcaster.runCancelled(runId);
 
     return { cancelled: true };
   },
@@ -408,6 +418,22 @@ export const AutomationService = {
         );
       },
       onTaskComplete: async (taskId, result) => {
+        // Check if already cancelled - don't overwrite
+        const existingItem = await db
+          .select({ status: schema.runItems.status })
+          .from(schema.runItems)
+          .where(eq(schema.runItems.id, taskId))
+          .limit(1);
+
+        if (existingItem[0]?.status === "cancelled") {
+          return; // Don't overwrite cancelled status
+        }
+
+        // Check if this was an aborted flow
+        if (result.aborted) {
+          return; // Don't update, cancel() already handled it
+        }
+
         // Update item status
         await db
           .update(schema.runItems)

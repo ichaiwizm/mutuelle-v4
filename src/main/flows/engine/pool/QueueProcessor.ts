@@ -19,6 +19,7 @@ export class QueueProcessor {
   private deps: ProcessorDeps;
   private maxConcurrent: number;
   private isPaused = false;
+  private abortSignal: AbortSignal | null = null;
 
   constructor(deps: ProcessorDeps, maxConcurrent: number) {
     this.deps = deps;
@@ -31,6 +32,10 @@ export class QueueProcessor {
 
   resume(): void {
     this.isPaused = false;
+  }
+
+  setAbortSignal(signal: AbortSignal): void {
+    this.abortSignal = signal;
   }
 
   /**
@@ -47,12 +52,35 @@ export class QueueProcessor {
       const total = queue.length;
 
       const processNext = async (): Promise<void> => {
+        // Check for abort
+        if (this.abortSignal?.aborted) {
+          // Mark remaining queued tasks as cancelled
+          for (const task of queue) {
+            if (task.status === "queued") {
+              task.status = "cancelled";
+            }
+          }
+          resolve();
+          return;
+        }
+
         if (this.isPaused) {
           if (running === 0) resolve();
           return;
         }
 
         while (running < this.maxConcurrent && index < queue.length) {
+          // Check abort before starting each task
+          if (this.abortSignal?.aborted) {
+            for (const task of queue) {
+              if (task.status === "queued") {
+                task.status = "cancelled";
+              }
+            }
+            if (running === 0) resolve();
+            return;
+          }
+
           const task = queue[index];
           if (task.status !== "queued") {
             index++;
@@ -89,7 +117,7 @@ export class QueueProcessor {
     this.deps.emitter.emit("task:start", task.id);
 
     try {
-      return await worker.execute(task);
+      return await worker.execute(task, this.abortSignal ?? undefined);
     } finally {
       await worker.cleanup();
       await this.deps.browserManager.closeContext(context);

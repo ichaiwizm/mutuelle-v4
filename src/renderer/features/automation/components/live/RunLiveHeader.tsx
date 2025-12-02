@@ -21,6 +21,7 @@ type RunLiveHeaderProps = {
     completed: number;
     failed: number;
     running: number;
+    cancelled: number;
   };
   isRunning: boolean;
   cancelling?: boolean;
@@ -88,15 +89,18 @@ export function RunLiveHeader({
 }: RunLiveHeaderProps) {
   const overallProgress = useMemo(() => {
     if (stats.total === 0) return 0;
-    return Math.round(((stats.completed + stats.failed) / stats.total) * 100);
+    return Math.round(
+      ((stats.completed + stats.failed + stats.cancelled) / stats.total) * 100
+    );
   }, [stats]);
 
   const progressColor = useMemo(() => {
     if (isRunning) return "var(--color-info)";
+    if (stats.cancelled > 0) return "var(--color-warning)";
     if (stats.failed > 0 && stats.failed === stats.total) return "var(--color-error)";
     if (stats.failed > 0) return "var(--color-warning)";
     return "var(--color-success)";
-  }, [isRunning, stats.failed, stats.total]);
+  }, [isRunning, stats.failed, stats.cancelled, stats.total]);
 
   return (
     <div className="flex-shrink-0 border-b border-[var(--color-border)]">
@@ -161,7 +165,7 @@ export function RunLiveHeader({
           </div>
 
           {/* Stats using existing StatCard component */}
-          <div className="flex-1 grid grid-cols-4 gap-3">
+          <div className="flex-1 grid grid-cols-5 gap-3">
             <StatCard
               label="Total"
               value={stats.total}
@@ -185,6 +189,12 @@ export function RunLiveHeader({
               label="Échouées"
               value={stats.failed}
               variant="error"
+              size="compact"
+            />
+            <StatCard
+              label="Annulées"
+              value={stats.cancelled}
+              variant="warning"
               size="compact"
             />
           </div>

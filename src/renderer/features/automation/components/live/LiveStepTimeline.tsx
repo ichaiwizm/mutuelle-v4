@@ -8,6 +8,7 @@ import {
   SkipForward,
   Image as ImageIcon,
   ChevronRight,
+  Ban,
 } from "lucide-react";
 import type { StepProgress } from "@/shared/types/step-progress";
 
@@ -36,6 +37,8 @@ function getStatusIcon(status: StepProgress["status"], isActive: boolean) {
       return <Loader2 className={cn(baseClass, "text-cyan-400 animate-spin")} />;
     case "skipped":
       return <SkipForward className={cn(baseClass, "text-zinc-500")} />;
+    case "cancelled":
+      return <Ban className={cn(baseClass, "text-amber-400")} />;
     default:
       return (
         <Clock
@@ -74,6 +77,13 @@ function getStatusStyles(status: StepProgress["status"], isActive: boolean) {
         line: "bg-zinc-700",
         text: "text-zinc-500 line-through",
         bg: "",
+      };
+    case "cancelled":
+      return {
+        dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]",
+        line: "bg-amber-500/30",
+        text: "text-amber-400",
+        bg: "bg-amber-500/5",
       };
     default:
       return {

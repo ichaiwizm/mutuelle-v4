@@ -20,6 +20,7 @@ export class FlowEngine extends EventEmitter {
   private hooks: FlowHooks;
   private hooksManager: HooksManager;
   private pauseManager: PauseResumeManager;
+  private abortRequested = false;
 
   constructor(config?: FlowExecutionConfig) {
     super();
@@ -75,6 +76,11 @@ export class FlowEngine extends EventEmitter {
       await this.hooksManager.beforeFlow(baseContext);
 
       for (let i = startIndex; i < productConfig.steps.length; i++) {
+        // Check for abort before each step
+        if (this.abortRequested) {
+          throw new Error("Flow aborted");
+        }
+
         const stepDef = productConfig.steps[i];
         const stepCtx: ExecutionContext<T> = { ...context, flowKey, stepDefinition: stepDef, logger: logger.child({ stepId: stepDef.id }), services };
 
@@ -180,6 +186,8 @@ export class FlowEngine extends EventEmitter {
   requestPause(): void { this.pauseManager.requestPause(); }
   isPauseRequested(): boolean { return this.pauseManager.isPauseRequested; }
   getCurrentState(): FlowState | undefined { return this.pauseManager.state; }
+  requestAbort(): void { this.abortRequested = true; }
+  isAbortRequested(): boolean { return this.abortRequested; }
 
   static async resume<T = any>(stateId: string, context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger">, config?: Omit<FlowExecutionConfig, "stateId" | "enablePauseResume">): Promise<FlowExecutionResult> {
     const state = await flowStateService.getState(stateId);

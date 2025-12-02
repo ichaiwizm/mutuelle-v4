@@ -60,7 +60,7 @@ export type WorkerStatus = "idle" | "running" | "error" | "completed";
  */
 export type QueuedTask = FlowTask & {
   queuedAt: number;
-  status: "queued" | "running" | "completed" | "failed";
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
 };
 
 /**

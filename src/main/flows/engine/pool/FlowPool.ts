@@ -26,6 +26,7 @@ export class FlowPool extends EventEmitter {
   private config: FlowPoolConfig;
   private processor: QueueProcessor;
   private isRunning = false;
+  private abortController: AbortController | null = null;
 
   constructor(config?: FlowPoolConfig) {
     super();
@@ -65,6 +66,8 @@ export class FlowPool extends EventEmitter {
     if (this.queue.length === 0) return this.emptyResult();
 
     this.isRunning = true;
+    this.abortController = new AbortController();
+    this.processor.setAbortSignal(this.abortController.signal);
     this.processor.resume();
     const startTime = Date.now();
     const results = new Map<string, FlowExecutionResult>();
@@ -113,6 +116,26 @@ export class FlowPool extends EventEmitter {
     await this.browserManager.close();
     this.isRunning = false;
     this.queue = [];
+  }
+
+  /** Abort all running flows and cleanup resources immediately. */
+  async abort(): Promise<void> {
+    // Signal abort to all components
+    this.abortController?.abort();
+
+    // Abort all active workers
+    const abortPromises = Array.from(this.activeWorkers.values()).map((worker) =>
+      worker.abort().catch(() => {
+        /* ignore cleanup errors */
+      })
+    );
+    await Promise.all(abortPromises);
+
+    this.activeWorkers.clear();
+    await this.browserManager.close();
+    this.isRunning = false;
+    this.queue = [];
+    this.abortController = null;
   }
 
   get queueLength(): number {

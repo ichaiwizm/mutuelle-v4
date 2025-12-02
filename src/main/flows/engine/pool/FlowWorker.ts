@@ -13,6 +13,7 @@ export class FlowWorker {
   private page: Page | null = null;
   private engine: FlowEngine | null = null;
   private _status: WorkerStatus = "idle";
+  private isAborted = false;
 
   constructor(id: string, context: BrowserContext) {
     this.id = id;
@@ -37,10 +38,21 @@ export class FlowWorker {
    * Execute a flow task.
    * Creates a page, runs the flow, and returns the result.
    */
-  async execute(task: FlowTask): Promise<FlowExecutionResult> {
+  async execute(task: FlowTask, abortSignal?: AbortSignal): Promise<FlowExecutionResult> {
     this._status = "running";
+    this.isAborted = false;
+
+    // Listen for abort signal
+    if (abortSignal) {
+      abortSignal.addEventListener("abort", () => this.abort(), { once: true });
+    }
 
     try {
+      // Check if already aborted before starting
+      if (abortSignal?.aborted || this.isAborted) {
+        return this.createAbortedResult(task);
+      }
+
       // Create a new page for this flow
       this.page = await this.context.newPage();
 
@@ -58,26 +70,36 @@ export class FlowWorker {
         artifactsDir: task.artifactsDir,
       });
 
+      // Check if aborted during execution
+      if (this.isAborted) {
+        return this.createAbortedResult(task);
+      }
+
       this._status = result.success ? "completed" : "error";
       return result;
     } catch (error) {
+      // Check if this was an abort
+      if (this.isAborted) {
+        return this.createAbortedResult(task);
+      }
+
       this._status = "error";
 
       // Log the error that prevented flow execution
       const errorMsg = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
 
-      console.log('\n========================================');
-      console.log('FLOW WORKER ERROR');
-      console.log('========================================');
+      console.log("\n========================================");
+      console.log("FLOW WORKER ERROR");
+      console.log("========================================");
       console.log(`Flow: ${task.flowKey}`);
       console.log(`Lead ID: ${task.leadId?.substring(0, 8)}...`);
       console.log(`Error: ${errorMsg}`);
       if (errorStack) {
-        console.log('\nStack trace:');
+        console.log("\nStack trace:");
         console.log(errorStack);
       }
-      console.log('========================================\n');
+      console.log("========================================\n");
 
       // Return a failed result
       return {
@@ -89,6 +111,18 @@ export class FlowWorker {
         error: error instanceof Error ? error : new Error(String(error)),
       };
     }
+  }
+
+  private createAbortedResult(task: FlowTask): FlowExecutionResult {
+    return {
+      success: false,
+      flowKey: task.flowKey,
+      leadId: task.leadId,
+      steps: [],
+      totalDuration: 0,
+      error: new Error("Flow aborted"),
+      aborted: true,
+    };
   }
 
   /**
@@ -115,5 +149,21 @@ export class FlowWorker {
     }
     this.engine = null;
     this._status = "idle";
+  }
+
+  /**
+   * Abort the current flow execution immediately.
+   */
+  async abort(): Promise<void> {
+    if (this.isAborted) return;
+    this.isAborted = true;
+
+    // Signal the engine to abort
+    if (this.engine) {
+      this.engine.requestAbort();
+    }
+
+    // Clean up resources
+    await this.cleanup();
   }
 }
