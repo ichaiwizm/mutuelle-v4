@@ -6,6 +6,7 @@
  */
 
 export { FlowPool } from "./FlowPool";
+export { GlobalFlowPool } from "./GlobalFlowPool";
 export { FlowWorker } from "./FlowWorker";
 export { BrowserManager } from "./BrowserManager";
 export { QueueProcessor } from "./QueueProcessor";
@@ -19,3 +20,10 @@ export type {
   QueuedTask,
   FlowPoolEvents,
 } from "./types";
+
+export type {
+  GlobalPoolConfig,
+  GlobalTask,
+  TaskCallbacks,
+  RunHandle,
+} from "./types/global";

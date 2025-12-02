@@ -3,7 +3,7 @@ import { eq, desc, sql, and, ne, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { join, basename } from "node:path";
-import { FlowPool } from "../flows/engine";
+import { GlobalFlowPool } from "../flows/engine/pool/GlobalFlowPool";
 import { LeadsService } from "./leadsService";
 import { getUserDataDir } from "@/main/env";
 import { NotFoundError } from "@/shared/errors";
@@ -14,13 +14,11 @@ import type { FlowTask } from "../flows/engine";
 import type { FlowHooks } from "../flows/engine/types/hooks";
 import type { StepProgressData, StepProgress } from "@/shared/types/step-progress";
 import type { RunItem } from "@/shared/types/run";
+import type { TaskCallbacks } from "../flows/engine/pool/types/global";
 
 function artifactsRoot() {
   return join(getUserDataDir(), "artifacts");
 }
-
-// Track active pools by runId for cancellation
-const activePools = new Map<string, FlowPool>();
 
 export type RunStatus = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -294,12 +292,8 @@ export const AutomationService = {
 
     const cancellationTime = new Date();
 
-    // Abort the pool if running (this actually stops execution)
-    const pool = activePools.get(runId);
-    if (pool) {
-      await pool.abort();
-      activePools.delete(runId);
-    }
+    // Cancel the run in the global pool (removes pending tasks, aborts running ones)
+    await GlobalFlowPool.getInstance().cancelRun(runId);
 
     // Update run status
     await db
@@ -397,12 +391,10 @@ export const AutomationService = {
   },
 
   /**
-   * Enqueue flows for parallel execution
+   * Enqueue flows for parallel execution.
+   * Tasks are added to the global pool with a shared concurrency limit.
    */
-  async enqueue(
-    items: Array<{ flowKey: string; leadId: string }>,
-    options?: { maxConcurrent?: number }
-  ) {
+  async enqueue(items: Array<{ flowKey: string; leadId: string }>) {
     const runId = randomUUID();
     const now = new Date();
 
@@ -499,9 +491,9 @@ export const AutomationService = {
       return { runId, result: null };
     }
 
-    const pool = new FlowPool({
-      maxConcurrent: options?.maxConcurrent ?? 3,
-      onTaskStart: async (taskId) => {
+    // Create callbacks for the global pool
+    const callbacks: TaskCallbacks = {
+      onStart: async (taskId) => {
         const task = tasks.find((t) => t.id === taskId);
         if (!task) return;
 
@@ -523,7 +515,7 @@ export const AutomationService = {
           steps.map((s) => ({ id: s.id, name: s.name }))
         );
       },
-      onTaskComplete: async (taskId, result) => {
+      onComplete: async (taskId, result) => {
         // Check if already cancelled - don't overwrite
         const existingItem = await db
           .select({ status: schema.runItems.status })
@@ -552,7 +544,7 @@ export const AutomationService = {
 
         AutomationBroadcaster.itemCompleted(runId, taskId, result.success, result.totalDuration);
       },
-      onTaskError: async (taskId, error) => {
+      onError: async (taskId, error) => {
         await db
           .update(schema.runItems)
           .set({
@@ -564,57 +556,53 @@ export const AutomationService = {
 
         AutomationBroadcaster.itemFailed(runId, taskId, error.message);
       },
-    });
-
-    // Track pool for potential cancellation
-    activePools.set(runId, pool);
+    };
 
     // Broadcast run started
     AutomationBroadcaster.runStarted(runId, tasks.length);
-
-    // Enqueue tasks and start pool
-    pool.enqueue(tasks);
 
     await db
       .update(schema.runs)
       .set({ status: "running" })
       .where(eq(schema.runs.id, runId));
 
-    // Start pool execution in background (don't await!)
-    // This allows the IPC call to return immediately
-    pool.start().then(async (result) => {
-      try {
-        // Atomic update: only update status if not already cancelled
-        const finalStatus = result.failed > 0 ? "failed" : "done";
+    // Enqueue to global pool (returns when all tasks complete)
+    // Run in background so IPC call returns immediately
+    GlobalFlowPool.getInstance()
+      .enqueueRun(runId, tasks, callbacks)
+      .then(async () => {
+        // All tasks for this run completed - calculate final status
+        const items = await db
+          .select({ status: schema.runItems.status })
+          .from(schema.runItems)
+          .where(eq(schema.runItems.runId, runId));
 
-        console.log('\n========================================');
-        console.log('RUN COMPLETION');
-        console.log('========================================');
+        const failedCount = items.filter(
+          (i) => i.status === "failed" || i.status === "cancelled"
+        ).length;
+        const finalStatus = failedCount > 0 ? "failed" : "done";
+
+        console.log("\n========================================");
+        console.log("RUN COMPLETION");
+        console.log("========================================");
         console.log(`Run ID: ${runId}`);
-        console.log(`Total tasks: ${result.total}`);
-        console.log(`Successful: ${result.successful}`);
-        console.log(`Failed: ${result.failed}`);
+        console.log(`Total tasks: ${items.length}`);
+        console.log(`Failed/Cancelled: ${failedCount}`);
         console.log(`Final status: ${finalStatus.toUpperCase()}`);
-        console.log('========================================\n');
+        console.log("========================================\n");
 
+        // Atomic update: only update status if not already cancelled
         await db
           .update(schema.runs)
           .set({ status: finalStatus })
-          .where(and(
-            eq(schema.runs.id, runId),
-            ne(schema.runs.status, "cancelled")
-          ));
+          .where(and(eq(schema.runs.id, runId), ne(schema.runs.status, "cancelled")));
 
         // Broadcast run completed
-        AutomationBroadcaster.runCompleted(runId, result.failed === 0);
-      } finally {
-        // Always clean up tracking
-        activePools.delete(runId);
-      }
-    }).catch((error) => {
-      console.error(`Pool execution failed for run ${runId}:`, error);
-      activePools.delete(runId);
-    });
+        AutomationBroadcaster.runCompleted(runId, failedCount === 0);
+      })
+      .catch((error) => {
+        console.error(`Pool execution failed for run ${runId}:`, error);
+      });
 
     // Return immediately so the UI can navigate to the live view
     return { runId, result: null };
@@ -625,15 +613,8 @@ export const AutomationService = {
    * This ensures runs don't stay "running" forever in DB when app closes.
    */
   async cleanupOnShutdown(): Promise<void> {
-    // 1. Abort all active pools
-    for (const [runId, pool] of activePools) {
-      try {
-        await pool.abort();
-      } catch (e) {
-        console.error(`Failed to abort pool for run ${runId}:`, e);
-      }
-    }
-    activePools.clear();
+    // 1. Shutdown the global pool (cancels all runs, closes browser)
+    await GlobalFlowPool.getInstance().shutdown();
 
     const cancellationTime = new Date();
 
