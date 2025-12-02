@@ -1,4 +1,8 @@
-import { chromium } from "playwright";
+import { chromium } from "playwright-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+// Apply stealth plugin to avoid headless detection
+chromium.use(StealthPlugin());
 import type { FlowExecutionResult } from "../flows/engine";
 import { FlowEngine } from "../flows/engine";
 import { flowStateService } from "../flows/state";

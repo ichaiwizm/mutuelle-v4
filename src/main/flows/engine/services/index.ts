@@ -26,12 +26,12 @@ export { createSwissLifeServices, resetSwissLifeServices };
 /**
  * Get platform name from flow key
  */
-function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslifeone" {
+function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" {
   if (flowKey.startsWith("alptis_")) {
     return "alptis";
   }
   if (flowKey.startsWith("swisslife_")) {
-    return "swisslifeone";
+    return "swisslife";
   }
   throw new Error(`Unknown platform for flow: ${flowKey}`);
 }

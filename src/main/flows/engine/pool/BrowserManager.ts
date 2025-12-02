@@ -1,4 +1,8 @@
-import { chromium, type Browser, type BrowserContext, type LaunchOptions } from "playwright";
+import { chromium, type Browser, type BrowserContext, type LaunchOptions } from "playwright-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+// Apply stealth plugin to avoid headless detection
+chromium.use(StealthPlugin());
 
 /**
  * Manages a single browser instance and creates isolated contexts for parallel flow execution.
