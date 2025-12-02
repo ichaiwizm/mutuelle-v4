@@ -12,6 +12,7 @@ export type RunItem = {
   runId: string;
   flowKey: string;
   leadId: string;
+  leadName?: string;
   status: string;
   artifactsDir: string;
   stepsData?: StepProgressData | null;

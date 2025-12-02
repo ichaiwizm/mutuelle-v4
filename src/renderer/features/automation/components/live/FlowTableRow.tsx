@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TableRow, TableCell } from "@/renderer/components/ui/Table";
 import { StatusIndicator } from "../shared/StatusIndicator";
-import { Camera, Hash } from "lucide-react";
+import { User } from "lucide-react";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
 import { useElapsedTime } from "../../hooks/useElapsedTime";
 
@@ -35,9 +35,6 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
   const totalSteps = item.steps.length;
   const progress = totalSteps > 0 ? Math.round(((completedSteps + failedSteps) / totalSteps) * 100) : 0;
 
-  // Count screenshots
-  const screenshotCount = item.steps.filter((s) => s.screenshot).length;
-
   // Get elapsed time - updates every second when running
   const elapsedTime = useElapsedTime(
     item.startedAt,
@@ -57,9 +54,9 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
       index={index}
       onClick={onClick}
       className={cn(
-        "cursor-pointer transition-all duration-300",
+        "cursor-pointer transition-all duration-200",
         isSelected && "bg-[var(--color-primary)]/5 ring-1 ring-inset ring-[var(--color-primary)]/30",
-        isRunning && !isSelected && "bg-cyan-500/5 border-l-2 border-l-cyan-500",
+        isRunning && !isSelected && "bg-cyan-500/5",
         isCancelled && !isSelected && "bg-amber-500/5 opacity-70"
       )}
     >
@@ -68,29 +65,20 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
         <StatusIndicator status={statusForIndicator as any} size="md" />
       </TableCell>
 
-      {/* Flow name with Live badge */}
+      {/* Flow name - no redundant Live badge */}
       <TableCell>
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-[var(--color-text-primary)]">
-            {flowName}
-          </span>
-          {isRunning && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
-              </span>
-              <span className="text-xs text-cyan-400 font-medium">Live</span>
-            </div>
-          )}
-        </div>
+        <span className="font-medium text-[var(--color-text-primary)]">
+          {flowName}
+        </span>
       </TableCell>
 
-      {/* Lead ID */}
+      {/* Lead name */}
       <TableCell>
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] w-fit">
-          <Hash className="h-3 w-3" />
-          <span className="font-mono text-xs">{item.leadId.slice(0, 8)}</span>
+        <div className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
+          <User className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
+          <span className="text-sm truncate max-w-[180px]">
+            {item.leadName || "Lead inconnu"}
+          </span>
         </div>
       </TableCell>
 
@@ -116,7 +104,7 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
         </div>
       </TableCell>
 
-      {/* Duration */}
+      {/* Duration - single pulsing dot when running */}
       <TableCell className="text-right">
         <div className={cn(
           "inline-flex items-center gap-1.5 font-mono text-sm",
@@ -130,18 +118,6 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
           )}
           <span className="tabular-nums">{formatDuration(elapsedTime)}</span>
         </div>
-      </TableCell>
-
-      {/* Screenshot count */}
-      <TableCell className="text-center">
-        {screenshotCount > 0 ? (
-          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
-            <Camera className="h-3.5 w-3.5" />
-            <span className="text-xs tabular-nums font-medium">{screenshotCount}</span>
-          </div>
-        ) : (
-          <span className="text-[var(--color-text-muted)]">-</span>
-        )}
       </TableCell>
     </TableRow>
   );

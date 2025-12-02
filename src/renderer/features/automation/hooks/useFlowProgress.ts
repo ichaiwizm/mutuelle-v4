@@ -20,6 +20,7 @@ export type LiveItemState = {
   itemId: string;
   flowKey: string;
   leadId: string;
+  leadName?: string;
   status: "queued" | "running" | "completed" | "failed" | "cancelled";
   steps: StepProgress[];
   currentStepIndex: number;

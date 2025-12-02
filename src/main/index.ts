@@ -10,6 +10,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { db } from './db'
 import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
+import { AutomationService } from './services/automationService'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -91,3 +92,17 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
+
+// Cleanup running automations before quitting
+let isCleaningUp = false
+app.on('before-quit', async (event) => {
+  if (isCleaningUp) return
+  isCleaningUp = true
+  event.preventDefault()
+  try {
+    await AutomationService.cleanupOnShutdown()
+  } catch (e) {
+    console.error('[SHUTDOWN] Cleanup error:', e)
+  }
+  app.exit(0)
+})

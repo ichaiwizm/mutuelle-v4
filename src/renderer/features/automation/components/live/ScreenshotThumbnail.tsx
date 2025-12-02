@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/renderer/components/ui/Skeleton";
 import { Camera, AlertCircle } from "lucide-react";
@@ -23,34 +23,33 @@ export function ScreenshotThumbnail({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
-  const loadedRef = useRef(false);
+  const hasTriedLoading = useRef(false);
 
-  const loadThumbnail = useCallback(async () => {
-    if (loadedRef.current || loading || imageData) return;
-
-    loadedRef.current = true;
-    setLoading(true);
-    setError(false);
-
-    try {
-      const data = await window.api.automation.readScreenshot(path);
-      if (data) {
-        thumbnailCache.set(path, data);
-        setImageData(data);
-      } else {
-        setError(true);
-      }
-    } catch (err) {
-      console.error("Failed to load thumbnail:", err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [path, loading, imageData]);
-
-  // Lazy load with IntersectionObserver
+  // Load thumbnail when component becomes visible
   useEffect(() => {
-    if (imageData) return; // Already loaded
+    // Skip if already loaded or already tried
+    if (imageData || hasTriedLoading.current) return;
+
+    const loadThumbnail = async () => {
+      hasTriedLoading.current = true;
+      setLoading(true);
+      setError(false);
+
+      try {
+        const data = await window.api.automation.readScreenshot(path);
+        if (data) {
+          thumbnailCache.set(path, data);
+          setImageData(data);
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error("Failed to load thumbnail:", path, err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -59,7 +58,7 @@ export function ScreenshotThumbnail({
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "50px" }
+      { threshold: 0.1, rootMargin: "100px" }
     );
 
     if (ref.current) {
@@ -67,7 +66,7 @@ export function ScreenshotThumbnail({
     }
 
     return () => observer.disconnect();
-  }, [loadThumbnail, imageData]);
+  }, [path, imageData]);
 
   return (
     <button

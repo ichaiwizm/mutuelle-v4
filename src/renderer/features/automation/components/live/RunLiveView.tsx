@@ -87,6 +87,7 @@ export function RunLiveView({ runId, onBack }: RunLiveViewProps) {
       itemId: item.id,
       flowKey: item.flowKey,
       leadId: item.leadId,
+      leadName: item.leadName,
       status: item.status as LiveItemState["status"],
       steps: item.stepsData?.steps ?? [],
       currentStepIndex: item.stepsData?.currentStepIndex ?? 0,

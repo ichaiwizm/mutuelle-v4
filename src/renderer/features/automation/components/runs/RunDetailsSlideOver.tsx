@@ -161,7 +161,7 @@ export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlid
                   <TimelineItem
                     key={item.id}
                     title={item.flowKey.replace(/_/g, ' ')}
-                    description={`Lead: ${item.leadId.slice(0, 12)}...`}
+                    description={item.leadName || "Lead inconnu"}
                     status={getTimelineStatus(item.status)}
                     isLast={index === details.items.length - 1}
                   />
@@ -190,7 +190,7 @@ export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlid
                       className="w-full justify-start"
                     >
                       <Folder className="h-4 w-4" />
-                      {item.flowKey} - {item.leadId.slice(0, 8)}
+                      {item.flowKey} - {item.leadName || "Lead inconnu"}
                     </Button>
                   ))}
               </div>

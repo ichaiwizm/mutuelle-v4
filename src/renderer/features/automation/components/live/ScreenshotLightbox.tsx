@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/renderer/components/ui/Button";
 import {
@@ -11,6 +11,77 @@ import {
   ZoomOut,
   RotateCcw,
 } from "lucide-react";
+
+// Cache for thumbnail images
+const thumbnailCache = new Map<string, string>();
+
+// Mini thumbnail component for the lightbox strip
+function LightboxThumbnail({
+  path,
+  isActive,
+  onClick,
+  index,
+}: {
+  path: string;
+  isActive: boolean;
+  onClick: () => void;
+  index: number;
+}) {
+  const [imageData, setImageData] = useState<string | null>(() => thumbnailCache.get(path) ?? null);
+  const [loading, setLoading] = useState(false);
+  const hasTriedLoading = useRef(false);
+
+  useEffect(() => {
+    if (imageData || hasTriedLoading.current) return;
+
+    const loadThumbnail = async () => {
+      hasTriedLoading.current = true;
+      setLoading(true);
+      try {
+        const data = await window.api.automation.readScreenshot(path);
+        if (data) {
+          thumbnailCache.set(path, data);
+          setImageData(data);
+        }
+      } catch (err) {
+        console.error("Failed to load lightbox thumbnail:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadThumbnail();
+  }, [path, imageData]);
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-16 h-12 rounded overflow-hidden border-2 transition-all flex-shrink-0",
+        "bg-zinc-800",
+        isActive
+          ? "border-cyan-500 ring-2 ring-cyan-500/30"
+          : "border-transparent hover:border-zinc-600"
+      )}
+    >
+      {loading ? (
+        <div className="w-full h-full flex items-center justify-center">
+          <Loader2 className="h-3 w-3 text-zinc-400 animate-spin" />
+        </div>
+      ) : imageData ? (
+        <img
+          src={imageData}
+          alt={`Thumbnail ${index + 1}`}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-xs text-zinc-400">
+          {index + 1}
+        </div>
+      )}
+    </button>
+  );
+}
 
 type Screenshot = {
   path: string;
@@ -256,21 +327,13 @@ export function ScreenshotLightbox({
         >
           <div className="flex justify-center gap-2 overflow-x-auto py-2">
             {screenshots.map((screenshot, index) => (
-              <button
+              <LightboxThumbnail
                 key={screenshot.path}
+                path={screenshot.path}
+                isActive={index === currentIndex}
                 onClick={() => setCurrentIndex(index)}
-                className={cn(
-                  "w-16 h-12 rounded overflow-hidden border-2 transition-all flex-shrink-0",
-                  "bg-zinc-800",
-                  index === currentIndex
-                    ? "border-cyan-500 ring-2 ring-cyan-500/30"
-                    : "border-transparent hover:border-zinc-600"
-                )}
-              >
-                <div className="w-full h-full flex items-center justify-center text-xs text-zinc-400">
-                  {index + 1}
-                </div>
-              </button>
+                index={index}
+              />
             ))}
           </div>
         </div>

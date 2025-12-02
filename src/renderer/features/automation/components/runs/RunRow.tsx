@@ -25,10 +25,10 @@ function formatTimeAgo(date: Date | string): string {
   const diffHours = Math.floor(diffMins / 60)
   const diffDays = Math.floor(diffHours / 24)
 
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7) return `${diffDays}d ago`
+  if (diffMins < 1) return 'À l\'instant'
+  if (diffMins < 60) return `il y a ${diffMins}min`
+  if (diffHours < 24) return `il y a ${diffHours}h`
+  if (diffDays < 7) return `il y a ${diffDays}j`
 
   return d.toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -53,7 +53,6 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
   const canCancel = run.status === 'running' || run.status === 'queued'
   const canRetry = run.status === 'failed' || run.status === 'cancelled'
   const canDelete = run.status === 'done' || run.status === 'failed' || run.status === 'cancelled'
-  const isRunning = run.status === 'running'
 
   const handleViewRun = () => {
     navigate(`/automation/runs/${run.id}`)
@@ -61,63 +60,43 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
 
   return (
     <TableRow
-      className="hover:bg-[var(--color-surface-hover)] animate-table-row-in cursor-pointer"
+      className="hover:bg-[var(--color-surface-hover)] animate-table-row-in cursor-pointer group"
       style={{ '--row-index': index } as React.CSSProperties}
       onClick={handleViewRun}
     >
-      {/* Run info - ID badge + items summary */}
+      {/* Run info - ID badge + items count */}
       <TableCell>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
             <Hash className="h-3 w-3" />
             <span className="font-mono text-xs">{run.id.slice(0, 8)}</span>
           </div>
-          {run.itemsCount && run.itemsCount > 0 && (
+          {Number(run.itemsCount) > 0 && (
             <span className="text-sm text-[var(--color-text-secondary)]">
-              {run.itemsCount} tâche{run.itemsCount > 1 ? 's' : ''}
+              {run.itemsCount} tâche{Number(run.itemsCount) > 1 ? 's' : ''}
             </span>
           )}
         </div>
       </TableCell>
 
-      {/* Status with inline progress for running */}
+      {/* Status - just the indicator, no redundant badge */}
       <TableCell>
-        <div className="flex items-center gap-2">
-          <StatusIndicator status={run.status as any} showLabel size="md" />
-          {isRunning && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
-              </span>
-              <span className="text-xs text-cyan-400 font-medium">Live</span>
-            </div>
-          )}
-        </div>
-      </TableCell>
-
-      {/* Items count - with progress indicator for running */}
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <span className={cn(
-            "tabular-nums",
-            run.status === 'running' ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"
-          )}>
-            {run.itemsCount ?? '-'}
-          </span>
-        </div>
+        <StatusIndicator status={run.status as any} showLabel size="md" />
       </TableCell>
 
       {/* Created - relative with absolute tooltip */}
-      <TableCell className="text-[var(--color-text-muted)]">
+      <TableCell className="text-[var(--color-text-muted)] text-sm">
         <span title={formatAbsoluteTime(run.createdAt)}>
           {formatTimeAgo(run.createdAt)}
         </span>
       </TableCell>
 
-      {/* Actions */}
+      {/* Actions - fixed width, visually separated */}
       <TableCell>
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center justify-end gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           {canCancel && (
             <Button
               variant="ghost"
@@ -125,7 +104,7 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
               onClick={onCancel}
               disabled={isCancelling}
               title={run.status === 'running' ? 'Arrêter' : 'Annuler'}
-              className="text-[var(--color-error)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+              className="h-8 w-8 p-0 text-[var(--color-text-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
             >
               {isCancelling ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -140,8 +119,8 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
               size="sm"
               onClick={onRetry}
               disabled={isRetrying}
-              title="Relancer les échoués"
-              className="text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info)]/10"
+              title="Relancer"
+              className="h-8 w-8 p-0 text-[var(--color-text-muted)] hover:text-[var(--color-info)] hover:bg-[var(--color-info)]/10"
             >
               {isRetrying ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -157,7 +136,7 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
               onClick={onDelete}
               disabled={isDeleting}
               title="Supprimer"
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+              className="h-8 w-8 p-0 text-[var(--color-text-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
             >
               {isDeleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -165,6 +144,10 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
                 <Trash2 className="h-4 w-4" />
               )}
             </Button>
+          )}
+          {/* Placeholder to maintain consistent width when no actions */}
+          {!canCancel && !canRetry && !canDelete && (
+            <div className="w-8 h-8" />
           )}
         </div>
       </TableCell>

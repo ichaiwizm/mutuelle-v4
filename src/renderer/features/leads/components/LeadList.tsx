@@ -11,13 +11,49 @@ import { Button } from "@/renderer/components/ui/Button";
 import { Card } from "@/renderer/components/ui/Card";
 import { EmptyState } from "@/renderer/components/ui/EmptyState";
 import { Skeleton } from "@/renderer/components/ui/Skeleton";
-import { Eye, Edit2, Trash2, Users, Baby } from "lucide-react";
+import { Eye, Edit2, Trash2, Users, Baby, Check, Minus } from "lucide-react";
 import type { Lead } from "@/shared/types/lead";
 import { parseLeadRow, type LeadRow } from "../hooks/useLeads";
+
+/**
+ * Custom Checkbox component
+ */
+function Checkbox({
+  checked,
+  indeterminate,
+  onChange,
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+      className={`
+        w-4 h-4 rounded border flex items-center justify-center transition-all
+        ${
+          checked || indeterminate
+            ? "bg-[var(--color-primary)] border-[var(--color-primary)]"
+            : "border-[var(--color-border)] hover:border-[var(--color-primary)]"
+        }
+      `}
+    >
+      {checked && <Check className="w-3 h-3 text-white" />}
+      {indeterminate && !checked && <Minus className="w-3 h-3 text-white" />}
+    </button>
+  );
+}
 
 interface LeadListProps {
   leads: LeadRow[];
   loading?: boolean;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
   onView: (lead: Lead) => void;
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
@@ -39,7 +75,16 @@ function formatDate(date: Date | string): string {
 /**
  * Lead List Component
  */
-export function LeadList({ leads, loading, onView, onEdit, onDelete, onCreate }: LeadListProps) {
+export function LeadList({
+  leads,
+  loading,
+  selectedIds = new Set(),
+  onSelectionChange,
+  onView,
+  onEdit,
+  onDelete,
+  onCreate,
+}: LeadListProps) {
   // Parse all leads (using shared parseLeadRow with error handling)
   const parsedLeads = useMemo(() => {
     return leads.map((row) => ({
@@ -47,6 +92,38 @@ export function LeadList({ leads, loading, onView, onEdit, onDelete, onCreate }:
       lead: parseLeadRow(row),
     }));
   }, [leads]);
+
+  // Check if all visible leads are selected
+  const allSelected = parsedLeads.length > 0 && parsedLeads.every(({ row }) => selectedIds.has(row.id));
+  const someSelected = parsedLeads.some(({ row }) => selectedIds.has(row.id));
+
+  // Handle select all toggle
+  const handleSelectAll = () => {
+    if (!onSelectionChange) return;
+    if (allSelected) {
+      // Deselect all visible leads
+      const newSelection = new Set(selectedIds);
+      parsedLeads.forEach(({ row }) => newSelection.delete(row.id));
+      onSelectionChange(newSelection);
+    } else {
+      // Select all visible leads
+      const newSelection = new Set(selectedIds);
+      parsedLeads.forEach(({ row }) => newSelection.add(row.id));
+      onSelectionChange(newSelection);
+    }
+  };
+
+  // Handle individual row toggle
+  const handleToggleRow = (id: string) => {
+    if (!onSelectionChange) return;
+    const newSelection = new Set(selectedIds);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
+    } else {
+      newSelection.add(id);
+    }
+    onSelectionChange(newSelection);
+  };
 
   if (loading) {
     return (
@@ -82,6 +159,15 @@ export function LeadList({ leads, loading, onView, onEdit, onDelete, onCreate }:
       <Table>
         <TableHeader>
           <TableRow>
+            {onSelectionChange && (
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={someSelected && !allSelected}
+                  onChange={handleSelectAll}
+                />
+              </TableHead>
+            )}
             <TableHead>Nom</TableHead>
             <TableHead>Date de naissance</TableHead>
             <TableHead>Code postal</TableHead>
@@ -94,7 +180,20 @@ export function LeadList({ leads, loading, onView, onEdit, onDelete, onCreate }:
         </TableHeader>
         <TableBody>
           {parsedLeads.map(({ row, lead }) => (
-            <TableRow key={row.id} className="hover:bg-[var(--color-surface-hover)]">
+            <TableRow
+              key={row.id}
+              className={`hover:bg-[var(--color-surface-hover)] ${
+                selectedIds.has(row.id) ? "bg-[var(--color-primary)]/5" : ""
+              }`}
+            >
+              {onSelectionChange && (
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.has(row.id)}
+                    onChange={() => handleToggleRow(row.id)}
+                  />
+                </TableCell>
+              )}
               {/* Nom complet */}
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">

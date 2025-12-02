@@ -5,7 +5,6 @@ import {
   TableBody,
   TableRow,
   TableHead,
-  TableCell,
 } from '@/renderer/components/ui/Table'
 import { Card } from '@/renderer/components/ui/Card'
 import { EmptyState } from '@/renderer/components/ui/EmptyState'
@@ -15,7 +14,7 @@ import { cn } from '@/lib/utils'
 import { RunRow } from './RunRow'
 import type { Run } from '@/shared/types/run'
 
-type SortColumn = 'status' | 'itemsCount' | 'createdAt'
+type SortColumn = 'status' | 'createdAt'
 type SortDirection = 'asc' | 'desc'
 
 interface SortConfig {
@@ -46,12 +45,44 @@ const STATUS_PRIORITY: Record<string, number> = {
 
 function SortIcon({ column, sortConfig }: { column: SortColumn; sortConfig: SortConfig }) {
   if (sortConfig.column !== column) {
-    return <ChevronsUpDown className="h-4 w-4 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+    return <ChevronsUpDown className="h-3.5 w-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
   }
   return sortConfig.direction === 'asc' ? (
-    <ChevronUp className="h-4 w-4 text-[var(--color-primary)]" />
+    <ChevronUp className="h-3.5 w-3.5 text-[var(--color-primary)]" />
   ) : (
-    <ChevronDown className="h-4 w-4 text-[var(--color-primary)]" />
+    <ChevronDown className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+  )
+}
+
+// Skeleton that mimics the actual table structure
+function TableSkeleton() {
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b border-[var(--color-border)] px-4 py-3">
+        <div className="flex items-center gap-8">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-16 ml-auto" />
+        </div>
+      </div>
+      <div className="divide-y divide-[var(--color-border)]">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="px-4 py-3 flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <Skeleton className="h-7 w-28 rounded-md" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+            <Skeleton className="h-4 w-16" />
+            <div className="flex items-center gap-1">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }
 
@@ -76,10 +107,8 @@ export function RunsTable({
   const handleSort = useCallback((column: SortColumn) => {
     setSortConfig((prev) => {
       if (prev.column === column) {
-        // Toggle direction if same column
         return { column, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
       }
-      // Default to desc for new column
       return { column, direction: 'desc' }
     })
   }, [])
@@ -95,9 +124,6 @@ export function RunsTable({
         case 'status':
           comparison = (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99)
           break
-        case 'itemsCount':
-          comparison = (a.itemsCount ?? 0) - (b.itemsCount ?? 0)
-          break
         case 'createdAt':
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           break
@@ -108,27 +134,17 @@ export function RunsTable({
   }, [runs, sortConfig])
 
   if (loading) {
-    return (
-      <Card className="p-4">
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4">
-              <Skeleton className="h-12 flex-1" />
-            </div>
-          ))}
-        </div>
-      </Card>
-    )
+    return <TableSkeleton />
   }
 
   if (runs.length === 0) {
     return (
       <EmptyState
         icon={<Zap className="h-8 w-8" />}
-        title="No automation runs"
-        description="Start your first automation to see runs appear here."
+        title="Aucune exécution"
+        description="Lancez votre première automatisation pour voir les exécutions apparaître ici."
         action={{
-          label: 'New Run',
+          label: 'Nouvelle exécution',
           onClick: onNewRun,
         }}
       />
@@ -140,35 +156,26 @@ export function RunsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-48">Run</TableHead>
+            <TableHead className="w-56">Exécution</TableHead>
             <TableHead
-              className="cursor-pointer group select-none"
+              className="cursor-pointer group select-none w-32"
               onClick={() => handleSort('status')}
             >
-              <div className="flex items-center gap-1">
-                Status
+              <div className="flex items-center gap-1.5">
+                Statut
                 <SortIcon column="status" sortConfig={sortConfig} />
               </div>
             </TableHead>
             <TableHead
-              className="cursor-pointer group select-none"
-              onClick={() => handleSort('itemsCount')}
-            >
-              <div className="flex items-center gap-1">
-                Items
-                <SortIcon column="itemsCount" sortConfig={sortConfig} />
-              </div>
-            </TableHead>
-            <TableHead
-              className="cursor-pointer group select-none"
+              className="cursor-pointer group select-none w-28"
               onClick={() => handleSort('createdAt')}
             >
-              <div className="flex items-center gap-1">
-                Created
+              <div className="flex items-center gap-1.5">
+                Créé
                 <SortIcon column="createdAt" sortConfig={sortConfig} />
               </div>
             </TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead className="w-28 text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

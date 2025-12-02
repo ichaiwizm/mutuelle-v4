@@ -1,5 +1,5 @@
 import { db, schema } from "../db";
-import { eq, desc, sql, like, or } from "drizzle-orm";
+import { eq, desc, sql, like, or, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { NotFoundError, ValidationError } from "@/shared/errors";
 
@@ -88,6 +88,34 @@ export const LeadsService = {
    */
   async getById(id: string): Promise<Lead | null> {
     return this.get(id);
+  },
+
+  /**
+   * Get multiple leads by their IDs.
+   * Returns a Map of leadId -> Lead for efficient lookup.
+   */
+  async getByIds(ids: string[]): Promise<Map<string, Lead>> {
+    if (ids.length === 0) return new Map();
+
+    // Filter valid UUIDs
+    const validIds = ids.filter((id) => UUID_RE.test(id));
+    if (validIds.length === 0) return new Map();
+
+    const rows = await db
+      .select()
+      .from(schema.leads)
+      .where(inArray(schema.leads.id, validIds));
+
+    const result = new Map<string, Lead>();
+    for (const row of rows) {
+      try {
+        const lead = JSON.parse(row.data) as Lead;
+        result.set(row.id, lead);
+      } catch {
+        // Skip invalid JSON
+      }
+    }
+    return result;
   },
 
   /**

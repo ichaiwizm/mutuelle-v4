@@ -3,12 +3,13 @@ import { Button } from "@/renderer/components/ui/Button";
 import { SlideOver } from "@/renderer/components/ui/SlideOver";
 import { Dialog, DialogHeader } from "@/renderer/components/ui/Dialog";
 import { Pagination } from "@/renderer/components/ui/Pagination";
-import { UserPlus, RefreshCw } from "lucide-react";
+import { UserPlus, RefreshCw, Rocket, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLeads, parseLeadRow } from "@/renderer/features/leads/hooks/useLeads";
 import { LeadList } from "@/renderer/features/leads/components/LeadList";
 import { LeadForm } from "@/renderer/features/leads/components/LeadForm";
 import { LeadDetails } from "@/renderer/features/leads/components/LeadDetails";
+import { NewRunModal } from "@/renderer/features/automation/components/NewRunModal";
 import type { Lead } from "@/shared/types/lead";
 
 export function LeadsPage() {
@@ -35,6 +36,12 @@ export function LeadsPage() {
 
   // Delete confirmation state
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  // Selection state for bulk actions
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
+
+  // Automation modal state
+  const [automationModalOpen, setAutomationModalOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -192,6 +199,35 @@ export function LeadsPage() {
     setCurrentPage(page);
   }, []);
 
+  /**
+   * Clear selection
+   */
+  const handleClearSelection = useCallback(() => {
+    setSelectedLeadIds(new Set());
+  }, []);
+
+  /**
+   * Open automation modal with selected leads
+   */
+  const handleSendToAutomation = useCallback(() => {
+    setAutomationModalOpen(true);
+  }, []);
+
+  /**
+   * Close automation modal and clear selection on success
+   */
+  const handleAutomationModalClose = useCallback(() => {
+    setAutomationModalOpen(false);
+  }, []);
+
+  /**
+   * On automation run created, clear selection
+   */
+  const handleAutomationSuccess = useCallback(() => {
+    setSelectedLeadIds(new Set());
+    setAutomationModalOpen(false);
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -226,12 +262,42 @@ export function LeadsPage() {
         <LeadList
           leads={leads}
           loading={loading}
+          selectedIds={selectedLeadIds}
+          onSelectionChange={setSelectedLeadIds}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onCreate={handleCreate}
         />
       </div>
+
+      {/* Floating action bar when leads are selected */}
+      {selectedLeadIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-3 px-4 py-3 bg-[var(--color-surface-elevated)] border border-[var(--color-border)] rounded-lg shadow-lg">
+            <span className="text-sm text-[var(--color-text-secondary)]">
+              {selectedLeadIds.size} lead{selectedLeadIds.size > 1 ? "s" : ""} sélectionné{selectedLeadIds.size > 1 ? "s" : ""}
+            </span>
+            <div className="w-px h-5 bg-[var(--color-border)]" />
+            <Button
+              size="sm"
+              onClick={handleSendToAutomation}
+              className="gap-2"
+            >
+              <Rocket className="h-4 w-4" />
+              Envoyer à une automation
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSelection}
+              title="Désélectionner tout"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {total > 0 && (
@@ -306,6 +372,14 @@ export function LeadsPage() {
           </Button>
         </div>
       </Dialog>
+
+      {/* Automation Modal */}
+      <NewRunModal
+        open={automationModalOpen}
+        onClose={handleAutomationModalClose}
+        preSelectedLeadIds={Array.from(selectedLeadIds)}
+        onSuccess={handleAutomationSuccess}
+      />
     </div>
   );
 }

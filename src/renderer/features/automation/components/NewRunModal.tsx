@@ -25,12 +25,22 @@ function formatEstimatedTime(ms: number): string {
 }
 
 interface NewRunModalProps {
-  isOpen: boolean
+  isOpen?: boolean
+  open?: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess?: () => void
+  preSelectedLeadIds?: string[]
 }
 
-export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
+export function NewRunModal({
+  isOpen: isOpenProp,
+  open,
+  onClose,
+  onSuccess,
+  preSelectedLeadIds,
+}: NewRunModalProps) {
+  // Support both isOpen and open props
+  const isOpen = isOpenProp ?? open ?? false;
   const navigate = useNavigate()
 
   // Data state
@@ -55,7 +65,8 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
 
     // Reset state when opening
     setSelectedFlows(new Set())
-    setSelectedLeads(new Set())
+    // Pre-select leads if provided
+    setSelectedLeads(preSelectedLeadIds ? new Set(preSelectedLeadIds) : new Set())
     setSearchQuery('')
 
     // Fetch active products
@@ -70,7 +81,7 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
         toast.error('Erreur lors du chargement des produits')
       })
       .finally(() => setLoadingProducts(false))
-  }, [isOpen])
+  }, [isOpen, preSelectedLeadIds])
 
   // Fetch leads with server-side search (debounced)
   useEffect(() => {
@@ -200,7 +211,7 @@ export function NewRunModal({ isOpen, onClose, onSuccess }: NewRunModalProps) {
 
       const result = await window.api.automation.enqueue(items)
       toast.success(`${items.length} tâche${items.length > 1 ? 's' : ''} lancée${items.length > 1 ? 's' : ''}`)
-      onSuccess()
+      onSuccess?.()
       onClose()
 
       // Navigate to live view

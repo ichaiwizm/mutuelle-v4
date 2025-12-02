@@ -47,14 +47,28 @@ function parseStepsData(stepsDataJson: string | null): StepProgressData | null {
 }
 
 /**
+ * Format lead name as "Prénom NOM" from subscriber data
+ */
+function formatLeadName(subscriber: Record<string, unknown> | undefined): string | undefined {
+  if (!subscriber) return undefined;
+  const prenom = subscriber.prenom as string | undefined;
+  const nom = subscriber.nom as string | undefined;
+  if (!prenom && !nom) return undefined;
+  const formattedPrenom = prenom || "";
+  const formattedNom = nom ? nom.toUpperCase() : "";
+  return `${formattedPrenom} ${formattedNom}`.trim() || undefined;
+}
+
+/**
  * Map a database row to RunItem type
  */
-function mapRunItem(row: typeof schema.runItems.$inferSelect): RunItem {
+function mapRunItem(row: typeof schema.runItems.$inferSelect, leadName?: string): RunItem {
   return {
     id: row.id,
     runId: row.runId,
     flowKey: row.flowKey,
     leadId: row.leadId,
+    leadName,
     status: row.status,
     artifactsDir: row.artifactsDir,
     stepsData: parseStepsData(row.stepsData ?? null),
@@ -165,6 +179,7 @@ function createProgressHooks(
 export const AutomationService = {
   /**
    * Get a run by ID with its items.
+   * Items are enriched with leadName (Prénom NOM format).
    */
   async get(runId: string): Promise<RunWithItems | null> {
     const runs = await db
@@ -179,15 +194,24 @@ export const AutomationService = {
       .from(schema.runItems)
       .where(eq(schema.runItems.runId, runId));
 
+    // Fetch leads to enrich items with leadName
+    const leadIds = items.map((item) => item.leadId);
+    const leadsMap = await LeadsService.getByIds(leadIds);
+
     return {
       ...runs[0],
       status: runs[0].status as RunStatus,
-      items: items.map(mapRunItem),
+      items: items.map((item) => {
+        const lead = leadsMap.get(item.leadId);
+        const leadName = formatLeadName(lead?.subscriber);
+        return mapRunItem(item, leadName);
+      }),
     };
   },
 
   /**
    * Get a single run item by ID.
+   * Item is enriched with leadName (Prénom NOM format).
    */
   async getItem(itemId: string): Promise<RunItem | null> {
     const items = await db
@@ -196,7 +220,11 @@ export const AutomationService = {
       .where(eq(schema.runItems.id, itemId));
 
     if (items.length === 0) return null;
-    return mapRunItem(items[0]);
+
+    // Fetch lead to enrich item with leadName
+    const lead = await LeadsService.get(items[0].leadId);
+    const leadName = formatLeadName(lead?.subscriber);
+    return mapRunItem(items[0], leadName);
   },
 
   /**
@@ -562,5 +590,37 @@ export const AutomationService = {
 
     // Return immediately so the UI can navigate to the live view
     return { runId, result: null };
+  },
+
+  /**
+   * Clean up all running/queued runs on app shutdown.
+   * This ensures runs don't stay "running" forever in DB when app closes.
+   */
+  async cleanupOnShutdown(): Promise<void> {
+    // 1. Abort all active pools
+    for (const [runId, pool] of activePools) {
+      try {
+        await pool.abort();
+      } catch (e) {
+        console.error(`Failed to abort pool for run ${runId}:`, e);
+      }
+    }
+    activePools.clear();
+
+    const cancellationTime = new Date();
+
+    // 2. Update DB: mark all running/queued runs as cancelled
+    await db
+      .update(schema.runs)
+      .set({ status: "cancelled" })
+      .where(inArray(schema.runs.status, ["running", "queued"]));
+
+    // 3. Update DB: mark all running/queued items as cancelled
+    await db
+      .update(schema.runItems)
+      .set({ status: "cancelled", completedAt: cancellationTime })
+      .where(inArray(schema.runItems.status, ["running", "queued"]));
+
+    console.log("[SHUTDOWN] Cleaned up running/queued runs");
   },
 };
