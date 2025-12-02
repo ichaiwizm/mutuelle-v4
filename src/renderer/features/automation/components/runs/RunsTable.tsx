@@ -156,7 +156,8 @@ export function RunsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-56">Exécution</TableHead>
+            <TableHead className="w-40">Exécution</TableHead>
+            <TableHead className="w-24">Items</TableHead>
             <TableHead
               className="cursor-pointer group select-none w-32"
               onClick={() => handleSort('status')}

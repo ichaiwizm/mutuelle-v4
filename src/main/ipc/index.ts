@@ -39,6 +39,7 @@ import {
   AutomationListSchema,
   AutomationCancelSchema,
   AutomationGetItemSchema,
+  AutomationRetryItemSchema,
   AutomationReadScreenshotSchema,
   FixturesExportSchema,
   LeadsParseFromTextSchema,
@@ -339,6 +340,13 @@ export function registerIpc() {
     IPC_CHANNEL.AUTO_RETRY,
     handler(AutomationCancelSchema, async ({ runId }) => {
       return AutomationService.retry(runId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_RETRY_ITEM,
+    handler(AutomationRetryItemSchema, async ({ itemId }) => {
+      return AutomationService.retryItem(itemId);
     })
   );
 

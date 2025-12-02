@@ -97,6 +97,10 @@ export const AutomationGetItemSchema = z.object({
   itemId: z.string().uuid(),
 });
 
+export const AutomationRetryItemSchema = z.object({
+  itemId: z.string().uuid(),
+});
+
 export const AutomationReadScreenshotSchema = z.object({
   path: z.string().min(1),
 });

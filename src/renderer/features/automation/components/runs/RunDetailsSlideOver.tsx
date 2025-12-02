@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { SlideOver } from '@/renderer/components/ui/SlideOver'
 import { Button } from '@/renderer/components/ui/Button'
 import { Skeleton } from '@/renderer/components/ui/Skeleton'
@@ -49,9 +51,31 @@ function getTimelineStatus(status: string): 'completed' | 'failed' | 'running' |
 }
 
 export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlideOverProps) {
+  const navigate = useNavigate()
   const [details, setDetails] = useState<RunDetails | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [retryingItem, setRetryingItem] = useState<string | null>(null)
+
+  const handleRetryItem = useCallback(async (itemId: string) => {
+    setRetryingItem(itemId)
+    try {
+      const result = await window.api.automation.retryItem(itemId)
+      toast.success('Flow relancé', {
+        description: `Nouvelle exécution créée`,
+        action: {
+          label: 'Voir',
+          onClick: () => navigate(`/automation?run=${result.newRunId}`),
+        },
+      })
+      onClose()
+    } catch (err) {
+      console.error('Failed to retry item:', err)
+      toast.error('Échec de la relance')
+    } finally {
+      setRetryingItem(null)
+    }
+  }, [navigate, onClose])
 
   useEffect(() => {
     if (!runId) {
@@ -164,6 +188,23 @@ export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlid
                     description={item.leadName || "Lead inconnu"}
                     status={getTimelineStatus(item.status)}
                     isLast={index === details.items.length - 1}
+                    action={
+                      (item.status === 'failed' || item.status === 'cancelled') ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRetryItem(item.id)}
+                          disabled={retryingItem === item.id}
+                          className="h-6 w-6 p-0"
+                        >
+                          {retryingItem === item.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3" />
+                          )}
+                        </Button>
+                      ) : undefined
+                    }
                   />
                 ))}
               </Timeline>

@@ -9,6 +9,7 @@ interface TimelineItemProps {
   status: TimelineStatus
   timestamp?: string
   isLast?: boolean
+  action?: React.ReactNode
 }
 
 function getStatusIcon(status: TimelineStatus) {
@@ -41,7 +42,7 @@ function getStatusColor(status: TimelineStatus): string {
   }
 }
 
-export function TimelineItem({ title, description, status, timestamp, isLast }: TimelineItemProps) {
+export function TimelineItem({ title, description, status, timestamp, isLast, action }: TimelineItemProps) {
   return (
     <div className="relative flex gap-4">
       {/* Line connector */}
@@ -82,9 +83,12 @@ export function TimelineItem({ title, description, status, timestamp, isLast }: 
           >
             {title}
           </h4>
-          {timestamp && (
-            <span className="text-xs text-[var(--color-text-muted)]">{timestamp}</span>
-          )}
+          <div className="flex items-center gap-2">
+            {timestamp && (
+              <span className="text-xs text-[var(--color-text-muted)]">{timestamp}</span>
+            )}
+            {action}
+          </div>
         </div>
         {description && (
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">{description}</p>

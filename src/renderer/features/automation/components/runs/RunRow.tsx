@@ -64,19 +64,19 @@ export function RunRow({ run, index, isCancelling, isDeleting, isRetrying, onCan
       style={{ '--row-index': index } as React.CSSProperties}
       onClick={handleViewRun}
     >
-      {/* Run info - ID badge + items count */}
+      {/* Run info - ID badge */}
       <TableCell>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
-            <Hash className="h-3 w-3" />
-            <span className="font-mono text-xs">{run.id.slice(0, 8)}</span>
-          </div>
-          {Number(run.itemsCount) > 0 && (
-            <span className="text-sm text-[var(--color-text-secondary)]">
-              {run.itemsCount} tâche{Number(run.itemsCount) > 1 ? 's' : ''}
-            </span>
-          )}
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] w-fit">
+          <Hash className="h-3 w-3" />
+          <span className="font-mono text-xs">{run.id.slice(0, 8)}</span>
         </div>
+      </TableCell>
+
+      {/* Items count */}
+      <TableCell>
+        <span className="text-sm text-[var(--color-text-secondary)]">
+          {run.itemsCount ?? 0}
+        </span>
       </TableCell>
 
       {/* Status - just the indicator, no redundant badge */}

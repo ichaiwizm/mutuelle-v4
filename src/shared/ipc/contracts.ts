@@ -197,6 +197,7 @@ export type Ipc = {
     cancel: (runId: string) => Promise<{ cancelled: boolean }>;
     delete: (runId: string) => Promise<{ deleted: boolean }>;
     retry: (runId: string) => Promise<{ newRunId: string }>;
+    retryItem: (itemId: string) => Promise<{ newRunId: string }>;
     readScreenshot: (path: string) => Promise<string>; // base64 encoded image
     onProgress: (callback: (event: AutomationProgressEvent) => void) => () => void;
   };

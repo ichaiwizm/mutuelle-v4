@@ -75,6 +75,7 @@ const api: Ipc = {
     cancel: (runId) => invokeIpc(IPC_CHANNEL.AUTO_CANCEL, { runId }),
     delete: (runId) => invokeIpc(IPC_CHANNEL.AUTO_DELETE, { runId }),
     retry: (runId) => invokeIpc(IPC_CHANNEL.AUTO_RETRY, { runId }),
+    retryItem: (itemId) => invokeIpc(IPC_CHANNEL.AUTO_RETRY_ITEM, { itemId }),
     readScreenshot: (path) => invokeIpc(IPC_CHANNEL.AUTO_READ_SCREENSHOT, { path }),
     onProgress: (callback: (event: AutomationProgressEvent) => void) => {
       const handler = (_event: IpcRendererEvent, data: AutomationProgressEvent) => callback(data);

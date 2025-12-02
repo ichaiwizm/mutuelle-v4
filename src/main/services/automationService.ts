@@ -254,7 +254,7 @@ export const AutomationService = {
           id: schema.runs.id,
           status: schema.runs.status,
           createdAt: schema.runs.createdAt,
-          itemsCount: sql<number>`(SELECT COUNT(*) FROM run_items WHERE run_items.run_id = ${schema.runs.id})`.as('items_count'),
+          itemsCount: sql<number>`(SELECT COUNT(*) FROM run_items WHERE run_items.run_id = runs.id)`,
         })
         .from(schema.runs)
         .orderBy(desc(schema.runs.createdAt))
@@ -266,8 +266,12 @@ export const AutomationService = {
     ]);
 
     return {
-      runs: runs.map(r => ({ ...r, status: r.status as RunStatus })),
-      total: countResult[0]?.count ?? 0,
+      runs: runs.map(r => ({
+        ...r,
+        status: r.status as RunStatus,
+        itemsCount: Number(r.itemsCount) || 0,
+      })),
+      total: Number(countResult[0]?.count) || 0,
     };
   },
 
@@ -365,6 +369,28 @@ export const AutomationService = {
 
     // Enqueue creates a new run
     const result = await this.enqueue(retryItems);
+    return { newRunId: result.runId };
+  },
+
+  /**
+   * Retry a single failed/cancelled item by creating a new run.
+   */
+  async retryItem(itemId: string): Promise<{ newRunId: string }> {
+    const item = await this.getItem(itemId);
+    if (!item) {
+      throw new NotFoundError("RunItem", itemId);
+    }
+
+    if (item.status !== "failed" && item.status !== "cancelled") {
+      throw new Error("Only failed or cancelled items can be retried");
+    }
+
+    // Create a new run with just this item
+    const result = await this.enqueue([{
+      flowKey: item.flowKey,
+      leadId: item.leadId,
+    }]);
+
     return { newRunId: result.runId };
   },
 
