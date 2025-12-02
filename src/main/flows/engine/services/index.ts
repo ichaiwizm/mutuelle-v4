@@ -17,7 +17,7 @@ export { hasIframeSupport } from "./types";
 // Import pour utilisation locale
 import { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
 import { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
-import { CredentialsService } from "../../../services/credentialsService";
+import { CredentialsService } from "../../../services/credentials";
 
 // Export pour les autres modules
 export { createAlptisServices, resetAlptisServices };

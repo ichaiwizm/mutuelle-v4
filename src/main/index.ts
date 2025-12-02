@@ -10,7 +10,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { db } from './db'
 import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
-import { AutomationService } from './services/automationService'
+import { AutomationService } from './services/automation'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

@@ -1,8 +1,8 @@
 import type { FlowTask } from "./types";
-import type { FlowExecutionResult } from "../types";
 import type { GlobalPoolConfig, GlobalTask, TaskCallbacks, RunHandle } from "./types/global";
 import { BrowserManager } from "./BrowserManager";
 import { FlowWorker } from "./FlowWorker";
+import { TaskQueue } from "./TaskQueue";
 
 const DEFAULT_MAX_CONCURRENT = 5;
 
@@ -30,7 +30,7 @@ const DEFAULT_MAX_CONCURRENT = 5;
 export class GlobalFlowPool {
   private static instance: GlobalFlowPool | null = null;
 
-  private queue: GlobalTask[] = [];
+  private taskQueue: TaskQueue = new TaskQueue();
   private activeWorkers: Map<string, FlowWorker> = new Map();
   private runs: Map<string, RunHandle> = new Map();
   private browserManager: BrowserManager;
@@ -103,12 +103,11 @@ export class GlobalFlowPool {
       callbacks,
     }));
 
-    // Add to queue and sort by priority (higher first)
-    this.queue.push(...globalTasks);
-    this.queue.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    // Add to queue (TaskQueue handles priority sorting)
+    this.taskQueue.add(globalTasks);
 
     console.log(
-      `[GLOBAL_POOL] Enqueued ${tasks.length} tasks for run ${runId.substring(0, 8)}... | Queue: ${this.queue.length} | Active: ${this.activeWorkers.size}`
+      `[GLOBAL_POOL] Enqueued ${tasks.length} tasks for run ${runId.substring(0, 8)}... | Queue: ${this.taskQueue.length} | Active: ${this.activeWorkers.size}`
     );
 
     // Start processing if not already running
@@ -132,18 +131,8 @@ export class GlobalFlowPool {
     handle.abortController.abort();
 
     // Remove pending tasks from queue
-    const removedCount = this.queue.filter(
-      (t) => t.runId === runId && t.status === "queued"
-    ).length;
-
-    this.queue = this.queue.filter((task) => {
-      if (task.runId === runId && task.status === "queued") {
-        task.status = "cancelled";
-        handle.completedCount++;
-        return false; // Remove from queue
-      }
-      return true;
-    });
+    const removedCount = this.taskQueue.removeQueuedTasksForRun(runId);
+    handle.completedCount += removedCount;
 
     console.log(
       `[GLOBAL_POOL] Removed ${removedCount} pending tasks from queue`
@@ -178,7 +167,7 @@ export class GlobalFlowPool {
    * Get the current queue length.
    */
   get queueLength(): number {
-    return this.queue.filter((t) => t.status === "queued").length;
+    return this.taskQueue.queuedCount;
   }
 
   /**
@@ -209,7 +198,7 @@ export class GlobalFlowPool {
     // Close browser
     await this.browserManager.close();
 
-    this.queue = [];
+    this.taskQueue.clear();
     this.activeWorkers.clear();
     this.runs.clear();
     this.isProcessing = false;
@@ -256,7 +245,7 @@ export class GlobalFlowPool {
     }
 
     // All done - close browser if no more work
-    if (this.queue.length === 0 && this.runs.size === 0) {
+    if (this.taskQueue.isEmpty && this.runs.size === 0) {
       await this.browserManager.close();
     }
 
@@ -274,19 +263,14 @@ export class GlobalFlowPool {
    * Check if there are queued tasks.
    */
   private hasQueuedTasks(): boolean {
-    return this.queue.some((t) => t.status === "queued");
+    return this.taskQueue.hasQueuedTasks();
   }
 
   /**
    * Get the next queued task (respects priority, FIFO within same priority).
    */
   private getNextTask(): GlobalTask | undefined {
-    const index = this.queue.findIndex((t) => t.status === "queued");
-    if (index === -1) return undefined;
-
-    const task = this.queue[index];
-    task.status = "running";
-    return task;
+    return this.taskQueue.getNext();
   }
 
   /**
@@ -390,9 +374,6 @@ export class GlobalFlowPool {
    * Remove a task from the queue.
    */
   private removeTaskFromQueue(taskId: string): void {
-    const index = this.queue.findIndex((t) => t.id === taskId);
-    if (index !== -1) {
-      this.queue.splice(index, 1);
-    }
+    this.taskQueue.remove(taskId);
   }
 }

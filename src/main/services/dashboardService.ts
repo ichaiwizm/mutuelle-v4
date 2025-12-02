@@ -1,6 +1,6 @@
 import { MailAuthService } from "./mailAuthService";
 import { LeadsService } from "./leadsService";
-import { AutomationService } from "./automationService";
+import { AutomationService } from "./automation";
 import { FlowsService } from "./flowsService";
 import { ProductConfigQuery } from "./productConfig";
 import { flowStateService } from "../flows/state";
