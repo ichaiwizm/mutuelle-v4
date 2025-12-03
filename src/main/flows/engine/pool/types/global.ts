@@ -19,6 +19,10 @@ export type TaskCallbacks = {
   onStart: (taskId: string) => Promise<void>;
   onComplete: (taskId: string, result: FlowExecutionResult) => Promise<void>;
   onError: (taskId: string, error: Error) => Promise<void>;
+  /** Called when a task enters waiting_user state (manual takeover) */
+  onWaitingUser?: (taskId: string, result: FlowExecutionResult) => Promise<void>;
+  /** Called when user manually completes a task by closing the browser */
+  onManualComplete?: (taskId: string) => Promise<void>;
 };
 
 /**

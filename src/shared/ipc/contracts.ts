@@ -201,6 +201,7 @@ export type Ipc = {
     retryItem: (itemId: string) => Promise<{ newRunId: string }>;
     readScreenshot: (path: string) => Promise<string>; // base64 encoded image
     onProgress: (callback: (event: AutomationProgressEvent) => void) => () => void;
+    bringToFront: (itemId: string) => Promise<{ success: boolean }>; // Bring browser window to front for manual takeover
   };
 
   products: {

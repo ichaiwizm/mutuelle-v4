@@ -2,7 +2,7 @@
  * Step progress tracking types for live automation visualization
  */
 
-export type StepStatus = "pending" | "running" | "completed" | "failed" | "skipped" | "cancelled";
+export type StepStatus = "pending" | "running" | "completed" | "failed" | "skipped" | "cancelled" | "waiting_user";
 
 export type StepProgress = {
   id: string;
@@ -49,4 +49,5 @@ export type AutomationProgressEvent =
   | { type: "item:step:skipped"; runId: string; itemId: string; stepId: string; stepIndex: number; reason: string }
   | { type: "item:completed"; runId: string; itemId: string; success: boolean; duration: number }
   | { type: "item:failed"; runId: string; itemId: string; error: string }
-  | { type: "item:cancelled"; runId: string; itemId: string };
+  | { type: "item:cancelled"; runId: string; itemId: string }
+  | { type: "item:waiting_user"; runId: string; itemId: string; stoppedAtStep: string };

@@ -13,6 +13,8 @@ import {
   User,
   Activity,
   ChevronRight,
+  ExternalLink,
+  Hand,
 } from "lucide-react";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
 import type { Lead } from "@/shared/types/lead";
@@ -101,6 +103,7 @@ export function FlowDetailSlideOver({
   // Lead details state
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
   const [loadingLead, setLoadingLead] = useState(false);
+  const [isBringingToFront, setIsBringingToFront] = useState(false);
 
   // Handle lead click - fetch and show details
   const handleLeadClick = useCallback(async () => {
@@ -122,6 +125,19 @@ export function FlowDetailSlideOver({
   const handleCloseLeadDetails = useCallback(() => {
     setViewingLead(null);
   }, []);
+
+  // Handle bring to front
+  const handleBringToFront = useCallback(async () => {
+    if (!item?.itemId) return;
+    setIsBringingToFront(true);
+    try {
+      await window.api.automation.bringToFront(item.itemId);
+    } catch (err) {
+      console.error("Failed to bring window to front:", err);
+    } finally {
+      setIsBringingToFront(false);
+    }
+  }, [item?.itemId]);
 
   // Calculate step counts
   const { completedSteps, totalSteps } = useMemo(() => {
@@ -167,6 +183,7 @@ export function FlowDetailSlideOver({
   };
 
   const isRunning = item?.status === "running";
+  const isWaitingUser = item?.status === "waiting_user";
 
   return (
     <SlideOver
@@ -188,6 +205,12 @@ export function FlowDetailSlideOver({
                   <span className="text-xs text-cyan-400 font-medium">Live</span>
                 </div>
               )}
+              {isWaitingUser && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/10">
+                  <Hand className="h-3 w-3 text-orange-400" />
+                  <span className="text-xs text-orange-400 font-medium">En attente</span>
+                </div>
+              )}
             </div>
             <p className="text-sm text-[var(--color-text-muted)]">
               <span className="text-lg font-bold text-[var(--color-text-primary)] tabular-nums">
@@ -203,6 +226,34 @@ export function FlowDetailSlideOver({
               </p>
             )}
           </Card>
+
+          {/* Waiting User Action */}
+          {isWaitingUser && (
+            <Card className="p-4 bg-orange-500/5 border-orange-500/20">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <Hand className="h-5 w-5 text-orange-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                    Le navigateur attend votre intervention
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                    Cliquez sur le bouton pour mettre la fenêtre au premier plan.
+                    Fermez le navigateur une fois terminé pour valider.
+                  </p>
+                  <button
+                    onClick={handleBringToFront}
+                    disabled={isBringingToFront}
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-orange-500 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {isBringingToFront ? "Ouverture..." : "Mettre au premier plan"}
+                  </button>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Info Section */}
           <SlideOverSection title="Informations">

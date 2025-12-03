@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 import { TableRow, TableCell } from "@/renderer/components/ui/Table";
 import { StatusIndicator } from "../shared/StatusIndicator";
-import { User } from "lucide-react";
+import { User, ExternalLink } from "lucide-react";
 import type { LiveItemState } from "../../hooks/useFlowProgress";
 import { useElapsedTime } from "../../hooks/useElapsedTime";
+import { useState } from "react";
 
 type FlowTableRowProps = {
   item: LiveItemState;
@@ -23,9 +24,25 @@ function formatDuration(ms?: number): string {
 }
 
 export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowProps) {
+  const [isBringingToFront, setIsBringingToFront] = useState(false);
+
   // Status flags - defined first for use in hooks
   const isRunning = item.status === "running";
   const isCancelled = item.status === "cancelled";
+  const isWaitingUser = item.status === "waiting_user";
+
+  // Handler for bring to front
+  const handleBringToFront = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row selection
+    setIsBringingToFront(true);
+    try {
+      await window.api.automation.bringToFront(item.itemId);
+    } catch (err) {
+      console.error("Failed to bring window to front:", err);
+    } finally {
+      setIsBringingToFront(false);
+    }
+  };
 
   // Calculate progress
   const completedSteps = item.steps.filter(
@@ -57,7 +74,8 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
         "cursor-pointer transition-all duration-200",
         isSelected && "bg-[var(--color-primary)]/5 ring-1 ring-inset ring-[var(--color-primary)]/30",
         isRunning && !isSelected && "bg-cyan-500/5",
-        isCancelled && !isSelected && "bg-amber-500/5 opacity-70"
+        isCancelled && !isSelected && "bg-amber-500/5 opacity-70",
+        isWaitingUser && !isSelected && "bg-orange-500/5"
       )}
     >
       {/* Status */}
@@ -96,7 +114,8 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
                 item.status === "completed" && "bg-emerald-500",
                 item.status === "failed" && "bg-red-500",
                 item.status === "queued" && "bg-blue-500",
-                item.status === "cancelled" && "bg-amber-500"
+                item.status === "cancelled" && "bg-amber-500",
+                item.status === "waiting_user" && "bg-orange-500"
               )}
               style={{ width: `${progress}%` }}
             />
@@ -104,20 +123,36 @@ export function FlowTableRow({ item, index, isSelected, onClick }: FlowTableRowP
         </div>
       </TableCell>
 
-      {/* Duration - single pulsing dot when running */}
+      {/* Duration / Action */}
       <TableCell className="text-right">
-        <div className={cn(
-          "inline-flex items-center gap-1.5 font-mono text-sm",
-          isRunning ? "text-cyan-400 font-medium" : "text-[var(--color-text-muted)]"
-        )}>
-          {isRunning && (
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
-            </span>
-          )}
-          <span className="tabular-nums">{formatDuration(elapsedTime)}</span>
-        </div>
+        {isWaitingUser ? (
+          <button
+            onClick={handleBringToFront}
+            disabled={isBringingToFront}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all",
+              "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30",
+              "focus:outline-none focus:ring-2 focus:ring-orange-500/50",
+              isBringingToFront && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Reprendre
+          </button>
+        ) : (
+          <div className={cn(
+            "inline-flex items-center gap-1.5 font-mono text-sm",
+            isRunning ? "text-cyan-400 font-medium" : "text-[var(--color-text-muted)]"
+          )}>
+            {isRunning && (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+              </span>
+            )}
+            <span className="tabular-nums">{formatDuration(elapsedTime)}</span>
+          </div>
+        )}
       </TableCell>
     </TableRow>
   );

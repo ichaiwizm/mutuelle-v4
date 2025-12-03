@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { getUserDataDir } from "@/main/env";
 import { schema } from "@/main/db";
 import type { StepProgressData } from "@/shared/types/step-progress";
-import type { RunItem } from "@/shared/types/run";
+import type { RunItem, RunItemStatus } from "@/shared/types/run";
 
 /**
  * Get the root directory for automation artifacts
@@ -49,7 +49,7 @@ export function mapRunItem(
     flowKey: row.flowKey,
     leadId: row.leadId,
     leadName,
-    status: row.status,
+    status: row.status as RunItemStatus,
     artifactsDir: row.artifactsDir,
     stepsData: parseStepsData(row.stepsData ?? null),
     startedAt: row.startedAt ?? null,

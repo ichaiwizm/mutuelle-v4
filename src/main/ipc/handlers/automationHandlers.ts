@@ -12,8 +12,10 @@ import {
   AutomationGetItemSchema,
   AutomationRetryItemSchema,
   AutomationReadScreenshotSchema,
+  AutomationBringToFrontSchema,
 } from "@/shared/validation/ipc.zod";
 import { handler } from "./utils";
+import { windowRegistry } from "@/main/flows/engine/pool/WindowRegistry";
 
 export function registerAutomationHandlers() {
   ipcMain.handle(
@@ -80,6 +82,15 @@ export function registerAutomationHandlers() {
     IPC_CHANNEL.AUTO_RETRY_ITEM,
     handler(AutomationRetryItemSchema, async ({ itemId }) => {
       return AutomationService.retryItem(itemId);
+    })
+  );
+
+  ipcMain.handle(
+    IPC_CHANNEL.AUTO_BRING_TO_FRONT,
+    handler(AutomationBringToFrontSchema, async ({ itemId }) => {
+      console.log(`[IPC] AUTO_BRING_TO_FRONT called for item ${itemId.substring(0, 8)}...`);
+      const success = await windowRegistry.bringToFront(itemId);
+      return { success };
     })
   );
 }

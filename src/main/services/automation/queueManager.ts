@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { GlobalFlowPool } from "@/main/flows/engine/pool/GlobalFlowPool";
 import { LeadsService } from "../leadsService";
 import { AutomationBroadcaster } from "../automationBroadcaster";
+import { AutomationSettingsService } from "../automationSettingsService";
 import { getProductConfig } from "../productConfig/productConfigCore";
 import {
   transformLeadForFlow,
@@ -100,6 +101,9 @@ export async function enqueueRun(
     // Create hooks for this specific task
     const hooks = createProgressHooks(runId, itemId, stepsData);
 
+    // Get automation settings for this flow (visible mode, stop at step)
+    const automationSettings = await AutomationSettingsService.get(item.flowKey);
+
     tasks.push({
       id: itemId,
       flowKey: item.flowKey,
@@ -107,9 +111,18 @@ export async function enqueueRun(
       lead,
       transformedData,
       artifactsDir: dir,
+      runId,
+      automationSettings: automationSettings
+        ? {
+            headless: automationSettings.headless,
+            stopAtStep: automationSettings.stopAtStep,
+          }
+        : undefined,
       flowConfig: {
         enablePauseResume: true,
         hooks,
+        // Pass stopAtStep to FlowEngine config
+        stopAtStep: automationSettings?.stopAtStep ?? undefined,
       },
     });
   }
@@ -227,6 +240,41 @@ export async function enqueueRun(
       AutomationBroadcaster.itemFailed(runId, taskId, error.message);
       console.log(`[CALLBACK] onError: Done`);
     },
+    onWaitingUser: async (taskId, result) => {
+      console.log(`[CALLBACK] onWaitingUser called for task ${taskId.substring(0, 8)}...`);
+      console.log(`[CALLBACK] onWaitingUser: Stopped at step: ${result.stoppedAtStep}`);
+
+      // Update item status to waiting_user
+      await db
+        .update(schema.runItems)
+        .set({ status: "waiting_user" })
+        .where(eq(schema.runItems.id, taskId));
+
+      // Broadcast waiting_user event
+      AutomationBroadcaster.itemWaitingUser(runId, taskId, result.stoppedAtStep ?? "unknown");
+      console.log(`[CALLBACK] onWaitingUser: Done`);
+    },
+    onManualComplete: async (taskId) => {
+      console.log(`[CALLBACK] onManualComplete called for task ${taskId.substring(0, 8)}...`);
+
+      // Get item to calculate duration
+      const item = await getItem(taskId);
+      const startedAt = item?.startedAt ? new Date(item.startedAt).getTime() : Date.now();
+      const duration = Date.now() - startedAt;
+
+      // Update item status to completed (user closed browser = success)
+      await db
+        .update(schema.runItems)
+        .set({
+          status: "completed",
+          completedAt: new Date(),
+        })
+        .where(eq(schema.runItems.id, taskId));
+
+      // Broadcast completion
+      AutomationBroadcaster.itemCompleted(runId, taskId, true, duration);
+      console.log(`[CALLBACK] onManualComplete: Done`);
+    },
   };
 
   // Broadcast run started
@@ -251,7 +299,19 @@ export async function enqueueRun(
       const failedCount = items.filter(
         (i) => i.status === "failed" || i.status === "cancelled"
       ).length;
-      const finalStatus = failedCount > 0 ? "failed" : "done";
+      const waitingCount = items.filter((i) => i.status === "waiting_user").length;
+
+      // If any items are still waiting_user, run stays "running"
+      // If any failed/cancelled, run is "failed"
+      // Otherwise run is "done"
+      let finalStatus: "running" | "failed" | "done";
+      if (waitingCount > 0) {
+        finalStatus = "running"; // Run is not finished yet
+      } else if (failedCount > 0) {
+        finalStatus = "failed";
+      } else {
+        finalStatus = "done";
+      }
 
       console.log("\n========================================");
       console.log("RUN COMPLETION");
@@ -259,6 +319,7 @@ export async function enqueueRun(
       console.log(`Run ID: ${runId}`);
       console.log(`Total tasks: ${items.length}`);
       console.log(`Failed/Cancelled: ${failedCount}`);
+      console.log(`Waiting for user: ${waitingCount}`);
       console.log(`Final status: ${finalStatus.toUpperCase()}`);
       console.log("========================================\n");
 
@@ -268,8 +329,10 @@ export async function enqueueRun(
         .set({ status: finalStatus })
         .where(and(eq(schema.runs.id, runId), ne(schema.runs.status, "cancelled")));
 
-      // Broadcast run completed
-      AutomationBroadcaster.runCompleted(runId, failedCount === 0);
+      // Only broadcast run completed if no items are waiting for user
+      if (waitingCount === 0) {
+        AutomationBroadcaster.runCompleted(runId, failedCount === 0);
+      }
     })
     .catch((error) => {
       console.error(`Pool execution failed for run ${runId}:`, error);

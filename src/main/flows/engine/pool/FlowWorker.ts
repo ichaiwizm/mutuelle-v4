@@ -2,6 +2,12 @@ import type { BrowserContext, Page } from "playwright";
 import type { FlowTask, WorkerStatus } from "./types";
 import type { FlowExecutionResult } from "../types";
 import { FlowEngine } from "../FlowEngine";
+import { windowRegistry } from "./WindowRegistry";
+
+/**
+ * Callback for when user manually closes the browser window
+ */
+export type OnManualCloseCallback = (taskId: string) => void;
 
 /**
  * A worker that executes a single flow within its own isolated browser context.
@@ -14,10 +20,20 @@ export class FlowWorker {
   private engine: FlowEngine | null = null;
   private _status: WorkerStatus = "idle";
   private isAborted = false;
+  private isWaitingUser = false;
+  private currentTaskId: string | null = null;
+  private onManualCloseCallback: OnManualCloseCallback | null = null;
 
   constructor(id: string, context: BrowserContext) {
     this.id = id;
     this.context = context;
+  }
+
+  /**
+   * Set callback for when user manually closes browser window while in waiting_user state
+   */
+  setOnManualClose(callback: OnManualCloseCallback): void {
+    this.onManualCloseCallback = callback;
   }
 
   /**
@@ -40,13 +56,19 @@ export class FlowWorker {
    */
   async execute(task: FlowTask, abortSignal?: AbortSignal): Promise<FlowExecutionResult> {
     const workerId = this.id.substring(0, 8);
+    const isVisibleMode = task.automationSettings?.headless === false;
+
     console.log(`\n[FLOW_WORKER] ========== EXECUTE START ==========`);
     console.log(`[FLOW_WORKER] Worker ID: ${workerId}...`);
     console.log(`[FLOW_WORKER] Flow: ${task.flowKey}`);
     console.log(`[FLOW_WORKER] Lead ID: ${task.leadId?.substring(0, 8)}...`);
+    console.log(`[FLOW_WORKER] Visible mode: ${isVisibleMode}`);
+    console.log(`[FLOW_WORKER] Stop at step: ${task.automationSettings?.stopAtStep ?? 'none'}`);
 
     this._status = "running";
     this.isAborted = false;
+    this.isWaitingUser = false;
+    this.currentTaskId = task.id;
 
     // Listen for abort signal
     if (abortSignal) {
@@ -70,6 +92,17 @@ export class FlowWorker {
       const pageStart = Date.now();
       this.page = await this.context.newPage();
       console.log(`[FLOW_WORKER] Page created in ${Date.now() - pageStart}ms`);
+
+      // Register in WindowRegistry if visible mode
+      if (isVisibleMode && task.runId) {
+        console.log(`[FLOW_WORKER] Registering page in WindowRegistry...`);
+        windowRegistry.register(task.id, task.runId, task.flowKey, this.page);
+
+        // Set up page close listener for manual takeover detection
+        this.page.on("close", () => {
+          this.handlePageClose(task.id);
+        });
+      }
 
       // Create a FlowEngine with the task's config
       console.log(`[FLOW_WORKER] Creating FlowEngine instance...`);
@@ -96,11 +129,22 @@ export class FlowWorker {
       console.log(`[FLOW_WORKER] engine.execute() completed in ${Date.now() - executeStart}ms`);
       console.log(`[FLOW_WORKER] Result success: ${result.success}`);
       console.log(`[FLOW_WORKER] Result steps: ${result.steps?.length || 0}`);
+      console.log(`[FLOW_WORKER] Result waitingUser: ${result.waitingUser ?? false}`);
 
       // Check if aborted during execution
       if (this.isAborted) {
         console.log(`[FLOW_WORKER] Aborted during execution`);
         return this.createAbortedResult(task);
+      }
+
+      // Handle waiting_user state - DON'T cleanup, keep page open
+      if (result.waitingUser) {
+        console.log(`[FLOW_WORKER] Entering waiting_user state - keeping page open for manual takeover`);
+        this.isWaitingUser = true;
+        this._status = "completed"; // Worker is "done" but page stays open
+        windowRegistry.markWaitingUser(task.id);
+        console.log(`[FLOW_WORKER] ========== WAITING USER ==========\n`);
+        return result;
       }
 
       this._status = result.success ? "completed" : "error";
@@ -173,6 +217,18 @@ export class FlowWorker {
    */
   async cleanup(): Promise<void> {
     console.log(`[FLOW_WORKER] cleanup() called for worker ${this.id.substring(0, 8)}...`);
+
+    // Don't cleanup if in waiting_user state - page should stay open
+    if (this.isWaitingUser) {
+      console.log(`[FLOW_WORKER] In waiting_user state, skipping cleanup (page stays open)`);
+      return;
+    }
+
+    // Remove from WindowRegistry if registered
+    if (this.currentTaskId) {
+      windowRegistry.remove(this.currentTaskId);
+    }
+
     if (this.page) {
       try {
         console.log(`[FLOW_WORKER] Closing page...`);
@@ -188,7 +244,43 @@ export class FlowWorker {
     }
     this.engine = null;
     this._status = "idle";
+    this.currentTaskId = null;
     console.log(`[FLOW_WORKER] cleanup() done`);
+  }
+
+  /**
+   * Handle page close event (user closed browser window).
+   * Called when page is closed externally (e.g., user closes browser window).
+   */
+  private handlePageClose(taskId: string): void {
+    console.log(`[FLOW_WORKER] handlePageClose() called for task ${taskId.substring(0, 8)}...`);
+
+    const entry = windowRegistry.get(taskId);
+    if (!entry) {
+      console.log(`[FLOW_WORKER] Task not in WindowRegistry, ignoring page close`);
+      return;
+    }
+
+    // Only trigger callback if in waiting_user state
+    if (entry.status === "waiting_user") {
+      console.log(`[FLOW_WORKER] User closed browser in waiting_user state - marking as manual complete`);
+
+      // Remove from registry
+      windowRegistry.remove(taskId);
+
+      // Reset state
+      this.isWaitingUser = false;
+      this.page = null; // Page is already closed
+      this.engine = null;
+      this._status = "idle";
+
+      // Notify callback
+      if (this.onManualCloseCallback) {
+        this.onManualCloseCallback(taskId);
+      }
+    } else {
+      console.log(`[FLOW_WORKER] Page closed but not in waiting_user state (status: ${entry.status})`);
+    }
   }
 
   /**
@@ -203,7 +295,15 @@ export class FlowWorker {
       this.engine.requestAbort();
     }
 
-    // Clean up resources
+    // Force cleanup even if in waiting_user state
+    this.isWaitingUser = false;
     await this.cleanup();
+  }
+
+  /**
+   * Check if worker is in waiting_user state
+   */
+  get isWaitingForUser(): boolean {
+    return this.isWaitingUser;
   }
 }

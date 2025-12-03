@@ -14,6 +14,7 @@ export type LiveRunState = {
   completedCount: number;
   failedCount: number;
   cancelledCount: number;
+  waitingUserCount: number;
 };
 
 export type LiveItemState = {
@@ -21,13 +22,14 @@ export type LiveItemState = {
   flowKey: string;
   leadId: string;
   leadName?: string;
-  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  status: "queued" | "running" | "completed" | "failed" | "cancelled" | "waiting_user";
   steps: StepProgress[];
   currentStepIndex: number;
   startedAt?: number;
   completedAt?: number;
   duration?: number;
   error?: string;
+  stoppedAtStep?: string;
 };
 
 type UseFlowProgressOptions = {
@@ -77,6 +79,7 @@ export function useFlowProgress(options: UseFlowProgressOptions = {}) {
               completedCount: 0,
               failedCount: 0,
               cancelledCount: 0,
+              waitingUserCount: 0,
             };
             next.set(runId, run);
           }
@@ -229,6 +232,22 @@ export function useFlowProgress(options: UseFlowProgressOptions = {}) {
                 if (step.status === "running" || step.status === "pending") {
                   step.status = "cancelled";
                 }
+              }
+            }
+            break;
+          }
+
+          case "item:waiting_user": {
+            const run = next.get(event.runId);
+            const item = run?.items.get(event.itemId);
+            if (run && item) {
+              item.status = "waiting_user";
+              item.stoppedAtStep = event.stoppedAtStep;
+              run.waitingUserCount++;
+              // Mark current step as waiting_user
+              const currentStep = item.steps[item.currentStepIndex];
+              if (currentStep) {
+                currentStep.status = "waiting_user";
               }
             }
             break;

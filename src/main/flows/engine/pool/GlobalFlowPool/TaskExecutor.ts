@@ -3,10 +3,20 @@ import type { GlobalTask, RunHandle } from "../types/global";
 import { BrowserManager } from "../BrowserManager";
 import { FlowWorker } from "../FlowWorker";
 
+// Track waiting_user workers with their contexts (for later cleanup)
+type WaitingWorkerEntry = {
+  worker: FlowWorker;
+  context: BrowserContext;
+  task: GlobalTask;
+};
+
 export class TaskExecutor {
   private activeWorkers: Map<string, FlowWorker> = new Map();
   private pendingTasks: Set<string> = new Set();
   private browserManager: BrowserManager;
+
+  // Workers in waiting_user state (not cleaned up yet)
+  private waitingUserWorkers: Map<string, WaitingWorkerEntry> = new Map();
 
   constructor(browserManager: BrowserManager) {
     this.browserManager = browserManager;
@@ -14,6 +24,10 @@ export class TaskExecutor {
 
   get activeCount(): number {
     return this.activeWorkers.size + this.pendingTasks.size;
+  }
+
+  get waitingUserCount(): number {
+    return this.waitingUserWorkers.size;
   }
 
   /**
@@ -55,13 +69,16 @@ export class TaskExecutor {
       `[GLOBAL_POOL] Starting task ${taskShortId}... (${task.flowKey}) | Run: ${task.runId.substring(0, 8)}...`
     );
 
+    // Determine if we need visible mode
+    const isVisibleMode = task.automationSettings?.headless === false;
     console.log(`[TASK_EXECUTOR] Creating browser context for task ${taskShortId}...`);
+    console.log(`[TASK_EXECUTOR] Visible mode: ${isVisibleMode}`);
     console.log(`[TASK_EXECUTOR] Calling browserManager.createContext()...`);
     const contextStart = Date.now();
 
-    let context;
+    let context: BrowserContext;
     try {
-      context = await this.browserManager.createContext();
+      context = await this.browserManager.createContext({ visible: isVisibleMode });
       console.log(`[TASK_EXECUTOR] Browser context created in ${Date.now() - contextStart}ms`);
     } catch (error) {
       console.error(`[TASK_EXECUTOR] FAILED to create browser context:`, error);
@@ -77,6 +94,29 @@ export class TaskExecutor {
     console.log(`[TASK_EXECUTOR] Creating FlowWorker instance...`);
     const worker = new FlowWorker(task.id, context);
     console.log(`[TASK_EXECUTOR] FlowWorker created`);
+
+    // Set up manual close callback for visible mode
+    if (isVisibleMode && task.callbacks.onManualComplete) {
+      worker.setOnManualClose(async (taskId: string) => {
+        console.log(`[TASK_EXECUTOR] Manual close callback for task ${taskId.substring(0, 8)}...`);
+
+        // Get the entry and clean up
+        const entry = this.waitingUserWorkers.get(taskId);
+        if (entry) {
+          this.waitingUserWorkers.delete(taskId);
+
+          // Close the context
+          try {
+            await this.browserManager.closeContext(entry.context);
+          } catch {
+            // Ignore errors - context may already be closed
+          }
+
+          // Notify callback
+          await task.callbacks.onManualComplete!(taskId);
+        }
+      });
+    }
 
     // Transfer from pending to active
     console.log(`[TASK_EXECUTOR] Transferring task from pending to active...`);
@@ -102,6 +142,31 @@ export class TaskExecutor {
       if (result.aborted) {
         task.status = "cancelled";
         console.log(`[GLOBAL_POOL] Task ${taskShortId}... aborted`);
+      } else if (result.waitingUser) {
+        // Special case: waiting for manual user takeover
+        // DON'T cleanup - keep worker and context alive
+        console.log(`[TASK_EXECUTOR] Task entering waiting_user state`);
+        task.status = "completed"; // Mark task as "done" from pool perspective
+
+        // Store in waitingUserWorkers for later cleanup
+        this.waitingUserWorkers.set(task.id, { worker, context, task });
+
+        // Remove from active workers (it's no longer "actively running")
+        this.activeWorkers.delete(task.id);
+        removeTaskFromQueue(task.id);
+
+        // Notify callback
+        if (task.callbacks.onWaitingUser) {
+          await task.callbacks.onWaitingUser(task.id, result);
+        }
+
+        console.log(
+          `[GLOBAL_POOL] Task ${taskShortId}... waiting_user | Step: ${result.stoppedAtStep}`
+        );
+
+        // Signal task completion but DON'T cleanup in finally block
+        onTaskComplete();
+        return; // Skip finally block cleanup
       } else if (result.success) {
         task.status = "completed";
         console.log(`[TASK_EXECUTOR] Calling onComplete callback...`);
@@ -153,6 +218,7 @@ export class TaskExecutor {
    * Abort workers for a specific run.
    */
   async abortWorkersForRun(taskIds: Set<string>): Promise<void> {
+    // Abort active workers
     const runningWorkers = Array.from(this.activeWorkers.entries()).filter(
       ([taskId]) => taskIds.has(taskId)
     );
@@ -167,13 +233,54 @@ export class TaskExecutor {
         )
       );
     }
+
+    // Also abort any waitingUser workers for this run
+    const waitingWorkers = Array.from(this.waitingUserWorkers.entries()).filter(
+      ([taskId]) => taskIds.has(taskId)
+    );
+
+    if (waitingWorkers.length > 0) {
+      console.log(`[GLOBAL_POOL] Aborting ${waitingWorkers.length} waiting_user tasks`);
+      await Promise.all(
+        waitingWorkers.map(async ([taskId, entry]) => {
+          try {
+            await entry.worker.abort();
+            await this.browserManager.closeContext(entry.context);
+          } catch {
+            /* ignore */
+          }
+          this.waitingUserWorkers.delete(taskId);
+        })
+      );
+    }
   }
 
   /**
-   * Clear all active workers.
+   * Clear all active workers and waiting_user workers.
    */
   clear(): void {
     this.activeWorkers.clear();
     this.pendingTasks.clear();
+    this.waitingUserWorkers.clear();
+  }
+
+  /**
+   * Clean up all waiting_user workers (used on shutdown).
+   */
+  async cleanupWaitingUserWorkers(): Promise<void> {
+    console.log(`[TASK_EXECUTOR] Cleaning up ${this.waitingUserWorkers.size} waiting_user workers`);
+
+    await Promise.all(
+      Array.from(this.waitingUserWorkers.entries()).map(async ([taskId, entry]) => {
+        try {
+          await entry.worker.abort();
+          await this.browserManager.closeContext(entry.context);
+        } catch {
+          /* ignore */
+        }
+      })
+    );
+
+    this.waitingUserWorkers.clear();
   }
 }

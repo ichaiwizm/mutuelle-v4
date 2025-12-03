@@ -8,16 +8,24 @@ type BuildResultOptions = {
   stateId?: string;
   paused?: boolean;
   error?: Error;
+  /** True if execution stopped for manual user takeover */
+  waitingUser?: boolean;
+  /** The step ID where execution stopped for manual takeover */
+  stoppedAtStep?: string;
 };
 
 /**
  * Builds a FlowExecutionResult from execution data
  */
 export function buildFlowResult(options: BuildResultOptions): FlowExecutionResult {
-  const { flowKey, leadId, steps, startTime, stateId, paused, error } = options;
+  const { flowKey, leadId, steps, startTime, stateId, paused, error, waitingUser, stoppedAtStep } = options;
+
+  // waitingUser is considered a "success" state since steps completed successfully
+  // but we mark success=false since the flow isn't actually complete yet
+  const success = error ? false : (paused || waitingUser ? false : steps.every(s => s.success));
 
   return {
-    success: error ? false : (paused ? false : steps.every(s => s.success)),
+    success,
     flowKey,
     leadId,
     steps,
@@ -25,5 +33,7 @@ export function buildFlowResult(options: BuildResultOptions): FlowExecutionResul
     stateId,
     paused,
     error,
+    waitingUser,
+    stoppedAtStep,
   };
 }

@@ -3,6 +3,16 @@ import type { Lead } from "../../../../shared/types/lead";
 import type { FlowExecutionResult, FlowExecutionConfig } from "../types";
 
 /**
+ * Automation settings for visible mode and manual takeover
+ */
+export type TaskAutomationSettings = {
+  /** If false, browser runs in visible (non-headless) mode */
+  headless: boolean;
+  /** Step ID to stop at for manual takeover (null = run all steps) */
+  stopAtStep: string | null;
+};
+
+/**
  * A task representing a single flow to be executed
  */
 export type FlowTask = {
@@ -16,6 +26,10 @@ export type FlowTask = {
   priority?: number;
   /** Optional flow execution config overrides */
   flowConfig?: Omit<FlowExecutionConfig, "stateId">;
+  /** Optional automation settings for visible mode / manual takeover */
+  automationSettings?: TaskAutomationSettings;
+  /** Run ID this task belongs to */
+  runId?: string;
 };
 
 /**

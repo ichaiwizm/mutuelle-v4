@@ -82,6 +82,7 @@ const api: Ipc = {
       ipcRenderer.on(IPC_CHANNEL.AUTO_PROGRESS, handler);
       return () => ipcRenderer.removeListener(IPC_CHANNEL.AUTO_PROGRESS, handler);
     },
+    bringToFront: (itemId) => invokeIpc(IPC_CHANNEL.AUTO_BRING_TO_FRONT, { itemId }),
   },
 
   products: {

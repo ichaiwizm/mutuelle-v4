@@ -142,6 +142,24 @@ export class FlowEngine extends EventEmitter {
           if (this.config.stopOnError) throw result.error || new Error(`Step ${stepDef.id} failed`);
         } else {
           await this.handleStepSuccess(flowKey, stepDef, result, i);
+
+          // Check if we should stop after this step for manual takeover
+          if (this.config.stopAtStep && stepDef.id === this.config.stopAtStep) {
+            console.log(`\n[FLOW_ENGINE] ========== STOP AT STEP ==========`);
+            console.log(`[FLOW_ENGINE] Stopped at step: ${stepDef.id}`);
+            console.log(`[FLOW_ENGINE] Waiting for user manual takeover`);
+            console.log(`[FLOW_ENGINE] ========================================\n`);
+
+            return buildFlowResult({
+              flowKey,
+              leadId: context.lead?.id,
+              steps: stepResults,
+              startTime,
+              stateId: this.pauseManager.state?.id,
+              waitingUser: true,
+              stoppedAtStep: stepDef.id,
+            });
+          }
         }
       }
 

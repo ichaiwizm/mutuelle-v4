@@ -184,6 +184,13 @@ class AutomationBroadcasterImpl {
   itemCancelled(runId: string, itemId: string): void {
     this.broadcast({ type: "item:cancelled", runId, itemId });
   }
+
+  /**
+   * Emit item waiting for user event (manual takeover mode)
+   */
+  itemWaitingUser(runId: string, itemId: string, stoppedAtStep: string): void {
+    this.broadcast({ type: "item:waiting_user", runId, itemId, stoppedAtStep });
+  }
 }
 
 // Singleton instance
