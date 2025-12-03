@@ -105,3 +105,14 @@ export const flowStates = sqliteTable(
     leadIdIdx: index("flow_states_lead_id_idx").on(t.leadId),
   })
 );
+
+// Product automation settings (headless mode, stop at step)
+export const productAutomationSettings = sqliteTable(
+  "product_automation_settings",
+  {
+    flowKey: text("flow_key").primaryKey(),                // "alptis_sante_select" | "swisslife_one_slsis"
+    headless: integer("headless", { mode: "boolean" }).notNull().default(true),
+    stopAtStep: text("stop_at_step"),                      // step ID to stop at (null = run all)
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  }
+);

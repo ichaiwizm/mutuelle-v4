@@ -8,6 +8,7 @@ import type {
   ProductStatusValue,
 } from "@/shared/types/product";
 import type { AutomationProgressEvent } from "@/shared/types/step-progress";
+import type { AutomationSettings, AutomationSettingsInput } from "@/shared/types/automation";
 
 // ========== Mail ==========
 
@@ -225,5 +226,11 @@ export type Ipc = {
 
   shell: {
     openPath: (path: string) => Promise<{ success: boolean }>;
+  };
+
+  automationSettings: {
+    get: (flowKey: string) => Promise<AutomationSettings | null>;
+    list: () => Promise<AutomationSettings[]>;
+    save: (flowKey: string, settings: AutomationSettingsInput) => Promise<AutomationSettings>;
   };
 };

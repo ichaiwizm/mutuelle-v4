@@ -61,7 +61,9 @@
       "Bash(xargs -I{} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && sqlite3 \"\"\"\"{}\"\"\"\" \"\"\"\"SELECT COUNT(*) FROM leads;\"\"\"\" 2>/dev/null || echo \"\"\"\"no leads table\"\"\"\"')",
       "Bash(pnpm build:main:*)",
       "Bash(LEAD_INDEX=0 npx playwright test:*)",
-      "Bash(MUTUELLE_DB_FILE=.userData/mutuelle.db pnpm exec drizzle-kit:*)"
+      "Bash(MUTUELLE_DB_FILE=.userData/mutuelle.db pnpm exec drizzle-kit:*)",
+      "Skill(frontend-design)",
+      "Bash(MUTUELLE_DB_FILE=/home/ichai/dev/mutuelle-v4/.userData/mutuelle.db pnpm exec drizzle-kit push:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,3 +6,5 @@ export type {
   TestStatus,
   PlatformState,
 } from './useCredentials'
+
+export { useProductSettings } from './useProductSettings'

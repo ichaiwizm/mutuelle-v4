@@ -28,6 +28,7 @@ import {
   registerFlowsHandlers,
   registerFixturesHandlers,
   registerShellHandlers,
+  registerAutomationSettingsHandlers,
 } from "./handlers";
 
 export function registerIpc() {
@@ -41,4 +42,5 @@ export function registerIpc() {
   registerFlowStatesHandlers();
   registerDashboardHandlers();
   registerShellHandlers();
+  registerAutomationSettingsHandlers();
 }

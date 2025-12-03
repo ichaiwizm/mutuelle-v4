@@ -109,6 +109,13 @@ const api: Ipc = {
   shell: {
     openPath: (path: string) => invokeIpc(IPC_CHANNEL.SHELL_OPEN_PATH, { path }),
   },
+
+  automationSettings: {
+    get: (flowKey: string) => invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_GET, { flowKey }),
+    list: () => invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_LIST),
+    save: (flowKey: string, settings: { headless?: boolean; stopAtStep?: string | null }) =>
+      invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_SAVE, { flowKey, ...settings }),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

@@ -8,6 +8,7 @@ export { registerDashboardHandlers } from "./dashboardHandlers";
 export { registerFlowsHandlers } from "./flowsHandlers";
 export { registerFixturesHandlers } from "./fixturesHandlers";
 export { registerShellHandlers } from "./shellHandlers";
+export { registerAutomationSettingsHandlers } from "./automationSettingsHandlers";
 
 // Re-export utilities for external use if needed
 export { handler, simpleHandler, validate } from "./utils";

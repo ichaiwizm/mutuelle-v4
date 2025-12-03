@@ -50,6 +50,13 @@
       "when": 1764627923853,
       "tag": "0006_futuristic_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1764775167835,
+      "tag": "0007_sticky_sersi",
+      "breakpoints": true
     }
   ]
 }
