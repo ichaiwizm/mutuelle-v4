@@ -17,6 +17,7 @@ import {
   cancelRun,
   deleteRun,
   cleanupOnShutdown,
+  cleanupOrphanedRuns,
 } from "./runManager";
 import { getItem, retryRun, retryItem } from "./itemManager";
 import { enqueueRun } from "./queueManager";
@@ -48,4 +49,5 @@ export const AutomationService = {
 
   // Lifecycle
   cleanupOnShutdown,
+  cleanupOrphanedRuns,
 };

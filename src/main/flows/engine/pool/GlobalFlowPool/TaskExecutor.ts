@@ -40,7 +40,10 @@ export class TaskExecutor {
       `[GLOBAL_POOL] Starting task ${task.id.substring(0, 8)}... (${task.flowKey}) | Run: ${task.runId.substring(0, 8)}...`
     );
 
+    console.log(`[TASK_EXECUTOR] Creating browser context for task ${task.id.substring(0, 8)}...`);
     const context = await this.browserManager.createContext();
+    console.log(`[TASK_EXECUTOR] Browser context created successfully`);
+
     const worker = new FlowWorker(task.id, context);
 
     // Transfer from pending to active

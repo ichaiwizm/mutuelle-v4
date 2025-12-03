@@ -61,6 +61,9 @@ app.whenReady().then(async () => {
       })
   }
 
+  // --- cleanup orphaned runs from previous crash ---
+  await AutomationService.cleanupOrphanedRuns()
+
   // --- seeder product_status (par défaut: active) ---
   const existingStatuses = await db
     .select({

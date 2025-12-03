@@ -182,3 +182,45 @@ export async function cleanupOnShutdown(): Promise<void> {
 
   console.log("[SHUTDOWN] Cleaned up running/queued runs");
 }
+
+/**
+ * Clean up orphaned runs on app startup.
+ * If app crashed or was killed, runs may still be in 'running' or 'queued' state.
+ * This function marks them as 'failed' so the UI shows the correct status.
+ */
+export async function cleanupOrphanedRuns(): Promise<void> {
+  console.log("[STARTUP] Checking for orphaned runs...");
+
+  // Check if there are any orphaned runs
+  const orphanedRuns = await db
+    .select({ id: schema.runs.id })
+    .from(schema.runs)
+    .where(inArray(schema.runs.status, ["running", "queued"]));
+
+  if (orphanedRuns.length === 0) {
+    console.log("[STARTUP] No orphaned runs found");
+    return;
+  }
+
+  console.log(`[STARTUP] Found ${orphanedRuns.length} orphaned run(s), marking as failed...`);
+
+  const cleanupTime = new Date();
+
+  // Mark runs as failed (they were interrupted by crash/kill)
+  await db
+    .update(schema.runs)
+    .set({ status: "failed" })
+    .where(inArray(schema.runs.status, ["running", "queued"]));
+
+  // Mark their items as cancelled with error message
+  await db
+    .update(schema.runItems)
+    .set({
+      status: "cancelled",
+      completedAt: cleanupTime,
+      errorMessage: "Run interrupted by app crash or restart",
+    })
+    .where(inArray(schema.runItems.status, ["running", "queued"]));
+
+  console.log("[STARTUP] Orphaned runs cleanup complete");
+}
