@@ -71,6 +71,17 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Submit form: Click "Garanties" button to navigate to Step 2
+   */
+  async submit(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.info('Clicking Garanties button to submit form');
+    await page.locator('button.totem-button--color-primary').click();
+    // Wait for navigation to Step 2 (Garanties)
+    await page.waitForLoadState('domcontentloaded');
+    logger?.info('Successfully navigated to Garanties page');
+  }
+
+  /**
    * Check for validation errors on the page
    * @returns Array of error messages (empty if no errors)
    */

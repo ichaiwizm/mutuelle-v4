@@ -95,6 +95,19 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
       maxRetries: 1,
       estimatedDuration: 4000,
     },
+    {
+      id: "submit",
+      name: "Soumettre",
+      description: "Cliquer sur Garanties pour passer à l'étape 2",
+      type: "form-fill",
+      required: true,
+      method: "submit",
+      stepClass: "AlptisFormFillStep",
+      needsLead: false,
+      needsCredentials: false,
+      maxRetries: 1,
+      estimatedDuration: 3000,
+    },
   ],
 
   // Conditional rules to evaluate step conditions

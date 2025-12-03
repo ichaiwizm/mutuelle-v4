@@ -62,6 +62,10 @@ export class SwissLifeFormFillStep extends BaseStep<SwissLifeOneFormData> {
         await formFiller.fillStep1Section7(frame, transformedData, context.logger);
         break;
 
+      case "submitStep1":
+        await formFiller.submitStep1(frame, context.logger);
+        break;
+
       default:
         throw new Error(`Unknown form fill method: ${method}`);
     }

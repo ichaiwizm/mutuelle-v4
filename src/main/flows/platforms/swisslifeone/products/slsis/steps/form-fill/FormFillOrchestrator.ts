@@ -80,6 +80,50 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Submit Step 1: Click "Suivant" button to navigate past Step 1
+   * Note: May navigate to Step 2 (Santé) or Step 3 (Synthèse) depending on form state
+   * The form may auto-advance after filling Section 7, so we check first if already on Step 2/3
+   */
+  async submitStep1(frame: Frame, logger?: FlowLogger): Promise<void> {
+    // Step 2 indicator: #tabs-sante is the Santé tab content container
+    // Step 3 indicator: text "Cotisation" in the Synthèse page
+    const step2Locator = frame.locator('#tabs-sante');
+    const step3Locator = frame.locator('text=Cotisation').first();
+
+    // Check if we're already on Step 2 or Step 3 (form might auto-advance)
+    const alreadyOnStep2 = await step2Locator.isVisible().catch(() => false);
+    const alreadyOnStep3 = await step3Locator.isVisible().catch(() => false);
+
+    if (alreadyOnStep2 || alreadyOnStep3) {
+      logger?.info(`Already navigated past Step 1 (on ${alreadyOnStep2 ? 'Step 2' : 'Step 3'})`);
+      return;
+    }
+
+    logger?.info('Clicking Suivant button to submit Step 1');
+    // Use specific button ID for Step 1 submit (there are multiple "Suivant" buttons)
+    const submitButton = frame.locator('#bt-suite-projet');
+
+    // Check if button is visible before clicking
+    if (await submitButton.isVisible()) {
+      await submitButton.click();
+      // Wait for navigation - either Step 2 content OR Step 3 content
+      await Promise.race([
+        step2Locator.waitFor({ state: 'visible', timeout: 25000 }),  // Step 2 indicator
+        step3Locator.waitFor({ state: 'visible', timeout: 25000 }),  // Step 3 indicator
+      ]);
+      logger?.info('Successfully navigated past Step 1');
+    } else {
+      // Button not visible, might already be past Step 1
+      logger?.info('Submit button not visible, checking if already past Step 1');
+      await Promise.race([
+        step2Locator.waitFor({ state: 'visible', timeout: 10000 }),
+        step3Locator.waitFor({ state: 'visible', timeout: 10000 }),
+      ]);
+      logger?.info('Confirmed: Already past Step 1');
+    }
+  }
+
+  /**
    * Check for form validation errors
    * @returns Array of error messages (empty if no errors)
    */

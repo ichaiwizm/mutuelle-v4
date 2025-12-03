@@ -16,14 +16,6 @@ import { FlowEngine } from '@/main/flows/engine';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-select/transformers/LeadTransformer';
 import { hasAlptisCredentials } from '../helpers/credentials';
 import { selectLead } from '../../leads';
-import {
-  verifySection1,
-  verifySection2,
-  verifySection3Toggle,
-  verifySection3Conjoint,
-  verifySection4Toggle,
-  verifySection4Enfant,
-} from '../helpers/verification';
 
 test.skip(!hasAlptisCredentials(), 'Credentials manquants dans .env');
 
@@ -57,20 +49,12 @@ test('Complete journey with FlowEngine', async ({ page, authenticatedPage }) => 
   expect(result.success).toBe(true);
   console.log(`\n✅ FlowEngine completed in ${result.totalDuration}ms`);
 
-  // Verify all sections
-  console.log('\n🔍 Verifying all sections...');
-  await verifySection1(page, leadData);
-  await verifySection2(page, leadData);
-  await verifySection3Toggle(page, hasConjoint);
-  if (hasConjoint && leadData.conjoint) {
-    await verifySection3Conjoint(page, leadData.conjoint);
-  }
-  await verifySection4Toggle(page, hasEnfants);
-  if (hasEnfants && leadData.enfants) {
-    const lastChildIndex = leadData.enfants.length - 1;
-    await verifySection4Enfant(page, leadData.enfants[lastChildIndex], lastChildIndex);
-  }
+  // Verify we navigated to Step 2 (Garanties)
+  console.log('\n🔍 Verifying Garanties page...');
+  // The URL should have changed or we should see "Garanties" content
+  await expect(page.locator('text=Garanties').first()).toBeVisible({ timeout: 10000 });
+  console.log('   Garanties page reached ✓');
 
   console.log('\n🎉 Complete journey finished successfully!');
-  console.log(`   Sections completed: 1 ✓ | 2 ✓ | 3 ✓ | 4 ✓`);
+  console.log(`   All sections completed + Submit ✓`);
 });

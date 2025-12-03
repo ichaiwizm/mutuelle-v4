@@ -52,6 +52,10 @@ export class AlptisFormFillStep extends BaseStep<AlptisFormData> {
         }
         break;
 
+      case "submit":
+        await formFiller.submit(page, context.logger);
+        return; // Skip error check after submit (we're on a new page)
+
       default:
         throw new Error(`Unknown form fill method: ${method}`);
     }

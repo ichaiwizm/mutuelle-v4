@@ -58,7 +58,10 @@
       "WebFetch(domain:stackoverflow.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(mkdir:*)",
-      "Bash(xargs -I{} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && sqlite3 \"\"\"\"{}\"\"\"\" \"\"\"\"SELECT COUNT(*) FROM leads;\"\"\"\" 2>/dev/null || echo \"\"\"\"no leads table\"\"\"\"')"
+      "Bash(xargs -I{} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && sqlite3 \"\"\"\"{}\"\"\"\" \"\"\"\"SELECT COUNT(*) FROM leads;\"\"\"\" 2>/dev/null || echo \"\"\"\"no leads table\"\"\"\"')",
+      "Bash(pnpm build:main:*)",
+      "Bash(LEAD_INDEX=0 npx playwright test:*)",
+      "Bash(MUTUELLE_DB_FILE=.userData/mutuelle.db pnpm exec drizzle-kit:*)"
     ],
     "deny": [],
     "ask": []

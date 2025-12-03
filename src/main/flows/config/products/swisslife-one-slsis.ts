@@ -134,6 +134,19 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
       maxRetries: 1,
       estimatedDuration: 3000,
     },
+    {
+      id: "submit-step1",
+      name: "Soumettre Step 1",
+      description: "Cliquer sur Suivant pour passer à l'étape 2 (Garanties)",
+      type: "form-fill",
+      required: true,
+      method: "submitStep1",
+      stepClass: "SwissLifeFormFillStep",
+      needsLead: false,
+      needsCredentials: false,
+      maxRetries: 1,
+      estimatedDuration: 5000,
+    },
   ],
 
   // Conditional rules to evaluate step conditions
