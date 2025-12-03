@@ -63,7 +63,7 @@ export class FlowWorker {
     console.log(`[FLOW_WORKER] Flow: ${task.flowKey}`);
     console.log(`[FLOW_WORKER] Lead ID: ${task.leadId?.substring(0, 8)}...`);
     console.log(`[FLOW_WORKER] Visible mode: ${isVisibleMode}`);
-    console.log(`[FLOW_WORKER] Stop at step: ${task.automationSettings?.stopAtStep ?? 'none'}`);
+    console.log(`[FLOW_WORKER] Auto submit: ${task.automationSettings?.autoSubmit ?? true}`);
 
     this._status = "running";
     this.isAborted = false;
@@ -97,6 +97,9 @@ export class FlowWorker {
       if (isVisibleMode && task.runId) {
         console.log(`[FLOW_WORKER] Registering page in WindowRegistry...`);
         windowRegistry.register(task.id, task.runId, task.flowKey, this.page);
+
+        // Minimize window immediately after registration
+        await windowRegistry.minimizeWindow(task.id);
 
         // Set up page close listener for manual takeover detection
         this.page.on("close", () => {
@@ -143,6 +146,8 @@ export class FlowWorker {
         this.isWaitingUser = true;
         this._status = "completed"; // Worker is "done" but page stays open
         windowRegistry.markWaitingUser(task.id);
+        // Bring window to front for user to see
+        await windowRegistry.bringToFront(task.id);
         console.log(`[FLOW_WORKER] ========== WAITING USER ==========\n`);
         return result;
       }

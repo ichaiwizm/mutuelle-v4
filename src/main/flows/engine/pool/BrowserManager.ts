@@ -105,10 +105,7 @@ export class BrowserManager {
     const visibleOptions: LaunchOptions = {
       ...this.launchOptions,
       headless: false,
-      args: [
-        ...(this.launchOptions.args ?? []),
-        "--start-minimized", // Start minimized (works on Windows/some Linux)
-      ],
+      // Window will be minimized via CDP after page creation in FlowWorker
     };
     console.log(`[BROWSER_MANAGER] Visible launch options: ${JSON.stringify(visibleOptions)}`);
 

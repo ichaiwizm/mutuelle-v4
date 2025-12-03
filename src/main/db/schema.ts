@@ -106,13 +106,13 @@ export const flowStates = sqliteTable(
   })
 );
 
-// Product automation settings (headless mode, stop at step)
+// Product automation settings (headless mode, auto submit)
 export const productAutomationSettings = sqliteTable(
   "product_automation_settings",
   {
     flowKey: text("flow_key").primaryKey(),                // "alptis_sante_select" | "swisslife_one_slsis"
     headless: integer("headless", { mode: "boolean" }).notNull().default(true),
-    stopAtStep: text("stop_at_step"),                      // step ID to stop at (null = run all)
+    autoSubmit: integer("auto_submit", { mode: "boolean" }).notNull().default(true), // true = submit automatically, false = stop before submission
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   }
 );

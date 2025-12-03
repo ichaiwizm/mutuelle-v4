@@ -8,8 +8,8 @@ import type { FlowExecutionResult, FlowExecutionConfig } from "../types";
 export type TaskAutomationSettings = {
   /** If false, browser runs in visible (non-headless) mode */
   headless: boolean;
-  /** Step ID to stop at for manual takeover (null = run all steps) */
-  stopAtStep: string | null;
+  /** If false, stop before the submit step for manual takeover. Default: true (auto-submit). */
+  autoSubmit: boolean;
 };
 
 /**

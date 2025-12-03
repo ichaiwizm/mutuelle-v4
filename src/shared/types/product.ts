@@ -28,6 +28,7 @@ export type StepDefinition = {
   needsLead?: boolean;           // Whether this step requires lead data (default: false)
   needsCredentials?: boolean;    // Whether this step requires credentials (default: false)
   maxRetries?: number;           // Maximum number of retries on failure (default: 0)
+  isSubmit?: boolean;            // Whether this step is the final submission step
 };
 
 // Conditional rule function type - evaluates if a step should execute

@@ -114,7 +114,7 @@ const api: Ipc = {
   automationSettings: {
     get: (flowKey: string) => invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_GET, { flowKey }),
     list: () => invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_LIST),
-    save: (flowKey: string, settings: { headless?: boolean; stopAtStep?: string | null }) =>
+    save: (flowKey: string, settings: { headless?: boolean; autoSubmit?: boolean }) =>
       invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_SAVE, { flowKey, ...settings }),
   },
 };

@@ -13,6 +13,6 @@ export type FlowExecutionConfig = {
   hooks?: FlowHooks;
   enablePauseResume?: boolean;
   stateId?: string;
-  /** Step ID to stop at for manual takeover. If set, execution will halt after this step completes. */
-  stopAtStep?: string;
+  /** If false, stop before the submit step for manual takeover. Default: true (auto-submit). */
+  autoSubmit?: boolean;
 };

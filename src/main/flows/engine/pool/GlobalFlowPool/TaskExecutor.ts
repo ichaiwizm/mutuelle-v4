@@ -124,6 +124,9 @@ export class TaskExecutor {
     this.activeWorkers.set(task.id, worker);
     console.log(`[TASK_EXECUTOR] Active workers: ${this.activeWorkers.size} | Pending: ${this.pendingTasks.size}`);
 
+    // Flag to skip cleanup in finally block when entering waiting_user state
+    let skipFinallyCleanup = false;
+
     try {
       // Notify start
       console.log(`[TASK_EXECUTOR] Calling task.callbacks.onStart()...`);
@@ -165,8 +168,9 @@ export class TaskExecutor {
         );
 
         // Signal task completion but DON'T cleanup in finally block
+        skipFinallyCleanup = true;
         onTaskComplete();
-        return; // Skip finally block cleanup
+        return;
       } else if (result.success) {
         task.status = "completed";
         console.log(`[TASK_EXECUTOR] Calling onComplete callback...`);
@@ -193,6 +197,13 @@ export class TaskExecutor {
       );
     } finally {
       console.log(`[TASK_EXECUTOR] Entering finally block for task ${taskShortId}...`);
+
+      // Skip cleanup if entering waiting_user state (browser should stay open)
+      if (skipFinallyCleanup) {
+        console.log(`[TASK_EXECUTOR] Skipping cleanup - task is in waiting_user state`);
+        console.log(`[TASK_EXECUTOR] ========== EXECUTE END (waiting_user) ==========\n`);
+        return;
+      }
 
       // Cleanup
       console.log(`[TASK_EXECUTOR] Calling worker.cleanup()...`);

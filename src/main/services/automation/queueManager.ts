@@ -101,8 +101,13 @@ export async function enqueueRun(
     // Create hooks for this specific task
     const hooks = createProgressHooks(runId, itemId, stepsData);
 
-    // Get automation settings for this flow (visible mode, stop at step)
+    // Get automation settings for this flow (visible mode, auto submit)
     const automationSettings = await AutomationSettingsService.get(item.flowKey);
+
+    // In headless mode, always force autoSubmit to true (no point in stopping if invisible)
+    const effectiveAutoSubmit = automationSettings?.headless !== false
+      ? true
+      : (automationSettings?.autoSubmit ?? true);
 
     tasks.push({
       id: itemId,
@@ -115,14 +120,14 @@ export async function enqueueRun(
       automationSettings: automationSettings
         ? {
             headless: automationSettings.headless,
-            stopAtStep: automationSettings.stopAtStep,
+            autoSubmit: effectiveAutoSubmit,
           }
         : undefined,
       flowConfig: {
         enablePauseResume: true,
         hooks,
-        // Pass stopAtStep to FlowEngine config
-        stopAtStep: automationSettings?.stopAtStep ?? undefined,
+        // Pass autoSubmit to FlowEngine config (false = stop before submit step)
+        autoSubmit: effectiveAutoSubmit,
       },
     });
   }

@@ -32,9 +32,9 @@ export function registerAutomationSettingsHandlers() {
 
   ipcMain.handle(
     IPC_CHANNEL.AUTO_SETTINGS_SAVE,
-    handler(AutomationSettingsSaveSchema, async ({ flowKey, headless, stopAtStep }) => {
-      console.log("[AutomationSettings] SAVE", { flowKey, headless, stopAtStep });
-      const result = await AutomationSettingsService.upsert(flowKey, { headless, stopAtStep });
+    handler(AutomationSettingsSaveSchema, async ({ flowKey, headless, autoSubmit }) => {
+      console.log("[AutomationSettings] SAVE", { flowKey, headless, autoSubmit });
+      const result = await AutomationSettingsService.upsert(flowKey, { headless, autoSubmit });
       console.log("[AutomationSettings] SAVE result:", result);
       return result;
     })
