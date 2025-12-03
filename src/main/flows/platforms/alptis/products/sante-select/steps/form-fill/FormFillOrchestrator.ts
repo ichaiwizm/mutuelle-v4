@@ -76,9 +76,9 @@ export class FormFillOrchestrator {
   async submit(page: Page, logger?: FlowLogger): Promise<void> {
     logger?.info('Clicking Garanties button to submit form');
     await page.locator('button.totem-button--color-primary').click();
-    // Wait for navigation to Step 2 (Garanties)
-    await page.waitForLoadState('domcontentloaded');
-    logger?.info('Successfully navigated to Garanties page');
+    // Attendre la navigation vers la page Garanties (avec ou sans trailing slash)
+    await page.waitForURL(/\/sante-select\/garanties/, { timeout: 10000 });
+    logger?.info('Successfully navigated to Garanties page', { url: page.url() });
   }
 
   /**

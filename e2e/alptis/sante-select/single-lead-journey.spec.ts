@@ -51,8 +51,11 @@ test('Complete journey with FlowEngine', async ({ page, authenticatedPage }) => 
 
   // Verify we navigated to Step 2 (Garanties)
   console.log('\n🔍 Verifying Garanties page...');
-  // The URL should have changed or we should see "Garanties" content
-  await expect(page.locator('text=Garanties').first()).toBeVisible({ timeout: 10000 });
+  console.log(`   Current URL: ${page.url()}`);
+  // Vérifier l'URL de la page Garanties (avec ou sans trailing slash)
+  await expect(page).toHaveURL(/\/sante-select\/garanties/);
+  // Vérifier le contenu spécifique de la page
+  await expect(page.locator('text=Choix des garanties')).toBeVisible({ timeout: 10000 });
   console.log('   Garanties page reached ✓');
 
   console.log('\n🎉 Complete journey finished successfully!');
