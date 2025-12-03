@@ -65,7 +65,12 @@
       "Skill(frontend-design)",
       "Bash(MUTUELLE_DB_FILE=/home/ichai/dev/mutuelle-v4/.userData/mutuelle.db pnpm exec drizzle-kit push:*)",
       "WebFetch(domain:playwright.dev)",
-      "WebFetch(domain:chromedevtools.github.io)"
+      "WebFetch(domain:chromedevtools.github.io)",
+      "Bash(rmdir:*)",
+      "Bash(while read f)",
+      "Bash(while read file)",
+      "Bash(then relpath=\"$file#/home/ichai/dev/mutuelle-v4/\" if ! grep -rq \"$file##*/\\|$relpath\" /home/ichai/dev/mutuelle-v4/src --include=\"*.ts\" --include=\"*.tsx\" --exclude-dir=node_modules)",
+      "Bash(then echo \"[POTENTIALLY ORPHANED - NO IMPORTS FOUND] $relpath\" fi fi done)"
     ],
     "deny": [],
     "ask": []
