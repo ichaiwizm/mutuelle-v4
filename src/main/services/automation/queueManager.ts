@@ -129,19 +129,35 @@ export async function enqueueRun(
   // Create callbacks for the global pool
   const callbacks: TaskCallbacks = {
     onStart: async (taskId) => {
+      console.log(`[CALLBACK] onStart called for task ${taskId.substring(0, 8)}...`);
+      const callbackStart = Date.now();
+
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
+      if (!task) {
+        console.log(`[CALLBACK] onStart: Task not found!`);
+        return;
+      }
+      console.log(`[CALLBACK] onStart: Found task for flow ${task.flowKey}`);
 
       // Update item status to running
+      console.log(`[CALLBACK] onStart: Updating DB status to running...`);
+      const dbUpdateStart = Date.now();
       await db
         .update(schema.runItems)
         .set({ status: "running", startedAt: new Date() })
         .where(eq(schema.runItems.id, taskId));
+      console.log(`[CALLBACK] onStart: DB update done in ${Date.now() - dbUpdateStart}ms`);
 
       // Get steps data for broadcast
+      console.log(`[CALLBACK] onStart: Getting item for steps data...`);
+      const getItemStart = Date.now();
       const item = await getItem(taskId);
+      console.log(`[CALLBACK] onStart: getItem done in ${Date.now() - getItemStart}ms`);
       const steps = item?.stepsData?.steps ?? [];
+      console.log(`[CALLBACK] onStart: Steps count: ${steps.length}`);
 
+      console.log(`[CALLBACK] onStart: Broadcasting itemStarted...`);
+      const broadcastStart = Date.now();
       AutomationBroadcaster.itemStarted(
         runId,
         taskId,
@@ -149,9 +165,15 @@ export async function enqueueRun(
         task.leadId,
         steps.map((s) => ({ id: s.id, name: s.name }))
       );
+      console.log(`[CALLBACK] onStart: Broadcast done in ${Date.now() - broadcastStart}ms`);
+      console.log(`[CALLBACK] onStart: TOTAL TIME: ${Date.now() - callbackStart}ms`);
     },
     onComplete: async (taskId, result) => {
+      console.log(`[CALLBACK] onComplete called for task ${taskId.substring(0, 8)}...`);
+      const callbackStart = Date.now();
+
       // Check if already cancelled - don't overwrite
+      console.log(`[CALLBACK] onComplete: Checking if cancelled...`);
       const existingItem = await db
         .select({ status: schema.runItems.status })
         .from(schema.runItems)
@@ -159,15 +181,18 @@ export async function enqueueRun(
         .limit(1);
 
       if (existingItem[0]?.status === "cancelled") {
+        console.log(`[CALLBACK] onComplete: Already cancelled, skipping`);
         return; // Don't overwrite cancelled status
       }
 
       // Check if this was an aborted flow
       if (result.aborted) {
+        console.log(`[CALLBACK] onComplete: Aborted flow, skipping`);
         return; // Don't update, cancel() already handled it
       }
 
       // Update item status
+      console.log(`[CALLBACK] onComplete: Updating DB status...`);
       await db
         .update(schema.runItems)
         .set({
@@ -177,14 +202,19 @@ export async function enqueueRun(
         })
         .where(eq(schema.runItems.id, taskId));
 
+      console.log(`[CALLBACK] onComplete: Broadcasting...`);
       AutomationBroadcaster.itemCompleted(
         runId,
         taskId,
         result.success,
         result.totalDuration
       );
+      console.log(`[CALLBACK] onComplete: TOTAL TIME: ${Date.now() - callbackStart}ms`);
     },
     onError: async (taskId, error) => {
+      console.log(`[CALLBACK] onError called for task ${taskId.substring(0, 8)}...`);
+      console.log(`[CALLBACK] onError: Error message: ${error.message}`);
+
       await db
         .update(schema.runItems)
         .set({
@@ -195,6 +225,7 @@ export async function enqueueRun(
         .where(eq(schema.runItems.id, taskId));
 
       AutomationBroadcaster.itemFailed(runId, taskId, error.message);
+      console.log(`[CALLBACK] onError: Done`);
     },
   };
 

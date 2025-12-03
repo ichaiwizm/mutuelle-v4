@@ -41,28 +41,44 @@ function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" {
  * Loads credentials from database via CredentialsService
  */
 export async function getServicesForFlow(flowKey: string) {
-  const platform = getPlatformFromFlowKey(flowKey);
+  console.log(`[SERVICES] getServicesForFlow called for: ${flowKey}`);
+  const startTime = Date.now();
 
+  const platform = getPlatformFromFlowKey(flowKey);
+  console.log(`[SERVICES] Platform detected: ${platform}`);
+
+  console.log(`[SERVICES] Loading credentials...`);
+  const credentialsStart = Date.now();
   const credentials = await CredentialsService.getByPlatform(platform);
+  console.log(`[SERVICES] Credentials loaded in ${Date.now() - credentialsStart}ms`);
+
   if (!credentials) {
+    console.error(`[SERVICES] No credentials found for platform: ${platform}`);
     throw new Error(
       `No credentials found for platform "${platform}". ` +
       `Please configure credentials in the app settings before running automations.`
     );
   }
+  console.log(`[SERVICES] Credentials found for user: ${credentials.login.substring(0, 3)}...`);
 
   if (platform === "alptis") {
-    return createAlptisServices({
+    console.log(`[SERVICES] Creating Alptis services...`);
+    const services = createAlptisServices({
       username: credentials.login,
       password: credentials.password,
     });
+    console.log(`[SERVICES] Alptis services created in ${Date.now() - startTime}ms total`);
+    return services;
   }
 
   // swisslifeone
-  return createSwissLifeServices({
+  console.log(`[SERVICES] Creating SwissLife services...`);
+  const services = createSwissLifeServices({
     username: credentials.login,
     password: credentials.password,
   });
+  console.log(`[SERVICES] SwissLife services created in ${Date.now() - startTime}ms total`);
+  return services;
 }
 
 /**

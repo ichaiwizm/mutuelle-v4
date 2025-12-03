@@ -14,12 +14,21 @@ class AutomationBroadcasterImpl {
    * Broadcast an event to all renderer windows
    */
   broadcast(event: AutomationProgressEvent): void {
+    console.log(`[BROADCASTER] Broadcasting event: ${event.type}`);
+    const broadcastStart = Date.now();
+
     const windows = BrowserWindow.getAllWindows();
+    console.log(`[BROADCASTER] Found ${windows.length} windows`);
+
+    let sentCount = 0;
     for (const win of windows) {
       if (!win.isDestroyed() && win.webContents) {
         win.webContents.send(CHANNEL, event);
+        sentCount++;
       }
     }
+
+    console.log(`[BROADCASTER] Sent to ${sentCount} windows in ${Date.now() - broadcastStart}ms`);
   }
 
   /**

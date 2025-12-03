@@ -44,22 +44,34 @@ export const CredentialsService = {
    * Returns null if no credentials exist for the platform.
    */
   async getByPlatform(platform: string): Promise<PlatformCredentials | null> {
+    console.log(`[CREDENTIALS_SERVICE] getByPlatform() | platform: ${platform}`);
+    const startTime = Date.now();
+
+    console.log(`[CREDENTIALS_SERVICE] Querying database...`);
+    const dbStart = Date.now();
     const rows = await db
       .select()
       .from(schema.credentials)
       .where(eq(schema.credentials.platform, platform))
       .limit(1);
+    console.log(`[CREDENTIALS_SERVICE] DB query done in ${Date.now() - dbStart}ms | found: ${rows.length > 0}`);
 
     if (!rows[0]) {
+      console.log(`[CREDENTIALS_SERVICE] No credentials found for platform: ${platform}`);
       return null;
     }
 
     const row = rows[0];
-    return {
+    console.log(`[CREDENTIALS_SERVICE] Decrypting credentials...`);
+    const decryptStart = Date.now();
+    const result = {
       platform: row.platform,
       login: decryptValue(row.login),
       password: decryptValue(row.password),
     };
+    console.log(`[CREDENTIALS_SERVICE] Decryption done in ${Date.now() - decryptStart}ms`);
+    console.log(`[CREDENTIALS_SERVICE] getByPlatform() done in ${Date.now() - startTime}ms total`);
+    return result;
   },
 
   /**

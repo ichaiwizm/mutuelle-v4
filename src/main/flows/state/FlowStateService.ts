@@ -7,6 +7,9 @@ import { flowStateRepository } from "./FlowStateRepository";
  */
 export class FlowStateService {
   async createState(flowKey: string, leadId?: string): Promise<FlowState> {
+    console.log(`[FLOW_STATE_SERVICE] createState() | flowKey: ${flowKey} | leadId: ${leadId?.substring(0, 8)}...`);
+    const startTime = Date.now();
+
     const state: FlowState = {
       id: randomUUID(),
       flowKey,
@@ -17,15 +20,27 @@ export class FlowStateService {
       status: "running",
       startedAt: Date.now(),
     };
+
+    console.log(`[FLOW_STATE_SERVICE] Inserting state to repository...`);
+    const insertStart = Date.now();
     await flowStateRepository.insert(state);
+    console.log(`[FLOW_STATE_SERVICE] State inserted in ${Date.now() - insertStart}ms`);
+    console.log(`[FLOW_STATE_SERVICE] createState() done in ${Date.now() - startTime}ms | stateId: ${state.id}`);
     return state;
   }
 
   async getState(id: string): Promise<FlowState | null> {
-    return flowStateRepository.findById(id);
+    console.log(`[FLOW_STATE_SERVICE] getState() | id: ${id.substring(0, 8)}...`);
+    const startTime = Date.now();
+    const result = await flowStateRepository.findById(id);
+    console.log(`[FLOW_STATE_SERVICE] getState() done in ${Date.now() - startTime}ms | found: ${!!result}`);
+    return result;
   }
 
   async updateState(id: string, updates: Partial<FlowState>): Promise<void> {
+    console.log(`[FLOW_STATE_SERVICE] updateState() | id: ${id.substring(0, 8)}... | keys: ${Object.keys(updates).join(', ')}`);
+    const startTime = Date.now();
+
     const data: Record<string, any> = {};
 
     if (updates.currentStepIndex !== undefined) data.currentStepIndex = updates.currentStepIndex;
@@ -37,6 +52,7 @@ export class FlowStateService {
     if (updates.completedAt) data.completedAt = new Date(updates.completedAt);
 
     await flowStateRepository.update(id, data);
+    console.log(`[FLOW_STATE_SERVICE] updateState() done in ${Date.now() - startTime}ms`);
   }
 
   async markPaused(id: string): Promise<void> {

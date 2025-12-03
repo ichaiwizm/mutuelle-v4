@@ -83,9 +83,17 @@ export class GlobalFlowPool {
     tasks: FlowTask[],
     callbacks: TaskCallbacks
   ): Promise<void> {
-    if (tasks.length === 0) return;
+    console.log(`\n[GLOBAL_POOL] ========== ENQUEUE RUN ==========`);
+    console.log(`[GLOBAL_POOL] Run ID: ${runId.substring(0, 8)}...`);
+    console.log(`[GLOBAL_POOL] Tasks count: ${tasks.length}`);
+
+    if (tasks.length === 0) {
+      console.log(`[GLOBAL_POOL] No tasks to enqueue, returning early`);
+      return;
+    }
 
     // Create run handle with completion promise
+    console.log(`[GLOBAL_POOL] Creating run handle...`);
     let resolve: () => void;
     const completionPromise = new Promise<void>((r) => {
       resolve = r;
@@ -102,8 +110,10 @@ export class GlobalFlowPool {
     };
 
     this.runs.set(runId, handle);
+    console.log(`[GLOBAL_POOL] Run handle created | Active runs: ${this.runs.size}`);
 
     // Create global tasks with run association
+    console.log(`[GLOBAL_POOL] Creating global tasks...`);
     const globalTasks: GlobalTask[] = tasks.map((task) => ({
       ...task,
       runId,
@@ -111,8 +121,10 @@ export class GlobalFlowPool {
       status: "queued" as const,
       callbacks,
     }));
+    console.log(`[GLOBAL_POOL] Global tasks created`);
 
     // Add to queue (TaskQueue handles priority sorting)
+    console.log(`[GLOBAL_POOL] Adding tasks to queue...`);
     this.taskQueue.add(globalTasks);
 
     console.log(
@@ -120,7 +132,10 @@ export class GlobalFlowPool {
     );
 
     // Start processing if not already running
+    console.log(`[GLOBAL_POOL] Starting queue processor...`);
     this.queueProcessor.start();
+    console.log(`[GLOBAL_POOL] Queue processor started (or already running)`);
+    console.log(`[GLOBAL_POOL] Returning completion promise (will await in caller)`);
 
     return completionPromise;
   }

@@ -37,26 +37,47 @@ export class FlowEngine extends EventEmitter {
   }
 
   async execute<T = any>(flowKey: string, context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger" | "services">): Promise<FlowExecutionResult> {
+    console.log(`\n[FLOW_ENGINE] ========== EXECUTE() CALLED ==========`);
+    console.log(`[FLOW_ENGINE] FlowKey: ${flowKey}`);
+    console.log(`[FLOW_ENGINE] Lead ID: ${context.lead?.id || 'N/A'}`);
+    console.log(`[FLOW_ENGINE] Page exists: ${!!context.page}`);
+    console.log(`[FLOW_ENGINE] TransformedData exists: ${!!context.transformedData}`);
+    console.log(`[FLOW_ENGINE] ArtifactsDir: ${context.artifactsDir}`);
+
     const startTime = Date.now();
     const stepResults: StepResult[] = [];
+    console.log(`[FLOW_ENGINE] Resetting pause manager...`);
     this.pauseManager.reset();
 
+    console.log(`[FLOW_ENGINE] Creating FlowLogger...`);
     const logger = new FlowLogger(flowKey, context.lead?.id, this.config.verbose);
+    console.log(`[FLOW_ENGINE] Getting services for flow...`);
     const services = await getServicesForFlow(flowKey);
+    console.log(`[FLOW_ENGINE] Services loaded`);
     const baseContext = { ...context, flowKey, logger, services } as ExecutionContext<T>;
 
     try {
+      console.log(`[FLOW_ENGINE] Getting product config...`);
       const productConfig = getProductConfig(flowKey) as ProductConfiguration<T> | undefined;
-      if (!productConfig) throw new Error(`Product configuration not found: ${flowKey}`);
+      if (!productConfig) {
+        console.error(`[FLOW_ENGINE] Product configuration not found: ${flowKey}`);
+        throw new Error(`Product configuration not found: ${flowKey}`);
+      }
+      console.log(`[FLOW_ENGINE] Product config loaded: ${productConfig.steps.length} steps`);
 
       // Validate all step classes exist in registry before starting
+      console.log(`[FLOW_ENGINE] Validating step classes...`);
       for (const stepDef of productConfig.steps) {
         if (stepDef.stepClass && !this.registry.has(stepDef.stepClass)) {
+          console.error(`[FLOW_ENGINE] Step class not found: ${stepDef.stepClass}`);
           throw new Error(`Step class "${stepDef.stepClass}" not found in registry for step "${stepDef.id}"`);
         }
       }
+      console.log(`[FLOW_ENGINE] All step classes validated`);
 
+      console.log(`[FLOW_ENGINE] Initializing pause manager...`);
       const startIndex = await this.pauseManager.initialize(flowKey, context.lead?.id, logger);
+      console.log(`[FLOW_ENGINE] Pause manager initialized, startIndex: ${startIndex}`);
       if (this.config.stateId) await this.hooksManager.flowResumed(flowKey, context.lead?.id, this.pauseManager.state?.id);
 
       logger.info(`Starting flow: ${flowKey} (${productConfig.steps.length} steps)`);

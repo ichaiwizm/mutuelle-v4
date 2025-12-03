@@ -30,17 +30,24 @@ export class BrowserManager {
    * Returns false if browser is zombie (JS object exists but process is dead).
    */
   private async isHealthy(): Promise<boolean> {
-    if (!this.browser) return false;
+    console.log("[BROWSER_MANAGER] isHealthy() called");
+    if (!this.browser) {
+      console.log("[BROWSER_MANAGER] isHealthy: No browser instance");
+      return false;
+    }
     try {
+      console.log("[BROWSER_MANAGER] isHealthy: Checking browser.version()...");
       // Try to get browser version - will fail if process is dead
-      await Promise.race([
+      const version = await Promise.race([
         this.browser.version(),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("Health check timeout")), HEALTH_CHECK_TIMEOUT_MS)
         ),
       ]);
+      console.log(`[BROWSER_MANAGER] isHealthy: Browser version = ${version}`);
       return true;
-    } catch {
+    } catch (error) {
+      console.error("[BROWSER_MANAGER] isHealthy: Health check FAILED", error);
       return false;
     }
   }
@@ -50,12 +57,32 @@ export class BrowserManager {
    * Should be called once before creating contexts.
    */
   async launch(): Promise<void> {
+    console.log("[BROWSER_MANAGER] launch() called");
+    console.log(`[BROWSER_MANAGER] Current browser instance: ${!!this.browser}`);
+
     if (this.browser) {
+      console.log("[BROWSER_MANAGER] Browser already launched, skipping");
       return; // Already launched
     }
+
     console.log("[BROWSER_MANAGER] Launching browser...");
+    console.log(`[BROWSER_MANAGER] Launch options: ${JSON.stringify(this.launchOptions)}`);
+
+    const launchStart = Date.now();
     this.browser = await chromium.launch(this.launchOptions);
-    console.log("[BROWSER_MANAGER] Browser launched successfully");
+    console.log(`[BROWSER_MANAGER] Browser launched successfully in ${Date.now() - launchStart}ms`);
+
+    // Try to get PID safely (may not be available with playwright-extra)
+    try {
+      const proc = this.browser.process?.();
+      if (proc?.pid) {
+        console.log(`[BROWSER_MANAGER] Browser PID: ${proc.pid}`);
+      } else {
+        console.log(`[BROWSER_MANAGER] Browser PID: N/A (process() not available)`);
+      }
+    } catch {
+      console.log(`[BROWSER_MANAGER] Browser PID: N/A (process() not supported)`);
+    }
   }
 
   /**
@@ -64,18 +91,31 @@ export class BrowserManager {
    * Includes health check and timeout to prevent zombie browser freeze.
    */
   async createContext(): Promise<BrowserContext> {
+    console.log("[BROWSER_MANAGER] createContext() called");
+    console.log(`[BROWSER_MANAGER] Browser instance exists: ${!!this.browser}`);
+    console.log(`[BROWSER_MANAGER] Current active contexts: ${this.contexts.size}`);
+
     if (!this.browser) {
+      console.error("[BROWSER_MANAGER] ERROR: Browser not launched!");
       throw new Error("Browser not launched. Call launch() first.");
     }
 
     // Health check before creating context - detect zombie browsers
-    if (!(await this.isHealthy())) {
+    console.log("[BROWSER_MANAGER] Starting health check...");
+    const healthCheckStart = Date.now();
+    const isHealthy = await this.isHealthy();
+    console.log(`[BROWSER_MANAGER] Health check completed in ${Date.now() - healthCheckStart}ms | Result: ${isHealthy}`);
+
+    if (!isHealthy) {
       console.warn("[BROWSER_MANAGER] Browser unhealthy (zombie state detected), forcing restart...");
       await this.forceClose();
       await this.launch();
     }
 
     // Add timeout to prevent infinite hang on newContext()
+    console.log("[BROWSER_MANAGER] Creating new browser context...");
+    const contextStart = Date.now();
+
     const contextPromise = this.browser!.newContext({
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: true,
@@ -88,8 +128,12 @@ export class BrowserManager {
       )
     );
 
+    console.log("[BROWSER_MANAGER] Awaiting Promise.race for context creation...");
     const context = await Promise.race([contextPromise, timeoutPromise]);
+    console.log(`[BROWSER_MANAGER] Context created in ${Date.now() - contextStart}ms`);
+
     this.contexts.add(context);
+    console.log(`[BROWSER_MANAGER] Context added to set | Total contexts: ${this.contexts.size}`);
     return context;
   }
 

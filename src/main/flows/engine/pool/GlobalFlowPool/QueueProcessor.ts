@@ -100,9 +100,6 @@ export class QueueProcessor {
 
       // Check if run is complete
       if (handle.completedCount >= handle.totalCount) {
-        console.log(
-          `[GLOBAL_POOL] Run ${task.runId.substring(0, 8)}... completed (${handle.totalCount} tasks)`
-        );
         this.runs.delete(task.runId);
         handle.resolve();
       }
@@ -136,14 +133,23 @@ export class QueueProcessor {
   private waitForWorkerSlot(): Promise<void> {
     return new Promise((resolve) => {
       const check = (): void => {
-        if (
-          this.taskExecutor.activeCount < this.maxConcurrent ||
-          !this.hasQueuedTasks()
-        ) {
+        const activeCount = this.taskExecutor.activeCount;
+        const hasQueued = this.hasQueuedTasks();
+
+        // Si on peut traiter des tâches en queue, continuer
+        if (activeCount < this.maxConcurrent && hasQueued) {
           resolve();
-        } else {
-          setTimeout(check, 50);
+          return;
         }
+
+        // Si plus de tâches en queue, sortir avec un délai pour éviter busy loop
+        if (!hasQueued) {
+          setTimeout(resolve, 100);
+          return;
+        }
+
+        // Attendre et réessayer (on est à capacité max avec des tâches en queue)
+        setTimeout(check, 50);
       };
       check();
     });
