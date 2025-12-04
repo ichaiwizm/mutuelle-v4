@@ -1,0 +1,89 @@
+# Ce workflow build l'app Electron sur macOS et produit un .dmg
+# Il se déclenche quand tu push un tag "v*" (ex: v0.1.0-beta.1)
+
+name: Build Mac
+
+on:
+  # Déclenché quand tu push un tag commençant par "v"
+  # Ex: git tag v0.1.0-beta.1 && git push origin v0.1.0-beta.1
+  push:
+    tags:
+      - 'v*'
+
+  # Permet aussi de lancer manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    # Utilise un runner macOS hébergé par GitHub (gratuit pour repos publics, 2000 min/mois pour privés)
+    runs-on: macos-latest
+
+    steps:
+      # 1. Récupère le code source
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Installe Node.js (même version que tu utilises en local)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Installe pnpm (ton package manager)
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 4. Cache les dépendances pour accélérer les builds suivants
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # 5. Installe les dépendances Node.js
+      - name: Install dependencies
+        run: pnpm install
+
+      # 6. Rebuild better-sqlite3 pour l'architecture Mac (arm64 ou x64)
+      # C'est un module natif qui doit être compilé pour chaque plateforme
+      - name: Rebuild native modules
+        run: pnpm rebuild
+
+      # 7. Installe les navigateurs Playwright (Chromium)
+      # Nécessaire pour que l'automatisation fonctionne
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      # 8. Build l'app Electron et crée le .dmg
+      # electron-vite compile le code TypeScript
+      # electron-builder package tout dans un .dmg
+      - name: Build and package
+        run: pnpm dist:mac
+        env:
+          # Désactive la signature de code (on n'a pas de certificat Apple)
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      # 9. Upload le .dmg comme "artifact" téléchargeable
+      # Tu pourras le récupérer depuis l'onglet Actions de GitHub
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mutuelle-mac
+          path: release/*.dmg
+          retention-days: 30  # Gardé 30 jours
+
+      # 10. Si c'est un tag, crée aussi une Release GitHub avec le .dmg attaché
+      # Tes beta testeurs pourront télécharger depuis la page Releases
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*.dmg
+          draft: true  # Créé en brouillon pour que tu puisses vérifier avant de publier
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
