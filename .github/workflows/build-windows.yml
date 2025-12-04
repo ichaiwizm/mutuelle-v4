@@ -1,0 +1,108 @@
+# Ce workflow build l'app Electron sur Windows et produit un .exe installer
+# Il se déclenche quand tu push un tag "v*" (ex: v0.1.0-beta.1)
+
+name: Build Windows
+
+on:
+  # Déclenché quand tu push un tag commençant par "v"
+  # Ex: git tag v0.1.0-beta.1 && git push origin v0.1.0-beta.1
+  push:
+    tags:
+      - 'v*'
+
+  # Permet aussi de lancer manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    # Utilise un runner Windows hébergé par GitHub
+    runs-on: windows-latest
+
+    steps:
+      # 1. Récupère le code source
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Installe Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Installe pnpm (version définie dans package.json via packageManager)
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      # 4. Cache les dépendances pour accélérer les builds suivants
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # 5. Installe les dépendances Node.js
+      - name: Install dependencies
+        run: pnpm install
+
+      # 6. Rebuild better-sqlite3 pour Windows
+      # C'est un module natif qui doit être compilé pour chaque plateforme
+      - name: Rebuild native modules
+        run: pnpm rebuild
+
+      # 7. Installe Chromium via Playwright et le copie pour le bundler
+      # Playwright installe Chromium dans %LOCALAPPDATA%\ms-playwright\
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Copy Chromium for bundling
+        shell: pwsh
+        run: |
+          # Trouve le dossier Chromium installé par Playwright
+          $playwrightCache = "$env:LOCALAPPDATA\ms-playwright"
+          $chromiumFolder = Get-ChildItem -Path $playwrightCache -Directory | Where-Object { $_.Name -like "chromium-*" } | Select-Object -First 1
+
+          if (-not $chromiumFolder) {
+            Write-Error "Chromium not found in $playwrightCache"
+            Get-ChildItem -Path $playwrightCache
+            exit 1
+          }
+
+          Write-Host "Found Chromium: $($chromiumFolder.FullName)"
+
+          # Copie dans le dossier qui sera bundlé
+          New-Item -ItemType Directory -Force -Path ".playwright-browsers"
+          Copy-Item -Recurse -Force $chromiumFolder.FullName ".playwright-browsers\"
+
+          Write-Host "Copied to .playwright-browsers/"
+          Get-ChildItem -Path ".playwright-browsers"
+
+      # 8. Build l'app Electron et crée l'installer .exe
+      - name: Build and package
+        run: pnpm dist:win
+        env:
+          # Credentials Google OAuth injectés au build via electron-vite define
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # Token GitHub pour electron-builder (publish sur GitHub Releases)
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 9. Upload l'installer comme "artifact" téléchargeable
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mutuelle-win
+          path: release/*.exe
+          retention-days: 30
+
+      # 10. Si c'est un tag, ajoute l'installer à la Release GitHub
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*.exe
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

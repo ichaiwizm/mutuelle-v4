@@ -1,48 +1,10 @@
 import { chromium, type Browser, type BrowserContext, type LaunchOptions } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { processHealthChecker } from "./ProcessHealthChecker";
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
+import { getBundledChromiumPath } from "./chromiumPath";
 
 // Apply stealth plugin to avoid headless detection
 chromium.use(StealthPlugin());
-
-/**
- * Get the path to the bundled Chromium executable (production only).
- * In dev, returns undefined to let Playwright use its default.
- */
-function getBundledChromiumPath(): string | undefined {
-  const isDev = !!process.env.ELECTRON_RENDERER_URL;
-  if (isDev) return undefined;
-
-  try {
-    const browsersDir = join(process.resourcesPath, "playwright-browsers");
-    const entries = readdirSync(browsersDir);
-    const chromiumFolder = entries.find((e) => e.startsWith("chromium-"));
-
-    if (!chromiumFolder) {
-      console.error("[BROWSER] No chromium folder found in", browsersDir);
-      return undefined;
-    }
-
-    // Sur Mac: chromium-XXXX/chrome-mac/Chromium.app/Contents/MacOS/Chromium
-    const execPath = join(
-      browsersDir,
-      chromiumFolder,
-      "chrome-mac",
-      "Chromium.app",
-      "Contents",
-      "MacOS",
-      "Chromium"
-    );
-
-    console.log("[BROWSER] Using bundled Chromium:", execPath);
-    return execPath;
-  } catch (err) {
-    console.error("[BROWSER] Error finding bundled Chromium:", err);
-    return undefined;
-  }
-}
 
 /**
  * Manages browser instance lifecycle (headless and visible modes).

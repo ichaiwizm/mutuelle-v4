@@ -76,7 +76,21 @@
       "Bash(timeout 10 pnpm dev:*)",
       "Bash(MUTUELLE_DB_FILE=/home/ichai/.config/Electron/mutuelle.db pnpm exec drizzle-kit push:*)",
       "Bash(git -C /home/ichai/dev/mutuelle-v4 status)",
-      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -3)"
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -3)",
+      "Bash(xargs cat:*)",
+      "Bash(file:*)",
+      "Bash(identify:*)",
+      "Bash(apt list:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(png2icns:*)",
+      "Bash(build/icon.iconset/icon_16x16.png )",
+      "Bash(build/icon.iconset/icon_32x32.png )",
+      "Bash(build/icon.iconset/icon_128x128.png )",
+      "Bash(build/icon.iconset/icon_256x256.png )",
+      "Bash(build/icon.iconset/icon_512x512.png )",
+      "Bash(build/icon.iconset/icon_512x512@2x.png)",
+      "Bash(convert:*)"
     ],
     "deny": [],
     "ask": []
