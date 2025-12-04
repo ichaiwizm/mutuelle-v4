@@ -89,6 +89,8 @@ jobs:
           # Credentials Google OAuth injectés au build via electron-vite define
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # Token GitHub pour electron-builder (publish sur GitHub Releases)
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # 9. Upload le .dmg comme "artifact" téléchargeable
       # Tu pourras le récupérer depuis l'onglet Actions de GitHub

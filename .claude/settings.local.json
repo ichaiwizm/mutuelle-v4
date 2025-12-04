@@ -74,7 +74,9 @@
       "Bash(pnpm db:generate:*)",
       "Bash(pnpm db:push:*)",
       "Bash(timeout 10 pnpm dev:*)",
-      "Bash(MUTUELLE_DB_FILE=/home/ichai/.config/Electron/mutuelle.db pnpm exec drizzle-kit push:*)"
+      "Bash(MUTUELLE_DB_FILE=/home/ichai/.config/Electron/mutuelle.db pnpm exec drizzle-kit push:*)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 status)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -3)"
     ],
     "deny": [],
     "ask": []
