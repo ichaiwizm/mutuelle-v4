@@ -54,22 +54,39 @@ export function getBundledChromiumPath(): string | undefined {
 
 /**
  * Get the platform-specific path to the Chromium executable.
+ * Returns the first existing path from possible locations.
  */
 function getChromiumExecutablePath(chromiumBase: string): string | undefined {
+  const candidates: string[] = [];
+
   switch (process.platform) {
     case "darwin":
       // macOS: chrome-mac/Chromium.app/Contents/MacOS/Chromium
-      return join(chromiumBase, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium");
+      candidates.push(join(chromiumBase, "chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium"));
+      break;
 
     case "win32":
-      // Windows: chrome-win/chrome.exe
-      return join(chromiumBase, "chrome-win", "chrome.exe");
+      // Windows: Playwright may use chrome-win64 (64-bit) or chrome-win (32-bit)
+      candidates.push(join(chromiumBase, "chrome-win64", "chrome.exe"));
+      candidates.push(join(chromiumBase, "chrome-win", "chrome.exe"));
+      break;
 
     case "linux":
       // Linux: chrome-linux/chrome
-      return join(chromiumBase, "chrome-linux", "chrome");
+      candidates.push(join(chromiumBase, "chrome-linux", "chrome"));
+      break;
 
     default:
       return undefined;
   }
+
+  // Return first existing path
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  // If none exist, return the first candidate (will be caught by caller's existsSync check)
+  return candidates[0];
 }
