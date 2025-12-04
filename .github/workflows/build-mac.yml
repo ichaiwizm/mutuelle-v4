@@ -29,11 +29,9 @@ jobs:
         with:
           node-version: '20'
 
-      # 3. Installe pnpm (ton package manager)
+      # 3. Installe pnpm (version définie dans package.json via packageManager)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       # 4. Cache les dépendances pour accélérer les builds suivants
       - name: Cache pnpm store
