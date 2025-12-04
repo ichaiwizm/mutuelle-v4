@@ -42,6 +42,7 @@ export const IPC_CHANNEL = {
   AUTO_PROGRESS: "automation:progress", // Push channel (main -> renderer)
   AUTO_GET_ITEM: "automation:getItem",
   AUTO_READ_SCREENSHOT: "automation:readScreenshot",
+  AUTO_BRING_TO_FRONT: "automation:bringToFront", // Bring browser window to front for manual takeover
 
   // Products
   PRODUCTS_LIST_CONFIGS: "products:listConfigs",

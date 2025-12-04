@@ -3,6 +3,7 @@ import { Pagination } from "@/renderer/components/ui/Pagination";
 import { LeadList } from "@/renderer/features/leads/components/LeadList";
 import { LeadForm } from "@/renderer/features/leads/components/LeadForm";
 import { LeadDetails } from "@/renderer/features/leads/components/LeadDetails";
+import { ImportLeadsModal } from "@/renderer/features/leads/components/ImportLeadsModal";
 import { NewRunModal } from "@/renderer/features/automation/components/NewRunModal";
 import { useLeadsPageState } from "./useLeadsPageState";
 import { LeadsHeader, SelectionActionBar, DeleteConfirmDialog } from "./components";
@@ -39,6 +40,10 @@ export function LeadsPage() {
     handleAutomationModalClose,
     handleAutomationSuccess,
     handleRefresh,
+    importModalOpen,
+    handleOpenImport,
+    handleCloseImport,
+    handleImportSuccess,
   } = useLeadsPageState();
 
   return (
@@ -49,6 +54,7 @@ export function LeadsPage() {
         loading={loading}
         onRefresh={handleRefresh}
         onCreate={handleCreate}
+        onImport={handleOpenImport}
       />
 
       {/* Content */}
@@ -135,6 +141,14 @@ export function LeadsPage() {
         onClose={handleAutomationModalClose}
         preSelectedLeadIds={Array.from(selectedLeadIds)}
         onSuccess={handleAutomationSuccess}
+      />
+
+      {/* Import Modal */}
+      <ImportLeadsModal
+        open={importModalOpen}
+        onClose={handleCloseImport}
+        onSuccess={handleImportSuccess}
+        onOpenManualForm={handleCreate}
       />
     </div>
   );

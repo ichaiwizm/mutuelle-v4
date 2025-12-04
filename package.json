@@ -2,13 +2,9 @@
   "main": "out/main/index.js",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.5",
     "better-sqlite3": "^12.4.1",
     "clsx": "^2.1.1",
-    "cors": "^2.8.5",
     "drizzle-orm": "^0.44.7",
-    "express": "^5.1.0",
     "googleapis": "^142.0.0",
     "lucide-react": "^0.555.0",
     "playwright-extra": "^4.3.6",
@@ -19,8 +15,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
-    "zod": "^4.1.12",
-    "zustand": "^5.0.8"
+    "zod": "^4.1.12"
   },
   "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40",
   "devDependencies": {

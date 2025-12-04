@@ -17,7 +17,7 @@ export const AutomationSettingsService = {
     return {
       flowKey: row.flowKey,
       headless: row.headless,
-      stopAtStep: row.stopAtStep,
+      autoSubmit: row.autoSubmit,
       updatedAt: row.updatedAt,
     };
   },
@@ -30,7 +30,7 @@ export const AutomationSettingsService = {
     return rows.map((row) => ({
       flowKey: row.flowKey,
       headless: row.headless,
-      stopAtStep: row.stopAtStep,
+      autoSubmit: row.autoSubmit,
       updatedAt: row.updatedAt,
     }));
   },
@@ -43,21 +43,21 @@ export const AutomationSettingsService = {
 
     // Merge with defaults for new records
     const headless = settings.headless ?? true;
-    const stopAtStep = settings.stopAtStep ?? null;
+    const autoSubmit = settings.autoSubmit ?? true;
 
     await db
       .insert(schema.productAutomationSettings)
       .values({
         flowKey,
         headless,
-        stopAtStep,
+        autoSubmit,
         updatedAt: now,
       })
       .onConflictDoUpdate({
         target: schema.productAutomationSettings.flowKey,
         set: {
           ...(settings.headless !== undefined && { headless: settings.headless }),
-          ...(settings.stopAtStep !== undefined && { stopAtStep: settings.stopAtStep }),
+          ...(settings.autoSubmit !== undefined && { autoSubmit: settings.autoSubmit }),
           updatedAt: now,
         },
       });
@@ -65,7 +65,7 @@ export const AutomationSettingsService = {
     return {
       flowKey,
       headless,
-      stopAtStep,
+      autoSubmit,
       updatedAt: now,
     };
   },

@@ -23,4 +23,8 @@ export type FlowExecutionResult = {
   paused?: boolean;
   aborted?: boolean;
   stateId?: string;
+  /** True if execution stopped for manual user takeover */
+  waitingUser?: boolean;
+  /** The step ID where execution stopped for manual takeover */
+  stoppedAtStep?: string;
 };

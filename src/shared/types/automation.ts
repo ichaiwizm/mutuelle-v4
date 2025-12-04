@@ -5,17 +5,17 @@
 export type AutomationSettings = {
   flowKey: string;
   headless: boolean;
-  stopAtStep: string | null;
+  autoSubmit: boolean;  // true = soumettre, false = s'arrêter avant la soumission
   updatedAt: Date;
 };
 
 export type AutomationSettingsInput = {
   headless?: boolean;
-  stopAtStep?: string | null;
+  autoSubmit?: boolean;
 };
 
 export type AutomationSettingsSavePayload = {
   flowKey: string;
   headless?: boolean;
-  stopAtStep?: string | null;
+  autoSubmit?: boolean;
 };

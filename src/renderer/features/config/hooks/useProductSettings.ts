@@ -15,7 +15,7 @@ export function useProductSettings() {
         for (const item of list) {
           mapped[item.flowKey] = {
             headless: item.headless,
-            stopAtStep: item.stopAtStep,
+            autoSubmit: item.autoSubmit,
           };
         }
         setSettings(mapped);
@@ -45,8 +45,8 @@ export function useProductSettings() {
           [flowKey]: {
             ...current,
             headless,
-            // Reset stopAtStep when switching to headless
-            ...(headless ? { stopAtStep: null } : {}),
+            // Reset autoSubmit to true when switching to headless (no point in stopping if invisible)
+            ...(headless ? { autoSubmit: true } : {}),
           },
         };
       });
@@ -54,7 +54,7 @@ export function useProductSettings() {
       try {
         await window.api.automationSettings.save(flowKey, {
           headless,
-          ...(headless ? { stopAtStep: null } : {}),
+          ...(headless ? { autoSubmit: true } : {}),
         });
       } catch (error) {
         console.error("Failed to save headless setting:", error);
@@ -63,7 +63,7 @@ export function useProductSettings() {
         if (result) {
           setSettings((prev) => ({
             ...prev,
-            [flowKey]: { headless: result.headless, stopAtStep: result.stopAtStep },
+            [flowKey]: { headless: result.headless, autoSubmit: result.autoSubmit },
           }));
         }
       }
@@ -71,27 +71,27 @@ export function useProductSettings() {
     []
   );
 
-  const updateStopAtStep = useCallback(
-    async (flowKey: string, stepId: string | null) => {
+  const updateAutoSubmit = useCallback(
+    async (flowKey: string, autoSubmit: boolean) => {
       // Optimistic update
       setSettings((prev) => {
         const current = prev[flowKey] || DEFAULT_PRODUCT_SETTINGS;
         return {
           ...prev,
-          [flowKey]: { ...current, stopAtStep: stepId },
+          [flowKey]: { ...current, autoSubmit },
         };
       });
 
       try {
-        await window.api.automationSettings.save(flowKey, { stopAtStep: stepId });
+        await window.api.automationSettings.save(flowKey, { autoSubmit });
       } catch (error) {
-        console.error("Failed to save stopAtStep setting:", error);
+        console.error("Failed to save autoSubmit setting:", error);
         // Revert on error
         const result = await window.api.automationSettings.get(flowKey);
         if (result) {
           setSettings((prev) => ({
             ...prev,
-            [flowKey]: { headless: result.headless, stopAtStep: result.stopAtStep },
+            [flowKey]: { headless: result.headless, autoSubmit: result.autoSubmit },
           }));
         }
       }
@@ -107,7 +107,7 @@ export function useProductSettings() {
       for (const item of list) {
         mapped[item.flowKey] = {
           headless: item.headless,
-          stopAtStep: item.stopAtStep,
+          autoSubmit: item.autoSubmit,
         };
       }
       setSettings(mapped);
@@ -123,7 +123,7 @@ export function useProductSettings() {
     loading,
     getSettings,
     updateHeadless,
-    updateStopAtStep,
+    updateAutoSubmit,
     refresh,
   };
 }

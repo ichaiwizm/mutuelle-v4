@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import type { ProductInfo } from "@/shared/data/products";
 import type { ProductSettings } from "../../types/automation";
 import { HeadlessToggle } from "./HeadlessToggle";
-import { StopAtStepSelect } from "./StopAtStepSelect";
+import { AutoSubmitToggle } from "./AutoSubmitToggle";
 import { StepsAccordion } from "./StepsAccordion";
 
 const PLATFORM_STYLES: Record<
@@ -33,14 +33,14 @@ interface ProductConfigCardProps {
   product: ProductInfo;
   settings: ProductSettings;
   onHeadlessChange: (headless: boolean) => void;
-  onStopAtStepChange: (stepId: string | null) => void;
+  onAutoSubmitChange: (autoSubmit: boolean) => void;
 }
 
 export function ProductConfigCard({
   product,
   settings,
   onHeadlessChange,
-  onStopAtStepChange,
+  onAutoSubmitChange,
 }: ProductConfigCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -117,12 +117,11 @@ export function ProductConfigCard({
               onChange={onHeadlessChange}
             />
 
-            {/* Stop At Step Select - Only visible when NOT headless */}
+            {/* Auto Submit Toggle - Only visible when NOT headless */}
             {!settings.headless && (
-              <StopAtStepSelect
-                steps={product.steps}
-                value={settings.stopAtStep}
-                onChange={onStopAtStepChange}
+              <AutoSubmitToggle
+                checked={settings.autoSubmit}
+                onChange={onAutoSubmitChange}
               />
             )}
 

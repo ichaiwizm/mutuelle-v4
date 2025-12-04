@@ -146,6 +146,7 @@ export const SWISSLIFE_ONE_SLSIS: ProductConfiguration<SwissLifeOneFormData> = {
       needsCredentials: false,
       maxRetries: 1,
       estimatedDuration: 5000,
+      isSubmit: true,
     },
   ],
 

@@ -105,6 +105,10 @@ export const AutomationReadScreenshotSchema = z.object({
   path: z.string().min(1),
 });
 
+export const AutomationBringToFrontSchema = z.object({
+  itemId: z.string().uuid(),
+});
+
 // ========== Fixtures (dev) ==========
 
 export const FixturesExportSchema = z.object({

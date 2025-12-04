@@ -36,6 +36,9 @@ export function useLeadsPageState() {
   // Automation modal state
   const [automationModalOpen, setAutomationModalOpen] = useState(false);
 
+  // Import modal state
+  const [importModalOpen, setImportModalOpen] = useState(false);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -175,6 +178,20 @@ export function useLeadsPageState() {
     setAutomationModalOpen(false);
   }, []);
 
+  // Import modal handlers
+  const handleOpenImport = useCallback(() => {
+    setImportModalOpen(true);
+  }, []);
+
+  const handleCloseImport = useCallback(() => {
+    setImportModalOpen(false);
+  }, []);
+
+  const handleImportSuccess = useCallback(() => {
+    setCurrentPage(1);
+    fetchLeads({ limit: PAGE_SIZE, offset: 0 });
+  }, [fetchLeads]);
+
   return {
     // Data
     leads,
@@ -214,5 +231,10 @@ export function useLeadsPageState() {
     handleAutomationSuccess,
     // Refresh
     handleRefresh,
+    // Import modal
+    importModalOpen,
+    handleOpenImport,
+    handleCloseImport,
+    handleImportSuccess,
   };
 }

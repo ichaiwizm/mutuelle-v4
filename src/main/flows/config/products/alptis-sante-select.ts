@@ -107,6 +107,7 @@ export const ALPTIS_SANTE_SELECT: ProductConfiguration<AlptisFormData> = {
       needsCredentials: false,
       maxRetries: 1,
       estimatedDuration: 3000,
+      isSubmit: true,
     },
   ],
 

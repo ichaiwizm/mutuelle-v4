@@ -84,8 +84,13 @@ export class QueueProcessor {
     }
 
     // All done - close browser if no more work
-    if (this.taskQueue.isEmpty && this.runs.size === 0) {
+    // BUT keep browser open if there are workers waiting for user (manual takeover)
+    const hasWaitingUserWorkers = this.taskExecutor.waitingUserCount > 0;
+    if (this.taskQueue.isEmpty && this.runs.size === 0 && !hasWaitingUserWorkers) {
+      console.log(`[GLOBAL_POOL] No more work and no waiting_user workers - closing browser`);
       await this.browserManager.close();
+    } else if (hasWaitingUserWorkers) {
+      console.log(`[GLOBAL_POOL] Processing done but ${this.taskExecutor.waitingUserCount} worker(s) waiting for user - keeping browser open`);
     }
 
     this.isProcessing = false;

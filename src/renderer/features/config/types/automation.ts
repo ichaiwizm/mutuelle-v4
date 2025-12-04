@@ -6,15 +6,15 @@
 export type ProductSettings = {
   /** Run browser in headless mode (invisible) */
   headless: boolean;
-  /** Step ID to stop at, or null to run all steps */
-  stopAtStep: string | null;
+  /** Auto-submit form or stop before submission for manual takeover */
+  autoSubmit: boolean;
 };
 
 export type AllProductSettings = Record<string, ProductSettings>;
 
 export const DEFAULT_PRODUCT_SETTINGS: ProductSettings = {
   headless: true,
-  stopAtStep: null,
+  autoSubmit: true,
 };
 
 export type ConfigTab = "credentials" | "automation";

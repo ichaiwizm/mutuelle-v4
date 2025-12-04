@@ -174,13 +174,13 @@ export async function cleanupOnShutdown(): Promise<void> {
     .set({ status: "cancelled" })
     .where(inArray(schema.runs.status, ["running", "queued"]));
 
-  // 3. Update DB: mark all running/queued items as cancelled
+  // 3. Update DB: mark all running/queued/waiting_user items as cancelled
   await db
     .update(schema.runItems)
     .set({ status: "cancelled", completedAt: cancellationTime })
-    .where(inArray(schema.runItems.status, ["running", "queued"]));
+    .where(inArray(schema.runItems.status, ["running", "queued", "waiting_user"]));
 
-  console.log("[SHUTDOWN] Cleaned up running/queued runs");
+  console.log("[SHUTDOWN] Cleaned up running/queued/waiting_user runs");
 }
 
 /**
@@ -221,6 +221,16 @@ export async function cleanupOrphanedRuns(): Promise<void> {
       errorMessage: "Run interrupted by app crash or restart",
     })
     .where(inArray(schema.runItems.status, ["running", "queued"]));
+
+  // Mark waiting_user items as failed (browser session was lost)
+  await db
+    .update(schema.runItems)
+    .set({
+      status: "failed",
+      completedAt: cleanupTime,
+      errorMessage: "Session navigateur perdue (redémarrage de l'application)",
+    })
+    .where(eq(schema.runItems.status, "waiting_user"));
 
   console.log("[STARTUP] Orphaned runs cleanup complete");
 }

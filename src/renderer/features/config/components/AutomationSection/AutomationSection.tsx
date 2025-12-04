@@ -4,7 +4,7 @@ import { ProductConfigCard } from "../ProductConfigCard";
 import { useProductSettings } from "../../hooks/useProductSettings";
 
 export function AutomationSection() {
-  const { getSettings, updateHeadless, updateStopAtStep } = useProductSettings();
+  const { getSettings, updateHeadless, updateAutoSubmit } = useProductSettings();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -22,7 +22,7 @@ export function AutomationSection() {
         <div>
           <h4 className="font-medium text-[var(--color-info)]">Paramètres d'automatisation</h4>
           <p className="text-sm text-[var(--color-info)]/80 mt-0.5">
-            Ces paramètres ne sont pas encore connectés au backend. Ils seront utilisés dans une prochaine version pour contrôler l'exécution des flows.
+            Ces paramètres contrôlent le comportement des flows lors de l'exécution automatique.
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function AutomationSection() {
               product={product}
               settings={settings}
               onHeadlessChange={(headless) => updateHeadless(product.flowKey, headless)}
-              onStopAtStepChange={(stepId) => updateStopAtStep(product.flowKey, stepId)}
+              onAutoSubmitChange={(autoSubmit) => updateAutoSubmit(product.flowKey, autoSubmit)}
             />
           );
         })}
@@ -49,7 +49,7 @@ export function AutomationSection() {
         <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
           Le mode <strong>visible</strong> permet de voir le navigateur pendant l'exécution, utile pour le debug.
           <br />
-          L'option <strong>point d'arrêt</strong> permet de stopper l'exécution à une étape spécifique pour inspection manuelle.
+          L'option <strong>soumission automatique</strong> permet de contrôler si le formulaire est soumis automatiquement ou si l'exécution s'arrête pour une reprise manuelle.
         </p>
       </div>
     </div>

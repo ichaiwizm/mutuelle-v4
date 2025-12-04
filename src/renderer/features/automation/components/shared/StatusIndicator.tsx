@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-type Status = 'queued' | 'running' | 'done' | 'failed' | 'cancelled' | 'paused'
+type Status = 'queued' | 'running' | 'done' | 'failed' | 'cancelled' | 'paused' | 'waiting_user'
 
 interface StatusIndicatorProps {
   status: Status
@@ -40,6 +40,12 @@ const STATUS_CONFIG: Record<Status, { color: string; bgColor: string; label: str
     color: 'bg-amber-400',
     bgColor: 'bg-amber-400/20',
     label: 'Paused',
+  },
+  waiting_user: {
+    color: 'bg-orange-400',
+    bgColor: 'bg-orange-400/20',
+    label: 'En attente',
+    pulse: true,
   },
 }
 
@@ -83,6 +89,7 @@ export function StatusIndicator({
           status === 'queued' && 'text-blue-400',
           status === 'cancelled' && 'text-zinc-400',
           status === 'paused' && 'text-amber-400',
+          status === 'waiting_user' && 'text-orange-400',
         )}>
           {config.label}
         </span>
@@ -133,6 +140,8 @@ export function getStatusClasses(status: string): string {
       return 'bg-zinc-400/20 text-zinc-400'
     case 'paused':
       return 'bg-amber-400/20 text-amber-400'
+    case 'waiting_user':
+      return 'bg-orange-400/20 text-orange-400'
     default:
       return 'bg-zinc-400/20 text-zinc-400'
   }
