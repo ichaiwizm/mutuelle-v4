@@ -1,4 +1,4 @@
-import type { Frame } from '@playwright/test';
+import type { Frame } from 'playwright';
 import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
 import { fillRadioField } from '../operations/RadioOperations';
 

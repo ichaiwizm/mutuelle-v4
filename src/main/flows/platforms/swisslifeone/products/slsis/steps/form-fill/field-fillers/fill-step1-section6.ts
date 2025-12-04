@@ -1,4 +1,4 @@
-import type { Frame } from '@playwright/test';
+import type { Frame } from 'playwright';
 import type { FlowLogger } from '../../../../../../../engine/FlowLogger';
 import { fillTextboxField } from '../operations/TextboxOperations';
 import { SWISSLIFE_STEP1_SELECTORS } from '../selectors';

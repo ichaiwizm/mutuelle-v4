@@ -1,9 +1,32 @@
-import type { Page } from 'playwright';
+import type { Page, Locator } from 'playwright';
 import type { FlowLogger } from '../../../../../../engine/FlowLogger';
-import { expect } from '@playwright/test';
 import { SECTION_4_SELECTORS } from './selectors/section4';
 import { fillToggleField, fillDateField, fillRegimeObligatoireField } from './operations';
 import { AlptisTimeouts, AlptisSelectors } from '../../../../../../config';
+
+/**
+ * Wait for a button to become enabled (poll-based, no @playwright/test dependency)
+ */
+async function waitForButtonEnabled(button: Locator, timeout: number): Promise<void> {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    if (await button.isEnabled()) return;
+    await button.page().waitForTimeout(100);
+  }
+  throw new Error(`Button did not become enabled within ${timeout}ms`);
+}
+
+/**
+ * Wait for a button to become disabled (poll-based, no @playwright/test dependency)
+ */
+async function waitForButtonDisabled(button: Locator, timeout: number): Promise<void> {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    if (await button.isDisabled()) return;
+    await button.page().waitForTimeout(100);
+  }
+  throw new Error(`Button did not become disabled within ${timeout}ms`);
+}
 
 /**
  * Section 4 - Toggle Enfants
@@ -106,13 +129,13 @@ export async function clickAjouterEnfant(page: Page, childNumberToAdd: number, l
   await button.waitFor({ state: 'visible', timeout: AlptisTimeouts.elementVisible });
 
   // Wait for button to be enabled (disabled initially, enabled after first child is complete)
-  await expect(button).toBeEnabled({ timeout: AlptisTimeouts.buttonEnable });
+  await waitForButtonEnabled(button, AlptisTimeouts.buttonEnable);
 
   await button.click();
   logger?.debug('Button clicked, waiting for new child accordion', { childNumberToAdd });
 
   // Wait for the button to be disabled again (happens immediately after click)
-  await expect(button).toBeDisabled({ timeout: AlptisTimeouts.buttonDisable });
+  await waitForButtonDisabled(button, AlptisTimeouts.buttonDisable);
 
   // Wait for the new child accordion title to appear with the correct number
   const newChildText = `Enfant ${childNumberToAdd}`;

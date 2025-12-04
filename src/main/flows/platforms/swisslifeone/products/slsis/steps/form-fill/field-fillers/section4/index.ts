@@ -1,4 +1,4 @@
-import type { Frame } from '@playwright/test';
+import type { Frame } from 'playwright';
 import type { FlowLogger } from '../../../../../../../../engine/FlowLogger';
 import type { AssurePrincipalData } from '../../../../transformers/types';
 import { fillDateNaissanceAssurePrincipal } from './fill-date-naissance';
