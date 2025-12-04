@@ -11,6 +11,7 @@ import { db } from './db'
 import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
 import { AutomationService } from './services/automation'
+import { initAutoUpdater } from './services/autoUpdater'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -96,6 +97,9 @@ app.whenReady().then(async () => {
 
   registerIpc()
   await createWindow()
+
+  // Initialise l'auto-updater (vérifie GitHub Releases)
+  initAutoUpdater()
 })
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })

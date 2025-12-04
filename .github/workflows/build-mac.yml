@@ -53,10 +53,32 @@ jobs:
       - name: Rebuild native modules
         run: pnpm rebuild
 
-      # 7. Installe les navigateurs Playwright (Chromium)
-      # Nécessaire pour que l'automatisation fonctionne
-      - name: Install Playwright browsers
+      # 7. Installe Chromium via Playwright et le copie pour le bundler
+      # Playwright installe Chromium dans ~/Library/Caches/ms-playwright/
+      # On le copie dans .playwright-browsers/ pour qu'electron-builder le bundle
+      - name: Install Playwright Chromium
         run: npx playwright install chromium
+
+      - name: Copy Chromium for bundling
+        run: |
+          # Trouve le dossier Chromium installé par Playwright
+          PLAYWRIGHT_CACHE="$HOME/Library/Caches/ms-playwright"
+          CHROMIUM_FOLDER=$(ls -d "$PLAYWRIGHT_CACHE"/chromium-* 2>/dev/null | head -1)
+
+          if [ -z "$CHROMIUM_FOLDER" ]; then
+            echo "❌ Chromium not found in $PLAYWRIGHT_CACHE"
+            ls -la "$PLAYWRIGHT_CACHE" || true
+            exit 1
+          fi
+
+          echo "✅ Found Chromium: $CHROMIUM_FOLDER"
+
+          # Copie dans le dossier qui sera bundlé
+          mkdir -p .playwright-browsers
+          cp -R "$CHROMIUM_FOLDER" .playwright-browsers/
+
+          echo "📦 Copied to .playwright-browsers/"
+          ls -la .playwright-browsers/
 
       # 8. Build l'app Electron et crée le .dmg
       # electron-vite compile le code TypeScript (et injecte les env vars via define)

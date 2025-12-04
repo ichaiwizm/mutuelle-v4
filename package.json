@@ -12,6 +12,7 @@
     "better-sqlite3": "^12.4.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.7",
+    "electron-updater": "^6.6.2",
     "googleapis": "^142.0.0",
     "lucide-react": "^0.555.0",
     "playwright-extra": "^4.3.6",
@@ -95,14 +96,25 @@
       "!node_modules/**/docs/**"
     ],
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "category": "public.app-category.business"
     },
     "extraResources": [
       {
         "from": "drizzle",
         "to": "drizzle"
+      },
+      {
+        "from": ".playwright-browsers",
+        "to": "playwright-browsers"
       }
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "ichaiwizm",
+      "repo": "mutuelle-v4"
+    }
   }
 }
