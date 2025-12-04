@@ -59,13 +59,16 @@ jobs:
         run: npx playwright install chromium
 
       # 8. Build l'app Electron et crée le .dmg
-      # electron-vite compile le code TypeScript
+      # electron-vite compile le code TypeScript (et injecte les env vars via define)
       # electron-builder package tout dans un .dmg
       - name: Build and package
         run: pnpm dist:mac
         env:
           # Désactive la signature de code (on n'a pas de certificat Apple)
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Credentials Google OAuth injectés au build via electron-vite define
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       # 9. Upload le .dmg comme "artifact" téléchargeable
       # Tu pourras le récupérer depuis l'onglet Actions de GitHub

@@ -22,6 +22,11 @@ export default defineConfig({
       }),
     ],
     resolve: { alias },
+    // Injecte les credentials Google OAuth au build (lus depuis .env en dev, depuis secrets CI en prod)
+    define: {
+      'process.env.GOOGLE_CLIENT_ID': JSON.stringify(process.env.GOOGLE_CLIENT_ID || ''),
+      'process.env.GOOGLE_CLIENT_SECRET': JSON.stringify(process.env.GOOGLE_CLIENT_SECRET || ''),
+    },
     build: {
       rollupOptions: {
         input: 'src/main/index.ts',

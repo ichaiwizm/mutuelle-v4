@@ -37,7 +37,12 @@ app.whenReady().then(async () => {
   // Supprime le menu d'application (File/Edit/View...)
   try { Menu.setApplicationMenu(null) } catch {}
   // --- migrations runtime KISS ---
-  const migrationsFolder = path.join(__dirname, '../../drizzle')
+  // En dev: drizzle/ est à la racine du projet (../../drizzle depuis out/main/)
+  // En prod: drizzle/ est dans Resources via extraResources (process.resourcesPath)
+  const isDev = !!process.env.ELECTRON_RENDERER_URL
+  const migrationsFolder = isDev
+    ? path.join(__dirname, '../../drizzle')
+    : path.join(process.resourcesPath, 'drizzle')
   await migrate(db, { migrationsFolder })
 
   // --- seeder flows (idempotent, aligné configs produits) ---
