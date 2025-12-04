@@ -70,7 +70,11 @@
       "Bash(while read f)",
       "Bash(while read file)",
       "Bash(then relpath=\"$file#/home/ichai/dev/mutuelle-v4/\" if ! grep -rq \"$file##*/\\|$relpath\" /home/ichai/dev/mutuelle-v4/src --include=\"*.ts\" --include=\"*.tsx\" --exclude-dir=node_modules)",
-      "Bash(then echo \"[POTENTIALLY ORPHANED - NO IMPORTS FOUND] $relpath\" fi fi done)"
+      "Bash(then echo \"[POTENTIALLY ORPHANED - NO IMPORTS FOUND] $relpath\" fi fi done)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(pnpm db:push:*)",
+      "Bash(timeout 10 pnpm dev:*)",
+      "Bash(MUTUELLE_DB_FILE=/home/ichai/.config/Electron/mutuelle.db pnpm exec drizzle-kit push:*)"
     ],
     "deny": [],
     "ask": []

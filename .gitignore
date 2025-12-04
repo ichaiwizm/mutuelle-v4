@@ -70,3 +70,6 @@ Thumbs.db
 .cache/
 
 .playwright-mcp/
+
+# Local user data (database, keys, etc.)
+.userData/
