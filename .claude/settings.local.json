@@ -93,7 +93,8 @@
       "Bash(convert:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nConfigure Mac code signing and notarization\n\n- Add entitlements.mac.plist for hardened runtime\n- Update package.json with notarization settings\n- Update build-mac.yml to use signing secrets\n- Add build assets (icons) to version control\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
