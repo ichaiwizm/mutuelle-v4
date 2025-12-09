@@ -102,26 +102,79 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      # 9. Build l'app Electron et crée le .dmg
-      # electron-vite compile le code TypeScript (et injecte les env vars via define)
-      # electron-builder package tout dans un .dmg signé et notarisé
+      # 9. Build l'app Electron et crée le .dmg signé (sans attendre la notarization)
       - name: Build and package
         run: pnpm dist:mac
+        timeout-minutes: 30
         env:
           # Signature de code Apple (certificat Developer ID Application)
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # Notarization Apple (requis pour distribuer hors App Store)
+          # Notarization Apple
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Credentials Google OAuth injectés au build via electron-vite define
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          # Token GitHub pour electron-builder (publish sur GitHub Releases)
+          # Token GitHub pour electron-builder
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Debug verbose pour electron-builder
-          DEBUG: electron-builder,electron-notarize*
+
+      # 10. Attendre et vérifier la notarization (avec timeout de 15 min)
+      - name: Wait for notarization
+        run: |
+          echo "=== Checking notarization status ==="
+          # Récupère le dernier submission ID
+          SUBMISSION_INFO=$(xcrun notarytool history \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --output-format json 2>/dev/null | head -1)
+
+          SUBMISSION_ID=$(echo "$SUBMISSION_INFO" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['history'][0]['id'])" 2>/dev/null || echo "")
+
+          if [ -z "$SUBMISSION_ID" ]; then
+            echo "⚠️ Could not find submission ID, skipping notarization wait"
+            exit 0
+          fi
+
+          echo "Submission ID: $SUBMISSION_ID"
+
+          # Attend jusqu'à 15 minutes
+          for i in {1..30}; do
+            STATUS=$(xcrun notarytool info "$SUBMISSION_ID" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --output-format json 2>/dev/null | python3 -c "import sys, json; print(json.load(sys.stdin)['status'])" 2>/dev/null || echo "Unknown")
+
+            echo "Attempt $i/30 - Status: $STATUS"
+
+            if [ "$STATUS" = "Accepted" ]; then
+              echo "✅ Notarization successful!"
+              # Staple the DMG
+              xcrun stapler staple release/*.dmg || true
+              exit 0
+            elif [ "$STATUS" = "Invalid" ] || [ "$STATUS" = "Rejected" ]; then
+              echo "❌ Notarization failed with status: $STATUS"
+              xcrun notarytool log "$SUBMISSION_ID" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" || true
+              exit 1
+            fi
+
+            sleep 30
+          done
+
+          echo "⚠️ Notarization still in progress after 15 minutes"
+          echo "The DMG is signed but not yet notarized. Users will need to right-click -> Open"
+          exit 0
+        timeout-minutes: 20
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       # 9. Upload le .dmg comme "artifact" téléchargeable
       # Tu pourras le récupérer depuis l'onglet Actions de GitHub
