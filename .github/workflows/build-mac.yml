@@ -78,7 +78,31 @@ jobs:
           echo "📦 Copied to .playwright-browsers/"
           ls -la .playwright-browsers/
 
-      # 8. Build l'app Electron et crée le .dmg
+      # 8. Debug: Vérifie les credentials Apple (sans révéler les secrets)
+      - name: Debug Apple credentials
+        run: |
+          echo "=== Checking Apple credentials format ==="
+          echo "APPLE_ID length: ${#APPLE_ID}"
+          echo "APPLE_ID starts with: ${APPLE_ID:0:3}***"
+          echo "APPLE_APP_SPECIFIC_PASSWORD length: ${#APPLE_APP_SPECIFIC_PASSWORD}"
+          echo "APPLE_APP_SPECIFIC_PASSWORD format check (should be xxxx-xxxx-xxxx-xxxx):"
+          if [[ "$APPLE_APP_SPECIFIC_PASSWORD" =~ ^[a-z]{4}-[a-z]{4}-[a-z]{4}-[a-z]{4}$ ]]; then
+            echo "✅ Password format looks correct"
+          else
+            echo "❌ Password format might be wrong. Expected: xxxx-xxxx-xxxx-xxxx (lowercase letters)"
+          fi
+          echo "APPLE_TEAM_ID length: ${#APPLE_TEAM_ID}"
+          echo "APPLE_TEAM_ID: $APPLE_TEAM_ID"
+
+          echo ""
+          echo "=== Testing notarytool credentials ==="
+          xcrun notarytool history --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 || echo "❌ Credential test failed"
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      # 9. Build l'app Electron et crée le .dmg
       # electron-vite compile le code TypeScript (et injecte les env vars via define)
       # electron-builder package tout dans un .dmg signé et notarisé
       - name: Build and package
@@ -96,6 +120,8 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           # Token GitHub pour electron-builder (publish sur GitHub Releases)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Debug verbose pour electron-builder
+          DEBUG: electron-builder,electron-notarize*
 
       # 9. Upload le .dmg comme "artifact" téléchargeable
       # Tu pourras le récupérer depuis l'onglet Actions de GitHub
