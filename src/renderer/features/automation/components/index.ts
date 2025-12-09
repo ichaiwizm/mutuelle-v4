@@ -4,7 +4,7 @@ export { AutomationTabs } from './AutomationTabs'
 export { NewRunModal } from './NewRunModal'
 
 // Runs
-export { RunsTable, RunRow, RunFilters, RunDetailsSlideOver } from './runs'
+export { RunsTable, RunRow, RunFilters, RunDetailsSlideOver, RunConfirmDialog, type RunActionType } from './runs'
 
 // Products
 export { ProductCard, ProductsTab } from './products'

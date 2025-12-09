@@ -7,6 +7,8 @@ import {
   RunFilters,
   ProductsTab,
   NewRunModal,
+  RunConfirmDialog,
+  type RunActionType,
 } from '@/renderer/features/automation/components'
 import { useAutomation } from '@/renderer/features/automation/hooks/useAutomation'
 import { useProducts } from '@/renderer/features/automation/hooks/useProducts'
@@ -16,6 +18,12 @@ export function AutomationPage() {
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('runs')
   const [showNewRunModal, setShowNewRunModal] = useState(false)
+
+  // Confirmation dialog state
+  const [confirmAction, setConfirmAction] = useState<{
+    type: RunActionType
+    runId: string
+  } | null>(null)
 
   // Hooks
   const automation = useAutomation()
@@ -35,6 +43,29 @@ export function AutomationPage() {
     automation.fetchRuns()
     products.fetchProducts()
   }, [automation, products])
+
+  // Confirmation handlers
+  const handleDeleteRequest = useCallback((runId: string) => {
+    setConfirmAction({ type: 'delete', runId })
+  }, [])
+
+  const handleCancelRequest = useCallback((runId: string) => {
+    setConfirmAction({ type: 'cancel', runId })
+  }, [])
+
+  const handleConfirmAction = useCallback(() => {
+    if (!confirmAction) return
+    if (confirmAction.type === 'delete') {
+      automation.deleteRun(confirmAction.runId)
+    } else if (confirmAction.type === 'cancel') {
+      automation.cancelRun(confirmAction.runId)
+    }
+    setConfirmAction(null)
+  }, [confirmAction, automation])
+
+  const handleCancelConfirm = useCallback(() => {
+    setConfirmAction(null)
+  }, [])
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
@@ -75,8 +106,8 @@ export function AutomationPage() {
                 cancelling={automation.cancelling}
                 deleting={automation.deleting}
                 retrying={automation.retrying}
-                onCancel={automation.cancelRun}
-                onDelete={automation.deleteRun}
+                onCancel={handleCancelRequest}
+                onDelete={handleDeleteRequest}
                 onRetry={automation.retryRun}
                 onNewRun={handleNewRun}
               />
@@ -112,6 +143,14 @@ export function AutomationPage() {
         isOpen={showNewRunModal}
         onClose={() => setShowNewRunModal(false)}
         onSuccess={handleNewRunSuccess}
+      />
+
+      {/* Confirmation Dialog */}
+      <RunConfirmDialog
+        action={confirmAction?.type ?? null}
+        runId={confirmAction?.runId ?? null}
+        onConfirm={handleConfirmAction}
+        onCancel={handleCancelConfirm}
       />
     </div>
   )

@@ -1,5 +1,5 @@
 /**
- * Format a date as relative time (e.g., "5m ago", "2h ago")
+ * Format a date as relative time in French (e.g., "il y a 5 min", "il y a 2h")
  */
 export function formatTimeAgo(date: Date | string): string {
   const now = new Date()
@@ -9,10 +9,10 @@ export function formatTimeAgo(date: Date | string): string {
   const diffHours = Math.floor(diffMins / 60)
   const diffDays = Math.floor(diffHours / 24)
 
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
+  if (diffMins < 1) return "à l'instant"
+  if (diffMins < 60) return `il y a ${diffMins} min`
+  if (diffHours < 24) return `il y a ${diffHours}h`
+  return `il y a ${diffDays}j`
 }
 
 /**

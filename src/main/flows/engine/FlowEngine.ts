@@ -28,7 +28,6 @@ export class FlowEngine extends EventEmitter {
     const envBehaviors = getAlptisEnvironmentBehaviors(env);
 
     this.config = { stopOnError: true, ...envBehaviors, ...config };
-    console.log(`[FLOW_ENGINE] Constructor - autoSubmit: ${this.config.autoSubmit}, configPassed: ${config?.autoSubmit}`);
     this.hooks = config?.hooks ?? {};
     this.hooksManager = new HooksManager(this.hooks, this);
     this.pauseManager = new PauseResumeManager(
@@ -38,61 +37,31 @@ export class FlowEngine extends EventEmitter {
   }
 
   async execute<T = any>(flowKey: string, context: Omit<ExecutionContext<T>, "stepDefinition" | "flowKey" | "logger" | "services">): Promise<FlowExecutionResult> {
-    console.log(`\n[FLOW_ENGINE] ========== EXECUTE() CALLED ==========`);
-    console.log(`[FLOW_ENGINE] FlowKey: ${flowKey}`);
-    console.log(`[FLOW_ENGINE] Lead ID: ${context.lead?.id || 'N/A'}`);
-    console.log(`[FLOW_ENGINE] Page exists: ${!!context.page}`);
-    console.log(`[FLOW_ENGINE] TransformedData exists: ${!!context.transformedData}`);
-    console.log(`[FLOW_ENGINE] ArtifactsDir: ${context.artifactsDir}`);
-
     const startTime = Date.now();
     const stepResults: StepResult[] = [];
-    console.log(`[FLOW_ENGINE] Resetting pause manager...`);
     this.pauseManager.reset();
 
-    console.log(`[FLOW_ENGINE] Creating FlowLogger...`);
     const logger = new FlowLogger(flowKey, context.lead?.id, this.config.verbose);
-    console.log(`[FLOW_ENGINE] Getting services for flow...`);
     const services = await getServicesForFlow(flowKey);
-    console.log(`[FLOW_ENGINE] Services loaded`);
     const baseContext = { ...context, flowKey, logger, services } as ExecutionContext<T>;
 
     try {
-      console.log(`[FLOW_ENGINE] Getting product config...`);
       const productConfig = getProductConfig(flowKey) as ProductConfiguration<T> | undefined;
       if (!productConfig) {
-        console.error(`[FLOW_ENGINE] Product configuration not found: ${flowKey}`);
         throw new Error(`Product configuration not found: ${flowKey}`);
       }
-      console.log(`[FLOW_ENGINE] Product config loaded: ${productConfig.steps.length} steps`);
 
       // Validate all step classes exist in registry before starting
-      console.log(`[FLOW_ENGINE] Validating step classes...`);
       for (const stepDef of productConfig.steps) {
         if (stepDef.stepClass && !this.registry.has(stepDef.stepClass)) {
-          console.error(`[FLOW_ENGINE] Step class not found: ${stepDef.stepClass}`);
           throw new Error(`Step class "${stepDef.stepClass}" not found in registry for step "${stepDef.id}"`);
         }
       }
-      console.log(`[FLOW_ENGINE] All step classes validated`);
 
-      console.log(`[FLOW_ENGINE] Initializing pause manager...`);
       const startIndex = await this.pauseManager.initialize(flowKey, context.lead?.id, logger);
-      console.log(`[FLOW_ENGINE] Pause manager initialized, startIndex: ${startIndex}`);
       if (this.config.stateId) await this.hooksManager.flowResumed(flowKey, context.lead?.id, this.pauseManager.state?.id);
 
-      logger.info(`Starting flow: ${flowKey} (${productConfig.steps.length} steps)`);
-
-      console.log('\n========================================');
-      console.log('FLOW EXECUTION START');
-      console.log('========================================');
-      console.log(`Flow: ${flowKey}`);
-      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
-      console.log(`Steps: ${productConfig.steps.length}`);
-      if (this.config.stateId) {
-        console.log(`Resuming from state: ${this.config.stateId}`);
-      }
-      console.log('');
+      logger.info(`Starting flow: ${flowKey} (${productConfig.steps.length} steps)${this.config.stateId ? ` - resuming from state ${this.config.stateId}` : ''}`);
 
       await this.hooksManager.flowStart(flowKey, context.lead?.id, this.pauseManager.state?.id);
       await this.hooksManager.beforeFlow(baseContext);
@@ -117,14 +86,8 @@ export class FlowEngine extends EventEmitter {
 
         // Check if we should stop BEFORE this submit step for manual takeover
         // autoSubmit: false (or undefined when explicitly disabled) means user wants to take over before final submission
-        console.log(`[FLOW_ENGINE] Step ${stepDef.id}: autoSubmit=${this.config.autoSubmit}, isSubmit=${stepDef.isSubmit}`);
         if (this.config.autoSubmit === false && stepDef.isSubmit === true) {
-          console.log(`\n[FLOW_ENGINE] ========== STOP BEFORE SUBMIT ==========`);
-          console.log(`[FLOW_ENGINE] Last completed step: ${stepResults[stepResults.length - 1]?.stepId ?? 'none'}`);
-          console.log(`[FLOW_ENGINE] Stopping before submit step: ${stepDef.id}`);
-          console.log(`[FLOW_ENGINE] Waiting for user manual takeover`);
-          console.log(`[FLOW_ENGINE] ========================================\n`);
-
+          logger.info(`Stopping before submit step "${stepDef.id}" - waiting for user manual takeover`);
           return buildFlowResult({
             flowKey,
             leadId: context.lead?.id,
@@ -170,17 +133,7 @@ export class FlowEngine extends EventEmitter {
       await this.pauseManager.markCompleted();
       const finalResult = buildFlowResult({ flowKey, leadId: context.lead?.id, steps: stepResults, startTime, stateId: this.pauseManager.state?.id });
 
-      console.log('\n========================================');
-      console.log('FLOW EXECUTION COMPLETE');
-      console.log('========================================');
-      console.log(`Flow: ${flowKey}`);
-      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
-      console.log(`Total steps: ${stepResults.length}`);
-      console.log(`Successful steps: ${stepResults.filter(s => s.success).length}`);
-      console.log(`Failed steps: ${stepResults.filter(s => !s.success).length}`);
-      console.log(`Total duration: ${finalResult.totalDuration}ms`);
-      console.log(`Result: ${finalResult.success ? '✅ SUCCESS' : '❌ FAILED'}`);
-      console.log('');
+      logger.info(`Flow completed: ${stepResults.length} steps, ${stepResults.filter(s => s.success).length} successful, ${finalResult.totalDuration}ms`);
 
       await this.hooksManager.flowComplete(flowKey, finalResult, baseContext);
       return finalResult;
@@ -188,18 +141,10 @@ export class FlowEngine extends EventEmitter {
       await this.pauseManager.markFailed();
       const errorObj = error instanceof Error ? error : new Error(String(error));
 
-      console.log('\n========================================');
-      console.log('FLOW EXECUTION FAILED');
-      console.log('========================================');
-      console.log(`Flow: ${flowKey}`);
-      console.log(`Lead ID: ${context.lead?.id || 'N/A'}`);
-      console.log(`Steps completed: ${stepResults.length}`);
-      console.log(`Error: ${errorObj.message}`);
-      if (stepResults.length > 0) {
-        const lastStep = stepResults[stepResults.length - 1];
-        console.log(`Last step: ${lastStep.stepId} (${lastStep.success ? 'success' : 'failed'})`);
-      }
-      console.log('');
+      const lastStepInfo = stepResults.length > 0
+        ? ` (last step: ${stepResults[stepResults.length - 1].stepId})`
+        : '';
+      logger.error(`Flow failed after ${stepResults.length} steps${lastStepInfo}: ${errorObj.message}`);
 
       const result = buildFlowResult({ flowKey, leadId: context.lead?.id, steps: stepResults, startTime, stateId: this.pauseManager.state?.id, error: errorObj });
       await this.hooksManager.flowError(flowKey, errorObj, baseContext);

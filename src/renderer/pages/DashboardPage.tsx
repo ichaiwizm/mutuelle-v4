@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/renderer/components/ui'
 import { useDashboardContext } from '@/renderer/contexts/DashboardContext'
@@ -9,10 +10,29 @@ import {
   ActiveProductsCard,
   RunDetailsModal,
 } from '@/renderer/features/dashboard/components'
+import { RunConfirmDialog } from '@/renderer/features/automation/components'
 
 export function DashboardPage() {
   const { data, loading, error, refetch } = useDashboardContext()
   const actions = useDashboardActions({ refetch })
+
+  // Confirmation state
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+
+  const handleCancelRequest = useCallback((runId: string) => {
+    setConfirmCancelId(runId)
+  }, [])
+
+  const handleConfirmCancel = useCallback(() => {
+    if (confirmCancelId) {
+      actions.handleCancelRun(confirmCancelId)
+      setConfirmCancelId(null)
+    }
+  }, [confirmCancelId, actions])
+
+  const handleCancelConfirm = useCallback(() => {
+    setConfirmCancelId(null)
+  }, [])
 
   if (loading) {
     return (
@@ -51,7 +71,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-3 gap-4">
         <RecentRunsCard
           runs={data.automation.recentRuns}
-          onCancel={actions.handleCancelRun}
+          onCancel={handleCancelRequest}
           onView={actions.handleViewRun}
           cancellingRunId={actions.cancellingRunId}
         />
@@ -63,6 +83,13 @@ export function DashboardPage() {
       </div>
 
       <RunDetailsModal runId={actions.viewingRunId} onClose={actions.handleCloseModal} />
+
+      <RunConfirmDialog
+        action={confirmCancelId ? 'cancel' : null}
+        runId={confirmCancelId}
+        onConfirm={handleConfirmCancel}
+        onCancel={handleCancelConfirm}
+      />
     </div>
   )
 }
