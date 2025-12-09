@@ -10,7 +10,8 @@ pnpm-lock.yaml
 dist/
 dist-electron/
 out/
-build/
+# Note: build/ contient les assets electron-builder (icons, entitlements)
+# Ne pas ignorer ce dossier
 
 # Logs
 logs/

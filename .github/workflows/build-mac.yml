@@ -80,12 +80,17 @@ jobs:
 
       # 8. Build l'app Electron et crée le .dmg
       # electron-vite compile le code TypeScript (et injecte les env vars via define)
-      # electron-builder package tout dans un .dmg
+      # electron-builder package tout dans un .dmg signé et notarisé
       - name: Build and package
         run: pnpm dist:mac
         env:
-          # Désactive la signature de code (on n'a pas de certificat Apple)
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Signature de code Apple (certificat Developer ID Application)
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # Notarization Apple (requis pour distribuer hors App Store)
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Credentials Google OAuth injectés au build via electron-vite define
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
