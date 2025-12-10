@@ -24,9 +24,15 @@ export async function fillToggleField(
 ): Promise<void> {
   logger?.debug(`Filling ${fieldLabel}`, { fieldLabel, shouldCheck, fieldIndex });
 
-  const toggleLocator = fieldIndex === 0
-    ? page.locator(selector).first()
-    : page.locator(selector).nth(fieldIndex);
+  // Use getByRole for role=checkbox selector, otherwise use locator
+  let toggleLocator;
+  if (selector === 'role=checkbox') {
+    toggleLocator = page.getByRole('checkbox').nth(fieldIndex);
+  } else {
+    toggleLocator = fieldIndex === 0
+      ? page.locator(selector).first()
+      : page.locator(selector).nth(fieldIndex);
+  }
 
   const isCurrentlyChecked = await toggleLocator.isChecked();
 

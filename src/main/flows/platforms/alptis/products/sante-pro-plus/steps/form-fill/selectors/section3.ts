@@ -6,12 +6,13 @@
 export const SECTION_3_SELECTORS = {
   /**
    * Toggle pour activer/désactiver la section conjoint
-   * Type: Toggle/Checkbox
+   * Type: Checkbox
+   * Strategy: Use role=checkbox (nth=1 handled in code via fillToggleField)
    */
   toggle_conjoint: {
-    primary: "[class*='totem-toggle__input']",
-    fallback: "label:has-text('Conjoint')",
-    note: "Second toggle on the page (after remplacement_contrat)",
+    primary: "role=checkbox",
+    fallback: "input[type='checkbox']",
+    note: "Second checkbox on the page (index 1), nth handled in code",
   },
 
   /**

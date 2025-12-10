@@ -75,7 +75,8 @@ export class FormFillOrchestrator {
    */
   async submit(page: Page, logger?: FlowLogger): Promise<void> {
     logger?.info('Clicking Garanties button to submit form');
-    await page.locator('button.totem-button--color-primary').click();
+    // Use role selector which is more reliable than class selector
+    await page.getByRole('button', { name: 'Garanties' }).click();
     // Attendre la navigation vers la page Garanties
     await page.waitForURL(/\/sante-pro-plus\/garanties/, { timeout: 10000 });
     logger?.info('Successfully navigated to Garanties page', { url: page.url() });

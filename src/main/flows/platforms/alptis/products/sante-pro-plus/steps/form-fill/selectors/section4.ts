@@ -5,12 +5,13 @@
 export const SECTION_4_SELECTORS = {
   /**
    * Toggle pour activer/désactiver la section enfants
-   * Type: Toggle/Checkbox
+   * Type: Checkbox
+   * Strategy: Use role=checkbox (nth=2 handled in code via fillToggleField)
    */
   toggle_enfants: {
-    primary: "[class*='totem-toggle__input']",
-    fallback: "label:has-text('Enfant')",
-    note: "Third toggle on the page (after conjoint)",
+    primary: "role=checkbox",
+    fallback: "input[type='checkbox']",
+    note: "Third checkbox on the page (index 2), nth handled in code",
   },
 
   /**

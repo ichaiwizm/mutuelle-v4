@@ -5,13 +5,12 @@
 export const SECTION_1_SELECTORS = {
   /**
    * Field 1: Remplacement d'un contrat
-   * Type: Toggle/Checkbox
-   * Stability: UNSTABLE (UUID-based ID)
-   * Strategy: Use class selector with position
+   * Type: Checkbox
+   * Strategy: Use role=checkbox (first on page via .first() in code)
    */
   remplacement_contrat: {
-    primary: "[class*='totem-toggle__input']",
-    fallback: "label:has-text('Remplacement d\\'un contrat santé')",
+    primary: "role=checkbox",
+    fallback: "input[type='checkbox']",
   },
 
   /**

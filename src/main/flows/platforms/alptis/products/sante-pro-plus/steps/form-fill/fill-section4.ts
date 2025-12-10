@@ -80,22 +80,15 @@ export async function fillEnfantRegimeObligatoire(
   childIndex: number,
   logger?: FlowLogger
 ): Promise<void> {
-  // Similar logic for regime fields
-  const regimeTextboxes = page.getByRole('textbox', { name: /régime obligatoire/i });
-  const visibleRegimeFields = await regimeTextboxes.count();
-
-  // If 3+ regime fields: adherent, conjoint, enfants...
-  // If 2 regime fields: adherent, enfants...
-  const hasConjoint = visibleRegimeFields >= 3;
-
-  // For children, the regime field is always the last visible one
-  const baseIndex = hasConjoint ? 2 : 1;
-  const regimeFieldIndex = baseIndex + childIndex;
+  // For children regime, always use fieldIndex 0 since we target the placeholder text directly
+  // The fillRegimeObligatoireField function uses page.getByText('Sélectionner un régime obligatoire').first()
+  // which will find the first unfilled regime dropdown (the child's regime)
+  // because the adherent's regime is already auto-filled and won't have this placeholder text
 
   await fillRegimeObligatoireField(
     page,
     value,
-    regimeFieldIndex,
+    childIndex, // Use childIndex for verification purposes
     `[Enfant ${childIndex + 1}] Régime obligatoire`,
     SECTION_4_SELECTORS.regime_obligatoire.primary,
     logger

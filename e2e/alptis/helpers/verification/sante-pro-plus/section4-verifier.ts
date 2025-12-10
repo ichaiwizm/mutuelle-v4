@@ -15,9 +15,7 @@ import {
 async function verifyToggle(page: Page, toggleIndex: number, expectedState: boolean, label: string): Promise<void> {
   console.log(`\n🔍 [VERIFY] Vérification du toggle ${label}...`);
 
-  const toggle = toggleIndex === 0
-    ? page.locator("[class*='totem-toggle__input']").first()
-    : page.locator("[class*='totem-toggle__input']").nth(toggleIndex);
+  const toggle = page.getByRole('checkbox').nth(toggleIndex);
 
   await verifyToggleState(page, toggle, expectedState);
   console.log(`✅ [VERIFY] Toggle ${label}: ${expectedState ? 'Oui' : 'Non'}`);

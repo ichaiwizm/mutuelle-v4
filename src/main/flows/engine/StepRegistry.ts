@@ -2,6 +2,8 @@ import type { IStep } from "./types";
 import { AlptisAuthStep } from "../platforms/alptis/steps/AlptisAuthStep";
 import { AlptisNavigationStep } from "../platforms/alptis/steps/AlptisNavigationStep";
 import { AlptisFormFillStep } from "../platforms/alptis/steps/AlptisFormFillStep";
+import { AlptisSanteProPlusNavigationStep } from "../platforms/alptis/steps/AlptisSanteProPlusNavigationStep";
+import { AlptisSanteProPlusFormFillStep } from "../platforms/alptis/steps/AlptisSanteProPlusFormFillStep";
 import { SwissLifeAuthStep } from "../platforms/swisslifeone/steps/SwissLifeAuthStep";
 import { SwissLifeNavigationStep } from "../platforms/swisslifeone/steps/SwissLifeNavigationStep";
 import { SwissLifeFormFillStep } from "../platforms/swisslifeone/steps/SwissLifeFormFillStep";
@@ -33,10 +35,14 @@ export class StepRegistry {
    * Register default steps for all platforms
    */
   private registerDefaultSteps(): void {
-    // Alptis steps
+    // Alptis steps (Santé Select)
     this.register("AlptisAuthStep", new AlptisAuthStep());
     this.register("AlptisNavigationStep", new AlptisNavigationStep());
     this.register("AlptisFormFillStep", new AlptisFormFillStep());
+
+    // Alptis steps (Santé Pro Plus)
+    this.register("AlptisSanteProPlusNavigationStep", new AlptisSanteProPlusNavigationStep());
+    this.register("AlptisSanteProPlusFormFillStep", new AlptisSanteProPlusFormFillStep());
 
     // SwissLife steps
     this.register("SwissLifeAuthStep", new SwissLifeAuthStep());

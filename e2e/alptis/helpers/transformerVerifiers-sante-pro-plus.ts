@@ -37,8 +37,8 @@ export function verifySanteProPlusTransformedData(transformed: SanteProPlusFormD
 
   // Verify adherent - Santé Pro Plus specific fields
   expect(transformed.adherent.micro_entrepreneur).toMatch(/^(Oui|Non)$/);
+  // ville peut être vide car elle sera remplie par le formulaire via le code postal
   expect(transformed.adherent.ville).toBeDefined();
-  expect(transformed.adherent.ville.length).toBeGreaterThan(0);
 
   // cadre_exercice is conditional (only for certain professions)
   if (transformed.adherent.cadre_exercice) {

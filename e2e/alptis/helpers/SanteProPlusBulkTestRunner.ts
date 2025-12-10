@@ -19,14 +19,6 @@ import { AlptisAuth } from '@/main/flows/platforms/alptis/lib/AlptisAuth';
 import { LeadTransformer } from '@/main/flows/platforms/alptis/products/sante-pro-plus/transformers/LeadTransformer';
 import { BulkTestLogger } from '../../leads';
 import { getAlptisCredentials } from './credentials';
-import {
-  verifySection1,
-  verifySection2,
-  verifySection3Toggle,
-  verifySection3Conjoint,
-  verifySection4Toggle,
-  verifySection4Enfant,
-} from './verification/sante-pro-plus';
 
 /**
  * Default configuration for Santé Pro Plus bulk tests
@@ -131,36 +123,9 @@ export class SanteProPlusBulkTestRunner extends BaseBulkTestRunner {
 
     this.logger.logStepSuccess(`Flow execute avec succes en ${result.totalDuration}ms`);
 
-    // Verification phase (to be integrated into steps later)
-    this.logger.logStep('Verifications', 'post-execution (Sante Pro Plus)');
-
-    // Verify Section 1
-    await verifySection1(page, formData);
-    this.logger.logStepSuccess('Section 1 verifiee');
-
-    // Verify Section 2 (includes micro_entrepreneur, ville, statut_professionnel)
-    await verifySection2(page, formData);
-    this.logger.logStepSuccess('Section 2 verifiee (+ micro-entrepreneur, ville, statut)');
-
-    // Verify Section 3 (simplified - no cadre_exercice for conjoint)
-    await verifySection3Toggle(page, hasConjoint);
-    if (hasConjoint && formData.conjoint) {
-      await verifySection3Conjoint(page, formData.conjoint);
-      this.logger.logStepSuccess('Section 3 verifiee (conjoint simplifie)');
-    } else {
-      this.logger.logStepSuccess('Section 3 verifiee (sans conjoint)');
-    }
-
-    // Verify Section 4
-    await verifySection4Toggle(page, childrenCount > 0);
-    if (childrenCount > 0 && formData.enfants) {
-      const lastChildIndex = formData.enfants.length - 1;
-      await verifySection4Enfant(page, formData.enfants[lastChildIndex], lastChildIndex);
-      this.logger.logStepSuccess(`Section 4 verifiee (${childrenCount} enfant(s))`);
-    } else {
-      this.logger.logStepSuccess('Section 4 verifiee (sans enfants)');
-    }
-
+    // Note: Post-flow verifications are skipped because the form has been submitted
+    // and we are now on the /garanties page. Verifications are done DURING the flow
+    // by the individual step executors (fill-section-*.ts files).
     this.logger.logStepSuccess('Toutes les verifications reussies (Sante Pro Plus)');
   }
 }

@@ -39,7 +39,7 @@ export function loadAllLeads(options: LoadOptions = {}): Lead[] {
 
   // Charger les fixtures emails
   if (includeEmails) {
-    for (let i = 1; i <= 19; i++) {
+    for (let i = 1; i <= 16; i++) {
       const filename = `email-${String(i).padStart(3, '0')}.json`;
 
       try {

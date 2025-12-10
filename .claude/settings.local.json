@@ -96,7 +96,12 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "WebFetch(domain:www.electron.build)",
-      "WebFetch(domain:philo.dev)"
+      "WebFetch(domain:philo.dev)",
+      "Bash(node -e:*)",
+      "Bash(echo:*)",
+      "Bash(1)",
+      "Bash(tee:*)",
+      "Bash(timeout 300 pnpm test:e2e:*)"
     ],
     "deny": [],
     "ask": []

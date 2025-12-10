@@ -16,8 +16,8 @@ import {
 export async function verifySection1(page: Page, data: SanteProPlusFormData): Promise<void> {
   console.log('\n🔍 [VERIFY] Vérification de la section 1...');
 
-  // Check remplacement_contrat
-  const remplacementToggle = page.locator("[class*='totem-toggle__input']").first();
+  // Check remplacement_contrat (first checkbox on page)
+  const remplacementToggle = page.getByRole('checkbox').first();
   await verifyToggleState(page, remplacementToggle, data.mise_en_place.remplacement_contrat);
   console.log(`✅ [VERIFY] Remplacement contrat: ${data.mise_en_place.remplacement_contrat ? 'Oui' : 'Non'}`);
 
