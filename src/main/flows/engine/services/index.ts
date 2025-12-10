@@ -16,11 +16,13 @@ export { hasIframeSupport } from "./types";
 
 // Import pour utilisation locale
 import { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
+import { createSanteProPlusServices, resetSanteProPlusServices } from "./SanteProPlusServiceFactory";
 import { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
 import { CredentialsService } from "../../../services/credentials";
 
 // Export pour les autres modules
 export { createAlptisServices, resetAlptisServices };
+export { createSanteProPlusServices, resetSanteProPlusServices };
 export { createSwissLifeServices, resetSwissLifeServices };
 
 /**
@@ -86,5 +88,6 @@ export async function getServicesForFlow(flowKey: string) {
  */
 export function resetAllServices(): void {
   resetAlptisServices();
+  resetSanteProPlusServices();
   resetSwissLifeServices();
 }

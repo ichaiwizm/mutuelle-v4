@@ -68,6 +68,7 @@ export const AlptisTimeouts = {
 export const AlptisUrls = {
   login: 'https://pro.alptis.org/',
   santeSelectForm: 'https://pro.alptis.org/sante-select/informations-projet/',
+  santeProPlusForm: 'https://pro.alptis.org/sante-pro-plus/informations-projet/',
 } as const;
 
 /**

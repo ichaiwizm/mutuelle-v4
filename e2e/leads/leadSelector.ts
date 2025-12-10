@@ -10,6 +10,9 @@ import type { LeadType } from './types';
 import { LEAD_TYPE_NAMES } from './types';
 import { loadAllLeads } from './loadLeads';
 import { hasConjoint, getChildrenCount } from './leadFilters';
+import { validateLead as validateSanteProPlusLead } from '@/main/flows/platforms/alptis/products/sante-pro-plus/transformers/validators/lead-validator';
+
+export type ProductFilter = 'sante-pro-plus' | 'sante-select' | 'slsis' | undefined;
 
 /**
  * Select a lead based on filtering criteria
@@ -30,13 +33,22 @@ import { hasConjoint, getChildrenCount } from './leadFilters';
  * const soloLead = selectLead('solo');
  * const familyLead = selectLead('both');
  * const anyLead = selectLead('random');
+ * const santeProPlusLead = selectLead('random', 'sante-pro-plus');
  * ```
  */
-export function selectLead(type: LeadType = 'random'): Lead {
-  const allLeads = loadAllLeads();
+export function selectLead(type: LeadType = 'random', productFilter?: ProductFilter): Lead {
+  let allLeads = loadAllLeads();
+
+  // Filtrer par éligibilité produit si spécifié
+  if (productFilter === 'sante-pro-plus') {
+    allLeads = allLeads.filter(lead => {
+      const validation = validateSanteProPlusLead(lead);
+      return validation.valid;
+    });
+  }
 
   if (allLeads.length === 0) {
-    throw new Error('No leads available');
+    throw new Error(`No leads available${productFilter ? ` for product "${productFilter}"` : ''}`);
   }
 
   if (type === 'random') {
@@ -46,7 +58,7 @@ export function selectLead(type: LeadType = 'random'): Lead {
   const filtered = filterLeadsByType(allLeads, type);
 
   if (filtered.length === 0) {
-    console.warn(`⚠️  No lead found matching type "${type}", falling back to random`);
+    console.warn(`⚠️  No lead found matching type "${type}"${productFilter ? ` for product "${productFilter}"` : ''}, falling back to random`);
     return selectRandomLead(allLeads);
   }
 
