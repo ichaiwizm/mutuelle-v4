@@ -1,6 +1,7 @@
 import type { GlobalTask, RunHandle } from "../types/global";
 import type { BrowserManager } from "../browser";
 import { TaskStateManager, WorkerLifecycleManager } from "../state";
+import { captureException } from "../../../../services/monitoring";
 
 /**
  * TaskExecutor - Orchestrates task execution.
@@ -59,9 +60,13 @@ export class TaskExecutor {
       context = result.context;
     } catch (error) {
       console.error(`[TASK_EXECUTOR] FAILED to create browser context:`, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureException(err, {
+        tags: { flowKey: task.flowKey, context: "browser-context-creation" },
+        extra: { taskId: task.id },
+      });
       this.stateManager.removePending(task.id);
       task.status = "failed";
-      const err = error instanceof Error ? error : new Error(String(error));
       await task.callbacks.onError(task.id, err);
       removeTaskFromQueue(task.id);
       onTaskComplete();
@@ -120,8 +125,12 @@ export class TaskExecutor {
       }
     } catch (error) {
       console.error(`[TASK_EXECUTOR] EXCEPTION during task execution:`, error);
-      task.status = "failed";
       const err = error instanceof Error ? error : new Error(String(error));
+      captureException(err, {
+        tags: { flowKey: task.flowKey, context: "task-execution" },
+        extra: { taskId: task.id },
+      });
+      task.status = "failed";
       await task.callbacks.onError(task.id, err);
     } finally {
       if (skipFinallyCleanup) {

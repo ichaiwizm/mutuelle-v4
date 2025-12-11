@@ -17,4 +17,4 @@ export const DEFAULT_PRODUCT_SETTINGS: ProductSettings = {
   autoSubmit: true,
 };
 
-export type ConfigTab = "credentials" | "automation";
+export type ConfigTab = "credentials" | "automation" | "data";

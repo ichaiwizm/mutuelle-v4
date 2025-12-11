@@ -29,6 +29,7 @@ import {
   registerFixturesHandlers,
   registerShellHandlers,
   registerAutomationSettingsHandlers,
+  registerDataHandlers,
 } from "./handlers";
 
 export function registerIpc() {
@@ -43,4 +44,5 @@ export function registerIpc() {
   registerDashboardHandlers();
   registerShellHandlers();
   registerAutomationSettingsHandlers();
+  registerDataHandlers();
 }

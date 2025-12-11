@@ -123,6 +123,31 @@ export type ProductStatusInput = {
   updatedBy?: string;
 };
 
+// ========== Data Export ==========
+
+export type DataExportResult = {
+  exported: boolean;
+  path?: string;
+  count?: number;
+  reason?: "NO_LEADS" | "CANCELLED";
+};
+
+export type DataLogsPathResult = {
+  path: string;
+};
+
+// ========== Feedback ==========
+
+export type FeedbackSendParams = {
+  message: string;
+  email?: string;
+  name?: string;
+};
+
+export type FeedbackSendResult = {
+  sent: boolean;
+};
+
 // ========== Dashboard ==========
 
 export type DashboardOverview = {
@@ -233,5 +258,15 @@ export type Ipc = {
     get: (flowKey: string) => Promise<AutomationSettings | null>;
     list: () => Promise<AutomationSettings[]>;
     save: (flowKey: string, settings: AutomationSettingsInput) => Promise<AutomationSettings>;
+  };
+
+  data: {
+    exportLeads: () => Promise<DataExportResult>;
+    exportDb: () => Promise<DataExportResult>;
+    getLogsPath: () => Promise<DataLogsPathResult>;
+  };
+
+  feedback: {
+    send: (params: FeedbackSendParams) => Promise<FeedbackSendResult>;
   };
 };

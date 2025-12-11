@@ -6,6 +6,7 @@ import {
   useCredentials,
   ConfigTabs,
   AutomationSection,
+  DataSection,
 } from "@/renderer/features/config";
 import type { ConfigTab } from "@/renderer/features/config/types/automation";
 
@@ -60,7 +61,7 @@ export function ConfigPage() {
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-3xl mx-auto">
-          {activeTab === "credentials" ? (
+          {activeTab === "credentials" && (
             <div className="space-y-6 animate-fade-in">
               {/* Warning Banner */}
               {!allLoading && unconfiguredCount > 0 && (
@@ -111,9 +112,9 @@ export function ConfigPage() {
                 </p>
               </div>
             </div>
-          ) : (
-            <AutomationSection />
           )}
+          {activeTab === "automation" && <AutomationSection />}
+          {activeTab === "data" && <DataSection />}
         </div>
       </div>
     </div>

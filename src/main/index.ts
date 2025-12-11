@@ -1,6 +1,10 @@
 import 'dotenv/config'
 import { app, BrowserWindow, Menu } from 'electron'
 
+// Initialize Sentry as early as possible for crash reporting
+import { initSentry, flushSentry, captureException } from './services/monitoring'
+initSentry()
+
 // Disable GPU for WSL2 compatibility
 app.disableHardwareAcceleration()
 import path from 'node:path'
@@ -124,6 +128,9 @@ app.on('before-quit', async (event) => {
     logger.info('Cleanup completed', { service: 'MAIN' })
   } catch (e) {
     logger.error('Cleanup error during shutdown', { service: 'MAIN' }, e)
+    captureException(e, { tags: { context: 'shutdown' } })
   }
+  // Flush Sentry before exit
+  await flushSentry()
   app.exit(0)
 })

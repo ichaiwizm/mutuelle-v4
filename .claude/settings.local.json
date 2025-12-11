@@ -102,7 +102,11 @@
       "Bash(1)",
       "Bash(tee:*)",
       "Bash(timeout 300 pnpm test:e2e:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "WebFetch(domain:docs.sentry.io)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []

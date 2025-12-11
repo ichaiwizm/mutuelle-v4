@@ -3,6 +3,11 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { config } from 'dotenv'
+
+// Load .env file for build-time variables
+config()
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const alias = {
@@ -22,10 +27,11 @@ export default defineConfig({
       }),
     ],
     resolve: { alias },
-    // Injecte les credentials Google OAuth au build (lus depuis .env en dev, depuis secrets CI en prod)
+    // Injecte les credentials au build (lus depuis .env en dev, depuis secrets CI en prod)
     define: {
       'process.env.GOOGLE_CLIENT_ID': JSON.stringify(process.env.GOOGLE_CLIENT_ID || ''),
       'process.env.GOOGLE_CLIENT_SECRET': JSON.stringify(process.env.GOOGLE_CLIENT_SECRET || ''),
+      'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
     },
     build: {
       rollupOptions: {

@@ -10,6 +10,7 @@ import { executeStepWithRetry, evaluateConditional, captureScreenshot, buildFlow
 import { HooksManager } from "./hooks";
 import { PauseResumeManager } from "./pause";
 import { getServicesForFlow } from "./services";
+import { captureException, trackFlowStart, trackFlowStep, trackFlowComplete } from "../../services/monitoring";
 
 /**
  * Main Flow Execution Engine
@@ -65,6 +66,9 @@ export class FlowEngine extends EventEmitter {
 
       await this.hooksManager.flowStart(flowKey, context.lead?.id, this.pauseManager.state?.id);
       await this.hooksManager.beforeFlow(baseContext);
+
+      // Sentry tracking
+      trackFlowStart(flowKey, context.lead?.id ? parseInt(context.lead.id, 10) : 0, this.pauseManager.state?.id ?? "no-state");
 
       for (let i = startIndex; i < productConfig.steps.length; i++) {
         // Check for abort before each step
@@ -135,6 +139,7 @@ export class FlowEngine extends EventEmitter {
 
       logger.info(`Flow completed: ${stepResults.length} steps, ${stepResults.filter(s => s.success).length} successful, ${finalResult.totalDuration}ms`);
 
+      trackFlowComplete(flowKey, this.pauseManager.state?.id ?? "no-state", true);
       await this.hooksManager.flowComplete(flowKey, finalResult, baseContext);
       return finalResult;
     } catch (error) {
@@ -145,6 +150,13 @@ export class FlowEngine extends EventEmitter {
         ? ` (last step: ${stepResults[stepResults.length - 1].stepId})`
         : '';
       logger.error(`Flow failed after ${stepResults.length} steps${lastStepInfo}: ${errorObj.message}`);
+
+      // Send to Sentry
+      trackFlowComplete(flowKey, this.pauseManager.state?.id ?? "no-state", false);
+      captureException(errorObj, {
+        tags: { flowKey, context: "flow-execution" },
+        extra: { leadId: context.lead?.id, stepsCompleted: stepResults.length, lastStep: stepResults[stepResults.length - 1]?.stepId },
+      });
 
       const result = buildFlowResult({ flowKey, leadId: context.lead?.id, steps: stepResults, startTime, stateId: this.pauseManager.state?.id, error: errorObj });
       await this.hooksManager.flowError(flowKey, errorObj, baseContext);
@@ -161,14 +173,14 @@ export class FlowEngine extends EventEmitter {
   }
 
   private async handleStepError(flowKey: string, stepDef: any, result: StepResult, ctx: ExecutionContext) {
+    trackFlowStep(flowKey, stepDef.id, "error");
     await this.hooksManager.stepError(flowKey, stepDef, result, ctx);
-    // Screenshot is now captured before afterStep hook
   }
 
   private async handleStepSuccess(flowKey: string, stepDef: any, result: StepResult, index: number) {
+    trackFlowStep(flowKey, stepDef.id, "success");
     await this.hooksManager.stepComplete(flowKey, stepDef, result);
     await this.pauseManager.checkpoint(index, stepDef.id);
-    // Screenshot is now captured before afterStep hook
   }
 
   requestPause(): void { this.pauseManager.requestPause(); }

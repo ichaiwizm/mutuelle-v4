@@ -117,6 +117,17 @@ const api: Ipc = {
     save: (flowKey: string, settings: { headless?: boolean; autoSubmit?: boolean }) =>
       invokeIpc(IPC_CHANNEL.AUTO_SETTINGS_SAVE, { flowKey, ...settings }),
   },
+
+  data: {
+    exportLeads: () => invokeIpc(IPC_CHANNEL.DATA_EXPORT_LEADS),
+    exportDb: () => invokeIpc(IPC_CHANNEL.DATA_EXPORT_DB),
+    getLogsPath: () => invokeIpc(IPC_CHANNEL.DATA_GET_LOGS_PATH),
+  },
+
+  feedback: {
+    send: (data: { message: string; email?: string; name?: string }) =>
+      invokeIpc(IPC_CHANNEL.FEEDBACK_SEND, data),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

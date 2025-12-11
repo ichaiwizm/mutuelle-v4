@@ -6,6 +6,7 @@ import { AutomationBroadcaster } from "../automationBroadcaster";
 import { buildTasks, createTaskCallbacks, handleRunCompletion, handleEmptyRun } from "./queue";
 import type { EnqueueItem } from "./types";
 import { logger } from "@/main/services/logger";
+import { captureException } from "@/main/services/monitoring";
 
 /**
  * Enqueue flows for parallel execution.
@@ -49,8 +50,16 @@ export async function enqueueRun(
   GlobalFlowPool.getInstance()
     .enqueueRun(runId, tasks, callbacks)
     .then(() => handleRunCompletion(runId))
-    .catch((error) => {
+    .catch(async (error) => {
       logger.error("Pool execution failed", { service: "AUTOMATION", runId }, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureException(err, {
+        tags: { context: "pool-execution" },
+        extra: { runId, taskCount: tasks.length },
+      });
+      // Mark run as failed so UI knows
+      await db.update(schema.runs).set({ status: "failed", completedAt: new Date() }).where(eq(schema.runs.id, runId));
+      AutomationBroadcaster.runCompleted(runId, "failed");
     });
 
   // Return immediately so the UI can navigate to the live view

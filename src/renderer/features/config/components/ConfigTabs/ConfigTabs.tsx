@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Shield, Cpu } from "lucide-react";
+import { Shield, Cpu, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ConfigTab } from "../../types/automation";
 
@@ -12,6 +12,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { id: "credentials", label: "Identifiants", icon: Shield },
   { id: "automation", label: "Automatisation", icon: Cpu },
+  { id: "data", label: "Données", icon: Database },
 ];
 
 interface ConfigTabsProps {

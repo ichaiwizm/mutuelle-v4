@@ -69,4 +69,12 @@ export const IPC_CHANNEL = {
   AUTO_SETTINGS_GET: "automationSettings:get",
   AUTO_SETTINGS_LIST: "automationSettings:list",
   AUTO_SETTINGS_SAVE: "automationSettings:save",
+
+  // Data Export/Backup
+  DATA_EXPORT_LEADS: "data:exportLeads",
+  DATA_EXPORT_DB: "data:exportDb",
+  DATA_GET_LOGS_PATH: "data:getLogsPath",
+
+  // Feedback
+  FEEDBACK_SEND: "feedback:send",
 } as const;

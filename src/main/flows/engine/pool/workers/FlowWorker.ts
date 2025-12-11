@@ -5,6 +5,7 @@ import { FlowEngine } from "../../FlowEngine";
 import { PageLifecycleManager } from "./PageLifecycleManager";
 import { WindowManagementBridge } from "./WindowManagementBridge";
 import { createAbortedResult, type OnManualCloseCallback } from "./types";
+import { captureException } from "../../../../services/monitoring";
 
 /**
  * A worker that executes a single flow within its own isolated browser context.
@@ -137,13 +138,19 @@ export class FlowWorker {
       this._status = "error";
       this.logError(error, task);
 
+      const err = error instanceof Error ? error : new Error(String(error));
+      captureException(err, {
+        tags: { flowKey: task.flowKey, context: "flow-worker" },
+        extra: { leadId: task.leadId, taskId: task.id },
+      });
+
       return {
         success: false,
         flowKey: task.flowKey,
         leadId: task.leadId,
         steps: [],
         totalDuration: 0,
-        error: error instanceof Error ? error : new Error(String(error)),
+        error: err,
       };
     }
   }
