@@ -11,6 +11,7 @@ import {
   RunDetailsModal,
 } from '@/renderer/features/dashboard/components'
 import { RunConfirmDialog } from '@/renderer/features/automation/components'
+import { SetupChecklist } from '@/renderer/features/onboarding'
 
 export function DashboardPage() {
   const { data, loading, error, refetch } = useDashboardContext()
@@ -55,6 +56,8 @@ export function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
+      <SetupChecklist className="mb-2" />
+
       <DashboardHeader
         isFetching={actions.isFetching}
         isMailConnected={data.mail.ok}

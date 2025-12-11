@@ -142,7 +142,7 @@ export function RunsTable({
       <EmptyState
         icon={<Zap className="h-8 w-8" />}
         title="Aucune exécution"
-        description="Lancez votre première automatisation pour voir les exécutions apparaître ici."
+        description="Les exécutions remplissent automatiquement les formulaires d'adhésion. Sélectionnez un ou plusieurs leads et un produit pour lancer votre première automatisation."
         action={{
           label: 'Nouvelle exécution',
           onClick: onNewRun,

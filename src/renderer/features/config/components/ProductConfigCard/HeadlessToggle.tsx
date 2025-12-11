@@ -1,5 +1,6 @@
 import { Monitor, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/renderer/components/ui";
 
 interface HeadlessToggleProps {
   checked: boolean;
@@ -28,9 +29,15 @@ export function HeadlessToggle({ checked, onChange, disabled }: HeadlessTogglePr
           )}
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--color-text-primary)]">
-            Mode navigateur
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">
+              Mode navigateur
+            </p>
+            <InfoTooltip
+              content="En mode invisible, le navigateur fonctionne en arrière-plan. Activez le mode visible pour voir le formulaire se remplir (utile pour le debug)."
+              side="right"
+            />
+          </div>
           <p className="text-xs text-[var(--color-text-muted)]">
             {isHeadless ? "Invisible (headless)" : "Visible pour debug"}
           </p>

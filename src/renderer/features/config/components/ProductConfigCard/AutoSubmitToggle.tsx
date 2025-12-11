@@ -1,5 +1,6 @@
 import { Send, Hand } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/renderer/components/ui";
 
 interface AutoSubmitToggleProps {
   checked: boolean;
@@ -28,9 +29,15 @@ export function AutoSubmitToggle({ checked, onChange, disabled }: AutoSubmitTogg
           )}
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--color-text-primary)]">
-            Soumission automatique
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">
+              Soumission automatique
+            </p>
+            <InfoTooltip
+              content="Désactivez pour arrêter l'exécution avant la soumission finale. Vous pourrez alors vérifier et soumettre manuellement le formulaire."
+              side="right"
+            />
+          </div>
           <p className="text-xs text-[var(--color-text-muted)]">
             {autoSubmit ? "Exécuter jusqu'à la fin" : "S'arrêter pour reprise manuelle"}
           </p>

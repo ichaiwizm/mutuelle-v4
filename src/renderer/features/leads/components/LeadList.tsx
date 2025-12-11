@@ -144,8 +144,8 @@ export function LeadList({
     return (
       <EmptyState
         icon={<Users className="h-8 w-8" />}
-        title="Aucun lead"
-        description="Commencez par créer un nouveau lead ou importez des leads depuis vos emails."
+        title="Aucun lead pour le moment"
+        description="Les leads sont vos prospects. Créez-en un manuellement ou importez-les depuis Gmail pour commencer à automatiser vos souscriptions."
         action={{
           label: "Créer un lead",
           onClick: onCreate,
