@@ -6,6 +6,7 @@
  */
 
 import { LeadTransformer as AlptisTransformer } from "../platforms/alptis/products/sante-select/transformers/LeadTransformer";
+import { LeadTransformer as SanteProPlusTransformer } from "../platforms/alptis/products/sante-pro-plus/transformers/LeadTransformer";
 import { SwissLifeOneLeadTransformer as SwissLifeTransformer } from "../platforms/swisslifeone/products/slsis/transformers/LeadTransformer";
 import type { Lead } from "@/shared/types/lead";
 
@@ -16,6 +17,7 @@ type TransformerFn = (lead: Lead) => unknown;
  */
 const TRANSFORMERS: Record<string, TransformerFn> = {
   alptis_sante_select: (lead) => AlptisTransformer.transform(lead),
+  alptis_sante_pro_plus: (lead) => SanteProPlusTransformer.transform(lead),
   swisslife_one_slsis: (lead) => SwissLifeTransformer.transform(lead),
 };
 

@@ -116,12 +116,23 @@ export class QueueProcessor {
     this.deps.config.onTaskStart?.(task.id);
     this.deps.emitter.emit("task:start", task.id);
 
+    let skipCleanup = false;
+
     try {
-      return await worker.execute(task, this.abortSignal ?? undefined);
+      const result = await worker.execute(task, this.abortSignal ?? undefined);
+
+      // Don't cleanup if task is in waiting_user state - keep browser window open
+      if (result.waitingUser) {
+        skipCleanup = true;
+      }
+
+      return result;
     } finally {
-      await worker.cleanup();
-      await this.deps.browserManager.closeContext(context);
-      this.deps.activeWorkers.delete(task.id);
+      if (!skipCleanup) {
+        await worker.cleanup();
+        await this.deps.browserManager.closeContext(context);
+        this.deps.activeWorkers.delete(task.id);
+      }
     }
   }
 
