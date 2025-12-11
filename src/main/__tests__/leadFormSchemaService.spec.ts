@@ -20,23 +20,23 @@ describe("LeadFormSchemaService", () => {
       expect(result.schema).toHaveProperty("fields");
     });
 
-    it("returns version 1.0.0", () => {
+    it("returns version 2.0.0", () => {
       const result = LeadFormSchemaService.getSchema();
-      expect(result.schema.version).toBe("1.0.0");
+      expect(result.schema.version).toBe("2.0.0");
     });
   });
 
   describe("getSchemaVersion", () => {
     it("returns the current version", () => {
-      expect(LeadFormSchemaService.getSchemaVersion()).toBe("1.0.0");
+      expect(LeadFormSchemaService.getSchemaVersion()).toBe("2.0.0");
     });
   });
 });
 
 describe("LEAD_FORM_SCHEMA", () => {
   describe("sections", () => {
-    it("has 5 sections", () => {
-      expect(LEAD_FORM_SCHEMA.sections).toHaveLength(5);
+    it("has 4 sections", () => {
+      expect(LEAD_FORM_SCHEMA.sections).toHaveLength(4);
     });
 
     it("has all required sections", () => {
@@ -45,7 +45,6 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(sectionIds).toContain("project");
       expect(sectionIds).toContain("conjoint");
       expect(sectionIds).toContain("children");
-      expect(sectionIds).toContain("coverage");
     });
 
     it("sections have correct order", () => {
@@ -54,7 +53,6 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(sorted[1].id).toBe("project");
       expect(sorted[2].id).toBe("conjoint");
       expect(sorted[3].id).toBe("children");
-      expect(sorted[4].id).toBe("coverage");
     });
 
     it("children section is repeatable", () => {
@@ -74,14 +72,13 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(condition.operator).toBe("notEmpty");
     });
 
-    it("children section has visibility condition based on nombreEnfants", () => {
+    it("children section has visibility condition based on children array", () => {
       const childrenSection = LEAD_FORM_SCHEMA.sections.find((s) => s.id === "children");
       expect(childrenSection?.visible).toBeDefined();
 
       const condition = childrenSection?.visible as FieldCondition;
-      expect(condition.field).toBe("subscriber.nombreEnfants");
-      expect(condition.operator).toBe("gt");
-      expect(condition.value).toBe(0);
+      expect(condition.field).toBe("children");
+      expect(condition.operator).toBe("notEmpty");
     });
   });
 
@@ -92,7 +89,6 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(sectionIds).toContain("project");
       expect(sectionIds).toContain("conjoint");
       expect(sectionIds).toContain("children");
-      expect(sectionIds).toContain("coverage");
     });
 
     it("subscriber section has required fields", () => {
@@ -105,25 +101,18 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(fieldNames).toContain("nom");
       expect(fieldNames).toContain("prenom");
       expect(fieldNames).toContain("dateNaissance");
-      expect(fieldNames).toContain("email");
-      expect(fieldNames).toContain("telephone");
       expect(fieldNames).toContain("codePostal");
-      expect(fieldNames).toContain("nombreEnfants");
+      expect(fieldNames).toContain("profession");
+      expect(fieldNames).toContain("regimeSocial");
     });
 
-    it("coverage section has slider fields with min/max 1-4", () => {
-      const coverageFields = LEAD_FORM_SCHEMA.fields.filter(
-        (f) => f.section === "coverage"
+    it("project section has dateEffet field", () => {
+      const projectFields = LEAD_FORM_SCHEMA.fields.filter(
+        (f) => f.section === "project"
       );
+      const fieldNames = projectFields.map((f) => f.name);
 
-      expect(coverageFields.length).toBe(4);
-
-      for (const field of coverageFields) {
-        expect(field.type).toBe("slider");
-        expect(field.min).toBe(1);
-        expect(field.max).toBe(4);
-        expect(field.step).toBe(1);
-      }
+      expect(fieldNames).toContain("dateEffet");
     });
 
     it("date fields have correct pattern", () => {
@@ -147,18 +136,18 @@ describe("LEAD_FORM_SCHEMA", () => {
       expect(codePostalField?.required).toBe(true);
     });
 
-    it("assureurActuel field has conditional visibility", () => {
-      const assureurField = LEAD_FORM_SCHEMA.fields.find(
-        (f) => f.path === "project.assureurActuel"
+    it("conjoint section has conditional required fields", () => {
+      const conjointDateField = LEAD_FORM_SCHEMA.fields.find(
+        (f) => f.path === "project.conjoint.dateNaissance"
       );
 
-      expect(assureurField).toBeDefined();
-      expect(assureurField?.visible).toBeDefined();
+      expect(conjointDateField).toBeDefined();
+      expect(conjointDateField?.required).toBeDefined();
+      expect(typeof conjointDateField?.required).toBe("object");
 
-      const condition = assureurField?.visible as FieldCondition;
-      expect(condition.field).toBe("project.actuellementAssure");
-      expect(condition.operator).toBe("eq");
-      expect(condition.value).toBe(true);
+      const condition = conjointDateField?.required as FieldCondition;
+      expect(condition.field).toBe("project.conjoint");
+      expect(condition.operator).toBe("notEmpty");
     });
 
     it("children fields use array notation in path", () => {
@@ -253,8 +242,10 @@ describe("Condition evaluation helpers", () => {
       case "lte":
         return Number(value) <= Number(condition.value);
       case "empty":
+        if (Array.isArray(value)) return value.length === 0;
         return value === undefined || value === null || value === "";
       case "notEmpty":
+        if (Array.isArray(value)) return value.length > 0;
         return value !== undefined && value !== null && value !== "";
       case "in":
         return Array.isArray(condition.value) && condition.value.includes(value);
@@ -416,19 +407,19 @@ describe("Condition evaluation helpers", () => {
   });
 
   describe("real schema conditions", () => {
-    it("children section visible when nombreEnfants > 0", () => {
+    it("children section visible when children array is not empty", () => {
       const childrenSection = LEAD_FORM_SCHEMA.sections.find(
         (s) => s.id === "children"
       );
       const condition = childrenSection?.visible as FieldCondition;
 
       expect(
-        evaluateCondition(condition, { subscriber: { nombreEnfants: 2 } })
+        evaluateCondition(condition, { children: [{ dateNaissance: "01/01/2010" }] })
       ).toBe(true);
       expect(
-        evaluateCondition(condition, { subscriber: { nombreEnfants: 0 } })
+        evaluateCondition(condition, { children: [] })
       ).toBe(false);
-      expect(evaluateCondition(condition, { subscriber: {} })).toBe(false);
+      expect(evaluateCondition(condition, {})).toBe(false);
     });
 
     it("conjoint section visible when conjoint is not empty", () => {
@@ -448,19 +439,18 @@ describe("Condition evaluation helpers", () => {
       ).toBe(false);
     });
 
-    it("assureurActuel visible when actuellementAssure is true", () => {
-      const assureurField = LEAD_FORM_SCHEMA.fields.find(
-        (f) => f.path === "project.assureurActuel"
+    it("conjoint dateNaissance required when conjoint exists", () => {
+      const conjointDateField = LEAD_FORM_SCHEMA.fields.find(
+        (f) => f.path === "project.conjoint.dateNaissance"
       );
-      const condition = assureurField?.visible as FieldCondition;
+      const condition = conjointDateField?.required as FieldCondition;
 
       expect(
-        evaluateCondition(condition, { project: { actuellementAssure: true } })
+        evaluateCondition(condition, { project: { conjoint: { dateNaissance: "01/01/1990" } } })
       ).toBe(true);
       expect(
-        evaluateCondition(condition, { project: { actuellementAssure: false } })
+        evaluateCondition(condition, { project: {} })
       ).toBe(false);
-      expect(evaluateCondition(condition, { project: {} })).toBe(false);
     });
   });
 });

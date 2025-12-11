@@ -6,6 +6,7 @@ import { NotFoundError } from "@/shared/errors";
 import { AutomationBroadcaster } from "../automationBroadcaster";
 import { formatLeadName, mapRunItem } from "./utils";
 import type { Run, RunStatus, RunWithItems } from "./types";
+import { logger } from "@/main/services/logger";
 
 /**
  * Get a run by ID with its items.
@@ -180,7 +181,7 @@ export async function cleanupOnShutdown(): Promise<void> {
     .set({ status: "cancelled", completedAt: cancellationTime })
     .where(inArray(schema.runItems.status, ["running", "queued", "waiting_user"]));
 
-  console.log("[SHUTDOWN] Cleaned up running/queued/waiting_user runs");
+  logger.info("Cleaned up running/queued/waiting_user runs on shutdown", { service: "AUTOMATION" });
 }
 
 /**
@@ -189,7 +190,7 @@ export async function cleanupOnShutdown(): Promise<void> {
  * This function marks them as 'failed' so the UI shows the correct status.
  */
 export async function cleanupOrphanedRuns(): Promise<void> {
-  console.log("[STARTUP] Checking for orphaned runs...");
+  logger.info("Checking for orphaned runs...", { service: "AUTOMATION" });
 
   // Check if there are any orphaned runs
   const orphanedRuns = await db
@@ -198,11 +199,11 @@ export async function cleanupOrphanedRuns(): Promise<void> {
     .where(inArray(schema.runs.status, ["running", "queued"]));
 
   if (orphanedRuns.length === 0) {
-    console.log("[STARTUP] No orphaned runs found");
+    logger.debug("No orphaned runs found", { service: "AUTOMATION" });
     return;
   }
 
-  console.log(`[STARTUP] Found ${orphanedRuns.length} orphaned run(s), marking as failed...`);
+  logger.warn(`Found ${orphanedRuns.length} orphaned run(s), marking as failed...`, { service: "AUTOMATION" });
 
   const cleanupTime = new Date();
 
@@ -232,5 +233,5 @@ export async function cleanupOrphanedRuns(): Promise<void> {
     })
     .where(eq(schema.runItems.status, "waiting_user"));
 
-  console.log("[STARTUP] Orphaned runs cleanup complete");
+  logger.info("Orphaned runs cleanup complete", { service: "AUTOMATION" });
 }

@@ -101,7 +101,8 @@
       "Bash(echo:*)",
       "Bash(1)",
       "Bash(tee:*)",
-      "Bash(timeout 300 pnpm test:e2e:*)"
+      "Bash(timeout 300 pnpm test:e2e:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

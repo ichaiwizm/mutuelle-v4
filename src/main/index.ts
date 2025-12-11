@@ -12,6 +12,7 @@ import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
 import { AutomationService } from './services/automation'
 import { initAutoUpdater } from './services/autoUpdater'
+import { logger, initLogger } from './services/logger'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -35,6 +36,10 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Initialize logger first
+  initLogger()
+  logger.info('Application starting', { service: 'MAIN' })
+
   // Supprime le menu d'application (File/Edit/View...)
   try { Menu.setApplicationMenu(null) } catch {}
   // --- migrations runtime KISS ---
@@ -100,6 +105,8 @@ app.whenReady().then(async () => {
 
   // Initialise l'auto-updater (vérifie GitHub Releases)
   initAutoUpdater()
+
+  logger.info('Application ready', { service: 'MAIN' })
 })
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
@@ -111,10 +118,12 @@ app.on('before-quit', async (event) => {
   if (isCleaningUp) return
   isCleaningUp = true
   event.preventDefault()
+  logger.info('Application shutting down, cleaning up...', { service: 'MAIN' })
   try {
     await AutomationService.cleanupOnShutdown()
+    logger.info('Cleanup completed', { service: 'MAIN' })
   } catch (e) {
-    console.error('[SHUTDOWN] Cleanup error:', e)
+    logger.error('Cleanup error during shutdown', { service: 'MAIN' }, e)
   }
   app.exit(0)
 })

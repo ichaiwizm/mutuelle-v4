@@ -8,6 +8,7 @@ import {
   failure,
   toIpcResult,
 } from "@/shared/errors";
+import { logger } from "@/main/services/logger";
 
 /**
  * Validate input with a Zod schema and throw ValidationError if invalid.
@@ -28,10 +29,12 @@ export function validate<T>(schema: ZodSchema<T>, data: unknown): T {
 
 /**
  * Wrap an IPC handler with error handling and optional validation.
+ * Automatically logs errors for debugging.
  */
 export function handler<TInput, TOutput>(
   schema: ZodSchema<TInput> | null,
-  fn: (input: TInput) => Promise<TOutput>
+  fn: (input: TInput) => Promise<TOutput>,
+  handlerName?: string
 ): (_event: IpcMainInvokeEvent, input: unknown) => Promise<IpcResult<TOutput>> {
   return async (_event, rawInput) => {
     try {
@@ -39,9 +42,12 @@ export function handler<TInput, TOutput>(
       const result = await fn(input);
       return success(result);
     } catch (err) {
+      const ctx = { service: "IPC", handler: handlerName };
       if (err instanceof AppError) {
+        logger.warn(`IPC handler error: ${err.message}`, { ...ctx, code: err.code });
         return failure(err);
       }
+      logger.error("Unexpected IPC handler error", ctx, err);
       return toIpcResult(err);
     }
   };
@@ -49,18 +55,23 @@ export function handler<TInput, TOutput>(
 
 /**
  * Simple handler without input validation.
+ * Automatically logs errors for debugging.
  */
 export function simpleHandler<TOutput>(
-  fn: () => Promise<TOutput>
+  fn: () => Promise<TOutput>,
+  handlerName?: string
 ): () => Promise<IpcResult<TOutput>> {
   return async () => {
     try {
       const result = await fn();
       return success(result);
     } catch (err) {
+      const ctx = { service: "IPC", handler: handlerName };
       if (err instanceof AppError) {
+        logger.warn(`IPC handler error: ${err.message}`, { ...ctx, code: err.code });
         return failure(err);
       }
+      logger.error("Unexpected IPC handler error", ctx, err);
       return toIpcResult(err);
     }
   };

@@ -5,6 +5,7 @@ import { GlobalFlowPool } from "@/main/flows/engine/pool/GlobalFlowPool";
 import { AutomationBroadcaster } from "../automationBroadcaster";
 import { buildTasks, createTaskCallbacks, handleRunCompletion, handleEmptyRun } from "./queue";
 import type { EnqueueItem } from "./types";
+import { logger } from "@/main/services/logger";
 
 /**
  * Enqueue flows for parallel execution.
@@ -49,7 +50,7 @@ export async function enqueueRun(
     .enqueueRun(runId, tasks, callbacks)
     .then(() => handleRunCompletion(runId))
     .catch((error) => {
-      console.error(`Pool execution failed for run ${runId}:`, error);
+      logger.error("Pool execution failed", { service: "AUTOMATION", runId }, error);
     });
 
   // Return immediately so the UI can navigate to the live view
