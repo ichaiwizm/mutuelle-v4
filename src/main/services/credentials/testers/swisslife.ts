@@ -2,6 +2,7 @@ import { chromium, type Page } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { SwissLifeOneAuth } from "@/main/flows/platforms/swisslifeone/lib/SwissLifeOneAuth";
 import { setupCookieInterception as setupSwissLifeCookieInterception } from "@/main/flows/platforms/swisslifeone/lib/cookie-interceptor";
+import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
 import type { PlatformCredentials, CredentialsTestResult } from "../types";
 
 // Apply stealth plugin to avoid headless detection
@@ -18,7 +19,10 @@ export async function testSwissLifeOneCredentials(
   let browser;
   let page: Page | undefined;
   try {
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      executablePath: getBundledChromiumPath(),
+    });
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: true,

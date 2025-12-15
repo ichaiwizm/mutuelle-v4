@@ -1,5 +1,6 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
 
 // Apply stealth plugin to avoid headless detection
 chromium.use(StealthPlugin());
@@ -44,7 +45,11 @@ export async function resumeFlowState(stateId: string): Promise<FlowExecutionRes
     };
   }
 
-  const browser = await chromium.launch({ headless: true, ignoreHTTPSErrors: true });
+  const browser = await chromium.launch({
+    headless: true,
+    ignoreHTTPSErrors: true,
+    executablePath: getBundledChromiumPath(),
+  });
   try {
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
