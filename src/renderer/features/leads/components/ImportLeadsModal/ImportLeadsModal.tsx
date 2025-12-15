@@ -84,12 +84,12 @@ export function ImportLeadsModal({
 
       if (created > 0) {
         toast.success(
-          `${created} lead${created > 1 ? "s" : ""} cr\u00e9\u00e9${created > 1 ? "s" : ""}`
+          `${created} lead${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}`
         );
       }
       if (duplicates > 0) {
         toast.warning(
-          `${duplicates} lead${duplicates > 1 ? "s" : ""} d\u00e9j\u00e0 existant${duplicates > 1 ? "s" : ""}`
+          `${duplicates} lead${duplicates > 1 ? "s" : ""} déjà existant${duplicates > 1 ? "s" : ""}`
         );
       }
 
@@ -97,7 +97,7 @@ export function ImportLeadsModal({
       onSuccess();
     } catch (error) {
       console.error("Create error:", error);
-      toast.error("Erreur lors de la cr\u00e9ation");
+      toast.error("Erreur lors de la création");
     } finally {
       setIsCreating(false);
     }
@@ -145,7 +145,7 @@ export function ImportLeadsModal({
           step === "paste"
             ? "Importer des leads"
             : step === "preview"
-              ? `${parsedLeads.length} lead${parsedLeads.length > 1 ? "s" : ""} d\u00e9tect\u00e9${parsedLeads.length > 1 ? "s" : ""}`
+              ? `${parsedLeads.length} lead${parsedLeads.length > 1 ? "s" : ""} détecté${parsedLeads.length > 1 ? "s" : ""}`
               : "Format non reconnu"
         }
         onClose={handleClose}

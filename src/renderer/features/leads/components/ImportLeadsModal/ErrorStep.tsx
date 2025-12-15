@@ -19,13 +19,13 @@ export function ErrorStep({ onRetry, onManualForm }: ErrorStepProps) {
         </h3>
 
         <p className="text-sm text-[var(--color-text-secondary)] max-w-sm">
-          Le texte coll\u00e9 ne correspond pas aux formats d'emails support\u00e9s.
+          Le texte collé ne correspond pas aux formats d'emails supportés.
         </p>
       </div>
 
       <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-4">
         <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
-          Formats support\u00e9s
+          Formats supportés
         </p>
         <ul className="space-y-2 text-sm text-[var(--color-text-secondary)]">
           <li className="flex items-center gap-2">
@@ -42,11 +42,11 @@ export function ErrorStep({ onRetry, onManualForm }: ErrorStepProps) {
       <div className="flex justify-center gap-3">
         <Button variant="secondary" onClick={onRetry}>
           <RotateCcw className="h-4 w-4" />
-          R\u00e9essayer
+          Réessayer
         </Button>
         <Button onClick={onManualForm}>
           <UserPlus className="h-4 w-4" />
-          Cr\u00e9er manuellement
+          Créer manuellement
         </Button>
       </div>
     </div>

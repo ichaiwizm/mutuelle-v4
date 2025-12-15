@@ -1,6 +1,6 @@
 {
   "name": "mutuelle",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "productName": "Mutuelle",
   "description": "Automatisation des adhésions mutuelle",
   "author": "France Épargne",
@@ -17,6 +17,7 @@
     "electron-updater": "^6.6.2",
     "googleapis": "^142.0.0",
     "lucide-react": "^0.555.0",
+    "playwright-core": "^1.56.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.2.0",

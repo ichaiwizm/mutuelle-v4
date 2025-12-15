@@ -1,4 +1,4 @@
-import { UserPlus, RefreshCw, ClipboardPaste } from "lucide-react";
+import { UserPlus, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/renderer/components/ui/Button";
 
 interface LeadsHeaderProps {
@@ -30,13 +30,25 @@ export function LeadsHeader({ total, loading, onRefresh, onCreate, onImport }: L
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
-        <Button variant="secondary" onClick={onImport}>
-          <ClipboardPaste className="h-4 w-4" />
-          Importer
-        </Button>
-        <Button onClick={onCreate}>
+
+        {/* Bouton manuel - secondaire */}
+        <Button variant="secondary" onClick={onCreate}>
           <UserPlus className="h-4 w-4" />
-          Nouveau lead
+          Créer manuellement
+        </Button>
+
+        {/* Bouton import intelligent - primary avec indicateur visuel */}
+        <Button
+          onClick={onImport}
+          className="relative group"
+          title="Collez un email et le lead sera automatiquement extrait"
+        >
+          <Sparkles className="h-4 w-4" />
+          Importer un email
+          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-primary-hover)] opacity-50"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--color-primary)] border-2 border-[var(--color-background)]"></span>
+          </span>
         </Button>
       </div>
     </div>

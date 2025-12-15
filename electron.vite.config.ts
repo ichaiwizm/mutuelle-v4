@@ -32,6 +32,7 @@ export default defineConfig({
       'process.env.GOOGLE_CLIENT_ID': JSON.stringify(process.env.GOOGLE_CLIENT_ID || ''),
       'process.env.GOOGLE_CLIENT_SECRET': JSON.stringify(process.env.GOOGLE_CLIENT_SECRET || ''),
       'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
+      'process.env.OPENROUTER_API_KEY': JSON.stringify(process.env.OPENROUTER_API_KEY || ''),
     },
     build: {
       rollupOptions: {

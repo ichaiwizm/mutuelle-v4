@@ -71,7 +71,7 @@ export const MailService = {
             const providerDetection = detectProvider({ text: m.text, subject: m.subject });
 
             // Parse all leads from email (may contain multiple)
-            const leads = parseLeads(
+            const leads = await parseLeads(
               { text: m.text, subject: m.subject },
               { emailId: m.id, source: 'email' }
             );

@@ -1,6 +1,10 @@
 /**
  * Main lead parser orchestrator
  * Can work with plain text or email messages
+ *
+ * Parsing strategy:
+ * 1. Try standard parsers (AssurProspect, Assurland)
+ * 2. If standard parsers fail, try LLM parsing as fallback
  */
 
 import { createHash } from 'crypto';
@@ -10,6 +14,7 @@ import { parseAssurProspect } from './assurprospect';
 import { parseAssurland } from './assurland';
 import { splitEmailIntoLeadBlocks } from './extractors';
 import type { ParseResult, ExtractedLead } from './types';
+import { parseLeadWithLLM, isLLMParsingAvailable, type ParsedLeadData } from '@/main/services/llm';
 
 /**
  * Generates a deterministic UUID-like ID from subscriber data
@@ -75,6 +80,65 @@ export function parseLead(
 }
 
 /**
+ * Transforms LLM parsed data to Lead format
+ */
+function transformLLMDataToLead(
+  data: ParsedLeadData,
+  metadata?: { emailId?: string; source?: string }
+): Lead {
+  // Build subscriber object
+  const subscriber: Record<string, unknown> = {
+    civilite: data.civilite,
+    nom: data.nom,
+    prenom: data.prenom,
+    email: data.email,
+    telephone: data.telephone,
+    dateNaissance: data.dateNaissance,
+    codePostal: data.codePostal,
+    ville: data.ville,
+    adresse: data.adresse,
+    regimeSocial: data.regimeSocial,
+    profession: data.profession,
+  };
+
+  // Remove undefined values
+  Object.keys(subscriber).forEach(key => {
+    if (subscriber[key] === undefined) {
+      delete subscriber[key];
+    }
+  });
+
+  // Build project object
+  const project: Record<string, unknown> = {
+    dateEffet: data.dateEffet,
+    source: metadata?.source || 'llm',
+    ...(metadata?.emailId && { emailId: metadata.emailId }),
+    ...(data.conjoint && { conjoint: data.conjoint }),
+  };
+
+  // Remove undefined values from project
+  Object.keys(project).forEach(key => {
+    if (project[key] === undefined) {
+      delete project[key];
+    }
+  });
+
+  // Build children array
+  const children = data.enfants?.map((child, index) => ({
+    dateNaissance: child.dateNaissance,
+    regimeSocial: child.regimeSocial,
+    order: index + 1,
+  }));
+
+  return {
+    id: generateLeadId(subscriber),
+    subscriber,
+    ...(Object.keys(project).length > 1 && { project }),
+    ...(children && children.length > 0 && { children }),
+  };
+}
+
+/**
  * Transforms ExtractedLead to Lead format for database
  */
 function transformToLead(
@@ -116,11 +180,13 @@ function transformToLead(
 /**
  * Batch parse multiple text/email inputs
  * OR parse a single email that may contain multiple leads
+ *
+ * Uses standard parsers first, then LLM as fallback
  */
-export function parseLeads(
+export async function parseLeads(
   inputs: Array<string | LeadInput> | string | LeadInput,
   metadata?: { emailId?: string; source?: string }
-): Lead[] {
+): Promise<Lead[]> {
   // If single input, try multiple parsing strategies
   if (!Array.isArray(inputs)) {
     const text = typeof inputs === 'string' ? inputs : inputs.text;
@@ -129,9 +195,12 @@ export function parseLeads(
     // Strategy 1: Try to split into multiple lead blocks (AssurProspect multi-lead format)
     const blocks = splitEmailIntoLeadBlocks(text);
     if (blocks.length > 0) {
-      return blocks
+      const leads = blocks
         .map(block => parseLead(block, metadata))
         .filter((lead): lead is Lead => lead !== null);
+      if (leads.length > 0) {
+        return leads;
+      }
     }
 
     // Strategy 2: Try to parse as a single lead (Assurland or other formats)
@@ -140,11 +209,35 @@ export function parseLeads(
       return [singleLead];
     }
 
+    // Strategy 3: Try LLM parsing as fallback
+    if (isLLMParsingAvailable()) {
+      const llmData = await parseLeadWithLLM(text);
+      if (llmData) {
+        const llmLead = transformLLMDataToLead(llmData, metadata);
+        return [llmLead];
+      }
+    }
+
     return [];
   }
 
   // Legacy: array of inputs
-  return inputs
-    .map(input => parseLead(input, metadata))
-    .filter((lead): lead is Lead => lead !== null);
+  const leads = await Promise.all(
+    inputs.map(async input => {
+      const lead = parseLead(input, metadata);
+      if (lead) return lead;
+
+      // Try LLM fallback for each input
+      if (isLLMParsingAvailable()) {
+        const text = typeof input === 'string' ? input : input.text;
+        const llmData = await parseLeadWithLLM(text);
+        if (llmData) {
+          return transformLLMDataToLead(llmData, metadata);
+        }
+      }
+      return null;
+    })
+  );
+
+  return leads.filter((lead): lead is Lead => lead !== null);
 }

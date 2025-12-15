@@ -117,6 +117,8 @@ jobs:
           # Credentials Google OAuth injectés au build via electron-vite define
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # OpenRouter API key for LLM lead parsing
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           # Token GitHub pour electron-builder
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -58,7 +58,7 @@ export function registerLeadsHandlers() {
   ipcMain.handle(
     IPC_CHANNEL.LEADS_PARSE_FROM_TEXT,
     handler(LeadsParseFromTextSchema, async ({ text, subject }) => {
-      const leads = parseLeads({ text, subject }, { source: "clipboard" });
+      const leads = await parseLeads({ text, subject }, { source: "clipboard" });
       return leads;
     })
   );
@@ -66,7 +66,7 @@ export function registerLeadsHandlers() {
   ipcMain.handle(
     IPC_CHANNEL.LEADS_PARSE_AND_CREATE_FROM_TEXT,
     handler(LeadsParseFromTextSchema, async ({ text, subject }) => {
-      const leads = parseLeads({ text, subject }, { source: "clipboard" });
+      const leads = await parseLeads({ text, subject }, { source: "clipboard" });
       const ids: string[] = [];
       for (const lead of leads) {
         const { id } = await LeadsService.create(lead);

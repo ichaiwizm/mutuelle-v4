@@ -7,6 +7,50 @@ import { buildTasks, createTaskCallbacks, handleRunCompletion, handleEmptyRun } 
 import type { EnqueueItem } from "./types";
 import { logger } from "@/main/services/logger";
 import { captureException } from "@/main/services/monitoring";
+import { CredentialsService } from "@/main/services/credentials";
+import { ConfigMissingError } from "@/shared/errors";
+
+/**
+ * Get platform name from flow key
+ */
+function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" | null {
+  if (flowKey.startsWith("alptis_")) return "alptis";
+  if (flowKey.startsWith("swisslife_")) return "swisslife";
+  return null;
+}
+
+/**
+ * Validate that credentials exist for all required platforms
+ */
+async function validateCredentials(items: EnqueueItem[]): Promise<void> {
+  // Get unique platforms from flow keys
+  const platforms = new Set<string>();
+  for (const item of items) {
+    const platform = getPlatformFromFlowKey(item.flowKey);
+    if (platform) platforms.add(platform);
+  }
+
+  // Check credentials for each platform
+  const missingPlatforms: string[] = [];
+  for (const platform of platforms) {
+    const creds = await CredentialsService.getByPlatform(platform);
+    if (!creds) {
+      missingPlatforms.push(platform);
+    }
+  }
+
+  if (missingPlatforms.length > 0) {
+    const platformNames = missingPlatforms.map(p =>
+      p === "alptis" ? "Alptis" : "SwissLife"
+    ).join(", ");
+
+    throw new ConfigMissingError(
+      "credentials",
+      `Identifiants manquants pour : ${platformNames}. Veuillez les configurer dans les paramètres.`,
+      missingPlatforms
+    );
+  }
+}
 
 /**
  * Enqueue flows for parallel execution.
@@ -15,6 +59,9 @@ import { captureException } from "@/main/services/monitoring";
 export async function enqueueRun(
   items: EnqueueItem[]
 ): Promise<{ runId: string; result: null }> {
+  // Validate credentials before creating run
+  await validateCredentials(items);
+
   const runId = randomUUID();
   const now = new Date();
 

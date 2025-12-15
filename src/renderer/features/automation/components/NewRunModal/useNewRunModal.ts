@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import type { ProductConfiguration } from "@/shared/types/product";
 import type { Lead } from "@/shared/types/lead";
 import type { UseNewRunModalOptions } from "./types";
+import type { ErrorCode } from "@/shared/errors";
 
 export function useNewRunModal({
   isOpen,
@@ -194,7 +195,27 @@ export function useNewRunModal({
       navigate(`/automation/runs/${result.runId}`);
     } catch (error) {
       console.error("Failed to enqueue automation:", error);
-      toast.error("Erreur lors du lancement de l'automation");
+
+      // Handle structured errors with specific messages
+      const err = error as { code?: ErrorCode; message?: string; details?: { platforms?: string[] } };
+
+      if (err.code === "CONFIG_MISSING") {
+        toast.error("Configuration manquante", {
+          description: err.message || "Veuillez configurer les identifiants dans les paramètres.",
+          action: {
+            label: "Configurer",
+            onClick: () => {
+              onClose();
+              navigate("/config");
+            },
+          },
+          duration: 10000,
+        });
+      } else {
+        toast.error("Erreur lors du lancement", {
+          description: err.message || "Une erreur inattendue s'est produite.",
+        });
+      }
     } finally {
       setSubmitting(false);
     }

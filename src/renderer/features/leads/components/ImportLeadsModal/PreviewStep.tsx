@@ -28,7 +28,7 @@ export function PreviewStep({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--color-text-secondary)]">
-        S\u00e9lectionnez les leads \u00e0 importer dans votre base de donn\u00e9es.
+        Sélectionnez les leads à importer dans votre base de données.
       </p>
 
       {/* Select all header */}
@@ -48,10 +48,10 @@ export function PreviewStep({
         </button>
         <span className="text-sm text-[var(--color-text-muted)]">
           {allSelected
-            ? "Tout d\u00e9s\u00e9lectionner"
+            ? "Tout désélectionner"
             : noneSelected
-              ? "Tout s\u00e9lectionner"
-              : `${selectedCount} s\u00e9lectionn\u00e9${selectedCount > 1 ? "s" : ""}`}
+              ? "Tout sélectionner"
+              : `${selectedCount} sélectionné${selectedCount > 1 ? "s" : ""}`}
         </span>
       </div>
 
@@ -124,12 +124,12 @@ export function PreviewStep({
           {isCreating ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Cr\u00e9ation...
+              Création...
             </>
           ) : (
             <>
               <UserPlus className="h-4 w-4" />
-              Cr\u00e9er {selectedCount} lead{selectedCount > 1 ? "s" : ""}
+              Créer {selectedCount} lead{selectedCount > 1 ? "s" : ""}
             </>
           )}
         </Button>

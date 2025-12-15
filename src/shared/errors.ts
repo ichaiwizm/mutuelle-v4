@@ -11,6 +11,7 @@ export type ErrorCode =
   | 'NETWORK'
   | 'PLATFORM'
   | 'TIMEOUT'
+  | 'CONFIG_MISSING'
   | 'UNKNOWN';
 
 export class AppError extends Error {
@@ -108,6 +109,25 @@ export class TimeoutError extends AppError {
   constructor(operation: string, timeoutMs: number) {
     super('TIMEOUT', `${operation} timed out after ${timeoutMs}ms`, { operation, timeoutMs });
     this.name = 'TimeoutError';
+  }
+}
+
+/**
+ * Config missing error - thrown when required configuration is missing
+ */
+export class ConfigMissingError extends AppError {
+  readonly configType: 'credentials' | 'settings';
+  readonly platforms?: string[];
+
+  constructor(
+    configType: 'credentials' | 'settings',
+    message: string,
+    platforms?: string[]
+  ) {
+    super('CONFIG_MISSING', message, { configType, platforms });
+    this.name = 'ConfigMissingError';
+    this.configType = configType;
+    this.platforms = platforms;
   }
 }
 
