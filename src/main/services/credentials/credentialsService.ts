@@ -59,12 +59,22 @@ export const CredentialsService = {
     }
 
     const row = rows[0];
-    const result = {
-      platform: row.platform,
-      login: decryptValue(row.login),
-      password: decryptValue(row.password),
-    };
-    return result;
+    try {
+      const result = {
+        platform: row.platform,
+        login: decryptValue(row.login),
+        password: decryptValue(row.password),
+      };
+      return result;
+    } catch (error) {
+      logger.error("Failed to decrypt credentials - master key mismatch or corrupted data. Deleting credentials so user can re-enter them.", {
+        service: "CREDENTIALS",
+        platform,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      await this.delete(platform);
+      return null;
+    }
   },
 
   /**
