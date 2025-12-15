@@ -3,6 +3,8 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 // Apply stealth plugin to avoid headless detection
 chromium.use(StealthPlugin());
+
+import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
 import type { FlowExecutionResult } from "../flows/engine";
 import { FlowEngine } from "../flows/engine";
 import { flowStateService } from "../flows/state";
@@ -44,7 +46,8 @@ export async function resumeFlowState(stateId: string): Promise<FlowExecutionRes
     };
   }
 
-  const browser = await chromium.launch({ headless: true, ignoreHTTPSErrors: true });
+  const executablePath = getBundledChromiumPath();
+  const browser = await chromium.launch({ headless: true, ignoreHTTPSErrors: true, executablePath });
   try {
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },

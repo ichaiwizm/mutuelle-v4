@@ -3,6 +3,7 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { AlptisUrls } from "@/main/flows/config/alptis.config";
 import { ALPTIS_LOGIN_SELECTORS } from "@/main/flows/platforms/alptis/lib/AlptisAuth";
 import { setupAxeptioInterception } from "@/main/flows/platforms/alptis/lib/cookie-interceptor";
+import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
 import type { PlatformCredentials, CredentialsTestResult } from "../types";
 
 // Apply stealth plugin to avoid headless detection
@@ -18,7 +19,8 @@ export async function testAlptisCredentials(
 ): Promise<CredentialsTestResult> {
   let browser;
   try {
-    browser = await chromium.launch({ headless: true });
+    const executablePath = getBundledChromiumPath();
+    browser = await chromium.launch({ headless: true, executablePath });
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: true,
