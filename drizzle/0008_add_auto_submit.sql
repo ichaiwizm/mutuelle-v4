@@ -1,0 +1,1 @@
+ALTER TABLE `product_automation_settings` ADD `auto_submit` integer DEFAULT true NOT NULL;

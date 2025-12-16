@@ -57,6 +57,13 @@
       "when": 1764775167835,
       "tag": "0007_sticky_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1734368400000,
+      "tag": "0008_add_auto_submit",
+      "breakpoints": true
     }
   ]
 }
