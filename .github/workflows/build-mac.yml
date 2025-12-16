@@ -62,23 +62,31 @@ jobs:
 
       - name: Copy Chromium for bundling
         run: |
-          # Trouve le dossier Chromium installé par Playwright
           PLAYWRIGHT_CACHE="$HOME/Library/Caches/ms-playwright"
-          CHROMIUM_FOLDER=$(ls -d "$PLAYWRIGHT_CACHE"/chromium-* 2>/dev/null | head -1)
+          mkdir -p .playwright-browsers
 
-          if [ -z "$CHROMIUM_FOLDER" ]; then
+          # Copy regular Chromium (for headed mode)
+          CHROMIUM_FOLDER=$(ls -d "$PLAYWRIGHT_CACHE"/chromium-* 2>/dev/null | head -1)
+          if [ -n "$CHROMIUM_FOLDER" ]; then
+            echo "✅ Found Chromium: $CHROMIUM_FOLDER"
+            cp -R "$CHROMIUM_FOLDER" .playwright-browsers/
+          else
             echo "❌ Chromium not found in $PLAYWRIGHT_CACHE"
             ls -la "$PLAYWRIGHT_CACHE" || true
             exit 1
           fi
 
-          echo "✅ Found Chromium: $CHROMIUM_FOLDER"
+          # Copy headless shell (for headless mode) - CRITICAL for Playwright 1.46+
+          # Since Playwright 1.46, headless: true uses a separate chromium_headless_shell binary
+          HEADLESS_FOLDER=$(ls -d "$PLAYWRIGHT_CACHE"/chromium_headless_shell-* 2>/dev/null | head -1)
+          if [ -n "$HEADLESS_FOLDER" ]; then
+            echo "✅ Found Headless Shell: $HEADLESS_FOLDER"
+            cp -R "$HEADLESS_FOLDER" .playwright-browsers/
+          else
+            echo "⚠️ Headless shell not found - credential testers may fail in headless mode"
+          fi
 
-          # Copie dans le dossier qui sera bundlé
-          mkdir -p .playwright-browsers
-          cp -R "$CHROMIUM_FOLDER" .playwright-browsers/
-
-          echo "📦 Copied to .playwright-browsers/"
+          echo "📦 Contents of .playwright-browsers/:"
           ls -la .playwright-browsers/
 
       # 8. Debug: Vérifie les credentials Apple (sans révéler les secrets)

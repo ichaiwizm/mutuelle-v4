@@ -62,23 +62,31 @@ jobs:
       - name: Copy Chromium for bundling
         shell: pwsh
         run: |
-          # Trouve le dossier Chromium installé par Playwright
           $playwrightCache = "$env:LOCALAPPDATA\ms-playwright"
-          $chromiumFolder = Get-ChildItem -Path $playwrightCache -Directory | Where-Object { $_.Name -like "chromium-*" } | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path ".playwright-browsers"
 
-          if (-not $chromiumFolder) {
+          # Copy regular Chromium (for headed mode)
+          $chromiumFolder = Get-ChildItem -Path $playwrightCache -Directory | Where-Object { $_.Name -like "chromium-*" } | Select-Object -First 1
+          if ($chromiumFolder) {
+            Write-Host "Found Chromium: $($chromiumFolder.FullName)"
+            Copy-Item -Recurse -Force $chromiumFolder.FullName ".playwright-browsers\"
+          } else {
             Write-Error "Chromium not found in $playwrightCache"
             Get-ChildItem -Path $playwrightCache
             exit 1
           }
 
-          Write-Host "Found Chromium: $($chromiumFolder.FullName)"
+          # Copy headless shell (for headless mode) - CRITICAL for Playwright 1.46+
+          # Since Playwright 1.46, headless: true uses a separate chromium_headless_shell binary
+          $headlessFolder = Get-ChildItem -Path $playwrightCache -Directory | Where-Object { $_.Name -like "chromium_headless_shell-*" } | Select-Object -First 1
+          if ($headlessFolder) {
+            Write-Host "Found Headless Shell: $($headlessFolder.FullName)"
+            Copy-Item -Recurse -Force $headlessFolder.FullName ".playwright-browsers\"
+          } else {
+            Write-Warning "Headless shell not found - credential testers may fail in headless mode"
+          }
 
-          # Copie dans le dossier qui sera bundlé
-          New-Item -ItemType Directory -Force -Path ".playwright-browsers"
-          Copy-Item -Recurse -Force $chromiumFolder.FullName ".playwright-browsers\"
-
-          Write-Host "Copied to .playwright-browsers/"
+          Write-Host "Contents of .playwright-browsers/:"
           Get-ChildItem -Path ".playwright-browsers"
 
       # 8. Build l'app Electron et crée l'installer .exe

@@ -106,7 +106,9 @@
       "WebFetch(domain:docs.sentry.io)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:registry.npmjs.org)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(git log:*)",
+      "Bash(env)"
     ],
     "deny": [],
     "ask": []
