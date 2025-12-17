@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 import { IPC_CHANNEL } from "@/main/ipc/channels";
-import type { Ipc } from "@/shared/ipc/contracts";
+import type { Ipc, UpdateStatus } from "@/shared/ipc/contracts";
 import type { AutomationProgressEvent } from "@/shared/types/step-progress";
 
 type IpcResult<T> =
@@ -127,6 +127,16 @@ const api: Ipc = {
   feedback: {
     send: (data: { message: string; email?: string; name?: string }) =>
       invokeIpc(IPC_CHANNEL.FEEDBACK_SEND, data),
+  },
+
+  update: {
+    onStatus: (callback: (status: UpdateStatus) => void) => {
+      const handler = (_event: IpcRendererEvent, status: UpdateStatus) => callback(status);
+      ipcRenderer.on(IPC_CHANNEL.UPDATE_STATUS, handler);
+      return () => ipcRenderer.removeListener(IPC_CHANNEL.UPDATE_STATUS, handler);
+    },
+    download: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_DOWNLOAD),
+    install: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_INSTALL),
   },
 };
 

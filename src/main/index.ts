@@ -31,7 +31,7 @@ import { logger, initLogger } from './services/logger'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-async function createWindow() {
+async function createWindow(): Promise<BrowserWindow> {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -74,6 +74,8 @@ async function createWindow() {
 
   // Open DevTools in development
   if (process.env.ELECTRON_RENDERER_URL) win.webContents.openDevTools()
+
+  return win
 }
 
 app.whenReady().then(async () => {
@@ -142,10 +144,10 @@ app.whenReady().then(async () => {
   }
 
   registerIpc()
-  await createWindow()
+  const mainWindow = await createWindow()
 
   // Initialise l'auto-updater (vérifie GitHub Releases)
-  initAutoUpdater()
+  initAutoUpdater(mainWindow)
 
   logger.info('Application ready', { service: 'MAIN' })
 })

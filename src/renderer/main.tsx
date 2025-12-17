@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import App from './App'
 import { ThemeProvider } from './components/layout/ThemeProvider'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { UpdateNotification } from './components/UpdateNotification'
 import { initSentryRenderer } from './services/sentry'
 import './styles.css'
 
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')!).render(
       <HashRouter>
         <ThemeProvider>
           <App />
+          <UpdateNotification />
           <Toaster
             position="bottom-right"
             toastOptions={{

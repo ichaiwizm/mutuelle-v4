@@ -77,4 +77,9 @@ export const IPC_CHANNEL = {
 
   // Feedback
   FEEDBACK_SEND: "feedback:send",
+
+  // Auto-Update
+  UPDATE_STATUS: "update:status",      // Push channel (main -> renderer)
+  UPDATE_DOWNLOAD: "update:download",  // Action: start download
+  UPDATE_INSTALL: "update:install",    // Action: quit and install
 } as const;

@@ -148,6 +148,16 @@ export type FeedbackSendResult = {
   sent: boolean;
 };
 
+// ========== Auto-Update ==========
+
+export type UpdateStatus =
+  | { state: "checking" }
+  | { state: "available"; version: string }
+  | { state: "downloading"; percent: number; bytesPerSecond: number; transferred: number; total: number }
+  | { state: "ready"; version: string }
+  | { state: "not-available" }
+  | { state: "error"; message: string };
+
 // ========== Dashboard ==========
 
 export type DashboardOverview = {
@@ -268,5 +278,11 @@ export type Ipc = {
 
   feedback: {
     send: (params: FeedbackSendParams) => Promise<FeedbackSendResult>;
+  };
+
+  update: {
+    onStatus: (callback: (status: UpdateStatus) => void) => () => void;
+    download: () => Promise<void>;
+    install: () => Promise<void>;
   };
 };
