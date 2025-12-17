@@ -128,7 +128,8 @@
       "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nAdd dynamic app version in Config page\n\n- Add app:getVersion IPC channel and handler\n- Expose app.getVersion() API to renderer\n- Replace hardcoded version in DataSection with dynamic fetch\n- Bump to 0.1.0-beta.12\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.12)",
       "Bash(git -C /home/ichai/dev/mutuelle-v4 remote -v)",
-      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -10)"
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -10)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []
