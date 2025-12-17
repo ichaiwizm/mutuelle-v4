@@ -97,6 +97,13 @@ export function initAutoUpdater(win: BrowserWindow): void {
     sendUpdateStatus({ state: "error", message: err.message });
   });
 
+  // IPC Handler: vérifier les mises à jour manuellement
+  ipcMain.handle(IPC_CHANNEL.UPDATE_CHECK, async () => {
+    console.log("[AUTO_UPDATE] Manual check requested by renderer");
+    sendUpdateStatus({ state: "checking" });
+    await autoUpdater.checkForUpdates();
+  });
+
   // IPC Handler: lancer le téléchargement
   ipcMain.handle(IPC_CHANNEL.UPDATE_DOWNLOAD, async () => {
     console.log("[AUTO_UPDATE] Download requested by renderer");

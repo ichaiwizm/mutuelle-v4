@@ -80,6 +80,7 @@ export const IPC_CHANNEL = {
 
   // Auto-Update
   UPDATE_STATUS: "update:status",      // Push channel (main -> renderer)
+  UPDATE_CHECK: "update:check",        // Action: check for updates
   UPDATE_DOWNLOAD: "update:download",  // Action: start download
   UPDATE_INSTALL: "update:install",    // Action: quit and install
 

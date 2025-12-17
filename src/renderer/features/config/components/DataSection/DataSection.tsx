@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Database, Download, HardDrive, FolderOpen, CheckCircle, XCircle, Loader2, MessageSquare, Send } from "lucide-react";
+import { Database, Download, HardDrive, FolderOpen, CheckCircle, XCircle, Loader2, MessageSquare, Send, RefreshCw } from "lucide-react";
 import { Button } from "@/renderer/components/ui/Button";
 
 type ExportStatus = "idle" | "loading" | "success" | "error" | "cancelled" | "no_data";
 type FeedbackStatus = "idle" | "loading" | "success" | "error";
+type UpdateCheckStatus = "idle" | "checking" | "up-to-date";
 
 interface ExportState {
   status: ExportStatus;
@@ -23,10 +24,34 @@ export function DataSection() {
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [appVersion, setAppVersion] = useState<string>("");
+  const [updateCheckStatus, setUpdateCheckStatus] = useState<UpdateCheckStatus>("idle");
 
   useEffect(() => {
     window.api.app.getVersion().then(({ version }) => setAppVersion(version));
   }, []);
+
+  // Listen to update status to know when check is done
+  useEffect(() => {
+    const unsubscribe = window.api.update.onStatus((status) => {
+      if (status.state === "not-available") {
+        setUpdateCheckStatus("up-to-date");
+        setTimeout(() => setUpdateCheckStatus("idle"), 3000);
+      } else if (status.state === "available" || status.state === "error") {
+        setUpdateCheckStatus("idle");
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleCheckUpdate = async () => {
+    setUpdateCheckStatus("checking");
+    try {
+      await window.api.update.check();
+    } catch (error) {
+      console.error("Failed to check for updates:", error);
+      setUpdateCheckStatus("idle");
+    }
+  };
 
   const handleExportLeads = async () => {
     setLeadsExport({ status: "loading" });
@@ -240,6 +265,39 @@ export function DataSection() {
             </div>
             <Button variant="secondary" size="sm" onClick={handleOpenLogsFolder}>
               Ouvrir
+            </Button>
+          </div>
+        </div>
+
+        {/* Check for Updates */}
+        <div className="p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                <RefreshCw className={`h-5 w-5 text-violet-400 ${updateCheckStatus === "checking" ? "animate-spin" : ""}`} />
+              </div>
+              <div>
+                <h3 className="font-medium text-[var(--color-text-primary)]">
+                  Mises à jour
+                </h3>
+                <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+                  Version actuelle: {appVersion || "..."}
+                </p>
+                {updateCheckStatus === "up-to-date" && (
+                  <p className="text-sm text-emerald-400 mt-1 flex items-center gap-1.5">
+                    <CheckCircle className="h-4 w-4" />
+                    Vous êtes à jour
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCheckUpdate}
+              disabled={updateCheckStatus === "checking"}
+            >
+              {updateCheckStatus === "checking" ? "Vérification..." : "Vérifier"}
             </Button>
           </div>
         </div>

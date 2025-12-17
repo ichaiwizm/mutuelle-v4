@@ -135,6 +135,7 @@ const api: Ipc = {
       ipcRenderer.on(IPC_CHANNEL.UPDATE_STATUS, handler);
       return () => ipcRenderer.removeListener(IPC_CHANNEL.UPDATE_STATUS, handler);
     },
+    check: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_CHECK),
     download: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_DOWNLOAD),
     install: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_INSTALL),
   },

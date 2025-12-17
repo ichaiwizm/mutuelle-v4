@@ -286,6 +286,7 @@ export type Ipc = {
 
   update: {
     onStatus: (callback: (status: UpdateStatus) => void) => () => void;
+    check: () => Promise<void>;
     download: () => Promise<void>;
     install: () => Promise<void>;
   };
