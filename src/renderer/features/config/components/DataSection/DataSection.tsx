@@ -1,8 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Database, Download, HardDrive, FolderOpen, CheckCircle, XCircle, Loader2, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/renderer/components/ui/Button";
-
-const APP_VERSION = "0.1.0-beta.1";
 
 type ExportStatus = "idle" | "loading" | "success" | "error" | "cancelled" | "no_data";
 type FeedbackStatus = "idle" | "loading" | "success" | "error";
@@ -24,6 +22,11 @@ export function DataSection() {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [appVersion, setAppVersion] = useState<string>("");
+
+  useEffect(() => {
+    window.api.app.getVersion().then(({ version }) => setAppVersion(version));
+  }, []);
 
   const handleExportLeads = async () => {
     setLeadsExport({ status: "loading" });
@@ -79,7 +82,7 @@ export function DataSection() {
     setFeedbackState({ status: "loading" });
     try {
       const result = await window.api.feedback.send({
-        message: `[v${APP_VERSION}] ${feedbackMessage}`,
+        message: `[v${appVersion}] ${feedbackMessage}`,
         email: feedbackEmail || undefined,
       });
 
@@ -265,7 +268,7 @@ export function DataSection() {
                   Signalez un bug, suggérez une amélioration ou partagez vos impressions
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)] mt-2">
-                  Version {APP_VERSION}
+                  Version {appVersion || "..."}
                 </p>
               </div>
             </div>
@@ -284,7 +287,7 @@ export function DataSection() {
                   Envoyer un feedback
                 </h3>
                 <p className="text-xs text-[var(--color-text-muted)]">
-                  Version {APP_VERSION}
+                  Version {appVersion || "..."}
                 </p>
               </div>
             </div>

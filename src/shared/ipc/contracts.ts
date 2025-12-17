@@ -148,6 +148,10 @@ export type FeedbackSendResult = {
   sent: boolean;
 };
 
+// ========== App ==========
+
+export type AppVersionResult = { version: string };
+
 // ========== Auto-Update ==========
 
 export type UpdateStatus =
@@ -284,5 +288,9 @@ export type Ipc = {
     onStatus: (callback: (status: UpdateStatus) => void) => () => void;
     download: () => Promise<void>;
     install: () => Promise<void>;
+  };
+
+  app: {
+    getVersion: () => Promise<AppVersionResult>;
   };
 };

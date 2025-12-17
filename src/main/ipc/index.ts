@@ -30,6 +30,7 @@ import {
   registerShellHandlers,
   registerAutomationSettingsHandlers,
   registerDataHandlers,
+  registerAppHandlers,
 } from "./handlers";
 
 export function registerIpc() {
@@ -45,4 +46,5 @@ export function registerIpc() {
   registerShellHandlers();
   registerAutomationSettingsHandlers();
   registerDataHandlers();
+  registerAppHandlers();
 }

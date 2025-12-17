@@ -138,6 +138,10 @@ const api: Ipc = {
     download: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_DOWNLOAD),
     install: () => ipcRenderer.invoke(IPC_CHANNEL.UPDATE_INSTALL),
   },
+
+  app: {
+    getVersion: () => invokeIpc(IPC_CHANNEL.APP_GET_VERSION),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

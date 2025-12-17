@@ -82,4 +82,7 @@ export const IPC_CHANNEL = {
   UPDATE_STATUS: "update:status",      // Push channel (main -> renderer)
   UPDATE_DOWNLOAD: "update:download",  // Action: start download
   UPDATE_INSTALL: "update:install",    // Action: quit and install
+
+  // App
+  APP_GET_VERSION: "app:getVersion",
 } as const;
