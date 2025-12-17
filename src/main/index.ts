@@ -22,7 +22,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerIpc } from './ipc'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
-import { db } from './db'
+import { db, sqliteDb } from './db'
 import { flows, productStatus } from './db/schema'
 import { PRODUCT_CONFIGS } from './flows/config/products'
 import { AutomationService } from './services/automation'
@@ -30,6 +30,34 @@ import { initAutoUpdater } from './services/autoUpdater'
 import { logger, initLogger } from './services/logger'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+/**
+ * Patch missing columns in the database that may have failed to apply during migrations.
+ * This is a safety net for beta testers who have databases with incomplete migrations.
+ */
+function patchMissingColumns() {
+  // Check if product_automation_settings table exists
+  const tableExists = sqliteDb.prepare(`
+    SELECT name FROM sqlite_master
+    WHERE type='table' AND name='product_automation_settings'
+  `).get()
+
+  if (!tableExists) return // Table doesn't exist yet, migrations will create it
+
+  // Check if auto_submit column exists
+  const tableInfo = sqliteDb.prepare('PRAGMA table_info(product_automation_settings)').all() as { name: string }[]
+  const hasAutoSubmit = tableInfo.some((col) => col.name === 'auto_submit')
+
+  if (!hasAutoSubmit) {
+    logger.warn('Missing auto_submit column, patching...', { service: 'MAIN' })
+    captureException(new Error('Missing auto_submit column - applying patch'), {
+      tags: { context: 'db-migration-patch' }
+    })
+
+    sqliteDb.exec('ALTER TABLE product_automation_settings ADD auto_submit integer DEFAULT 1 NOT NULL')
+    logger.info('Patched auto_submit column successfully', { service: 'MAIN' })
+  }
+}
 
 async function createWindow(): Promise<BrowserWindow> {
   const win = new BrowserWindow({
@@ -93,6 +121,9 @@ app.whenReady().then(async () => {
     ? path.join(__dirname, '../../drizzle')
     : path.join(process.resourcesPath, 'drizzle')
   await migrate(db, { migrationsFolder })
+
+  // Patch missing columns (safety net for beta testers with incomplete migrations)
+  patchMissingColumns()
 
   // --- seeder flows (idempotent, aligné configs produits) ---
   const values = Object.values(PRODUCT_CONFIGS).map((config) => ({
