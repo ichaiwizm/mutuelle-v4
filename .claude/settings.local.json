@@ -110,7 +110,9 @@
       "Bash(git log:*)",
       "Bash(env)",
       "Bash(git tag:*)",
-      "Bash(git describe:*)"
+      "Bash(git describe:*)",
+      "Bash(pnpm dist:win:*)",
+      "Bash(wslpath:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import App from './App'
 import { ThemeProvider } from './components/layout/ThemeProvider'
@@ -32,7 +32,7 @@ window.onunhandledrejection = (event) => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      <HashRouter>
         <ThemeProvider>
           <App />
           <Toaster
@@ -46,7 +46,7 @@ createRoot(document.getElementById('root')!).render(
             }}
           />
         </ThemeProvider>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   </StrictMode>
 )
