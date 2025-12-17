@@ -20,8 +20,9 @@ export function UpdateNotification() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    console.log("[UPDATE_UI] Component mounted, subscribing to update status");
     const unsubscribe = window.api.update.onStatus((newStatus) => {
-      console.log("[UPDATE_UI]", newStatus);
+      console.log("[UPDATE_UI] Received status:", JSON.stringify(newStatus));
       setStatus(newStatus);
       setDismissed(false);
 
@@ -31,7 +32,10 @@ export function UpdateNotification() {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      console.log("[UPDATE_UI] Component unmounting, unsubscribing");
+      unsubscribe();
+    };
   }, []);
 
   const handleDownload = useCallback(async () => {

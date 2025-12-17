@@ -113,7 +113,22 @@
       "Bash(git describe:*)",
       "Bash(pnpm dist:win:*)",
       "Bash(wslpath:*)",
-      "Bash(du -sh:*)"
+      "Bash(du -sh:*)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 diff)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 add package.json)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nBump version to 0.1.0-beta.9\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.9)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 push origin main --tags)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nFix artifact name for auto-updater compatibility\n\n- Add artifactName to win and nsis config\n- Ensures consistent naming: Mutuelle-Setup-X.X.X.exe\n- Bump to 0.1.0-beta.10\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.10)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 add package.json src/main/index.ts src/main/ipc/channels.ts src/main/services/autoUpdater.ts src/preload/index.ts src/renderer/main.tsx src/shared/ipc/contracts.ts src/renderer/components/UpdateNotification.tsx)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nAdd premium auto-updater UI\n\n- Replace system dialogs with sleek in-app notifications\n- Add IPC channels for update communication (main → renderer)\n- Create UpdateNotification component with:\n  - Slide-in animation for update available\n  - Animated progress bar during download\n  - Speed indicator and transfer stats\n  - Beautiful ready-to-install state\n- Bump version to 0.1.0-beta.11\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.11)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 add package.json src/main/ipc/channels.ts src/main/ipc/handlers/index.ts src/main/ipc/index.ts src/main/ipc/handlers/appHandlers.ts src/preload/index.ts src/shared/ipc/contracts.ts src/renderer/features/config/components/DataSection/DataSection.tsx)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nAdd dynamic app version in Config page\n\n- Add app:getVersion IPC channel and handler\n- Expose app.getVersion() API to renderer\n- Replace hardcoded version in DataSection with dynamic fetch\n- Bump to 0.1.0-beta.12\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.12)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 remote -v)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -10)"
     ],
     "deny": [],
     "ask": []

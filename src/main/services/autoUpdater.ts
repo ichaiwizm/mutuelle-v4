@@ -20,6 +20,8 @@ function sendUpdateStatus(status: UpdateStatus): void {
 
 export function initAutoUpdater(win: BrowserWindow): void {
   mainWindow = win;
+  console.log("[AUTO_UPDATE] Initializing auto-updater service");
+  console.log("[AUTO_UPDATE] mainWindow available:", !!mainWindow);
 
   // Désactive en dev (pas de releases à checker)
   if (process.env.ELECTRON_RENDERER_URL) {
@@ -38,6 +40,7 @@ export function initAutoUpdater(win: BrowserWindow): void {
   // Ne pas télécharger automatiquement, on veut contrôler le flow
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
+  console.log("[AUTO_UPDATE] Config: autoDownload =", autoUpdater.autoDownload, "| autoInstallOnAppQuit =", autoUpdater.autoInstallOnAppQuit);
 
   // Event: une update est disponible
   autoUpdater.on("update-available", (info) => {
