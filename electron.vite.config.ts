@@ -53,7 +53,18 @@ export default defineConfig({
     plugins: [react(), tailwindcss()],
     resolve: { alias },
     optimizeDeps: { exclude: ['better-sqlite3'] },
-    build: { rollupOptions: { input: 'src/renderer/index.html' } },
+    build: {
+      sourcemap: false, // Désactivé pour build plus rapide
+      rollupOptions: {
+        input: 'src/renderer/index.html',
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-icons': ['lucide-react'],
+          },
+        },
+      },
+    },
     // Inject SENTRY_DSN for renderer (VITE_ prefix for Vite compatibility)
     define: {
       'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
