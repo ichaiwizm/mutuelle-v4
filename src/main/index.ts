@@ -5,6 +5,17 @@ import { app, BrowserWindow, Menu } from 'electron'
 import { initSentry, flushSentry, captureException } from './services/monitoring'
 initSentry()
 
+// Global error handlers - catch uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+  console.error('[MAIN] Uncaught exception:', error)
+  captureException(error, { tags: { context: 'uncaught-exception' } })
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[MAIN] Unhandled rejection:', reason)
+  captureException(reason, { tags: { context: 'unhandled-rejection' } })
+})
+
 // Disable GPU for WSL2 compatibility
 app.disableHardwareAcceleration()
 import path from 'node:path'
@@ -32,6 +43,32 @@ async function createWindow() {
   })
   // Cache et supprime toute barre de menu
   try { win.setMenuBarVisibility(false) } catch {}
+
+  // Renderer crash detection (ignore clean exits)
+  win.webContents.on('render-process-gone', (event, details) => {
+    if (details.reason === 'clean-exit') return
+    logger.error('Renderer process crashed', { service: 'MAIN' }, { reason: details.reason, exitCode: details.exitCode })
+    captureException(new Error(`Renderer crashed: ${details.reason}`), {
+      tags: { context: 'renderer-crash' },
+      extra: { exitCode: details.exitCode, reason: details.reason },
+    })
+  })
+
+  win.webContents.on('unresponsive', () => {
+    logger.warn('Renderer became unresponsive', { service: 'MAIN' })
+  })
+
+  win.webContents.on('responsive', () => {
+    logger.info('Renderer became responsive again', { service: 'MAIN' })
+  })
+
+  // DevTools toggle with F12
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F12') {
+      win.webContents.toggleDevTools()
+    }
+  })
+
   if (process.env.ELECTRON_RENDERER_URL) await win.loadURL(process.env.ELECTRON_RENDERER_URL)
   else await win.loadFile(path.join(__dirname, '../renderer/index.html'))
 

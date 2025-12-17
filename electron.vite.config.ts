@@ -54,5 +54,7 @@ export default defineConfig({
     resolve: { alias },
     optimizeDeps: { exclude: ['better-sqlite3'] },
     build: { rollupOptions: { input: 'src/renderer/index.html' } },
+    // Expose VITE_ env vars to renderer
+    envPrefix: ['VITE_'],
   },
 })

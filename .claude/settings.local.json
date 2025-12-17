@@ -108,7 +108,8 @@
       "WebFetch(domain:registry.npmjs.org)",
       "Bash(npm view:*)",
       "Bash(git log:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
