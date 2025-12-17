@@ -17,10 +17,22 @@ export function DashboardProvider({ children, pollInterval = 30000 }: { children
 
   const fetchData = useCallback(async () => {
     try {
+      // Debug: Check if preload API is available
+      if (!window.api) {
+        console.error('[DASHBOARD] window.api is undefined - preload script not loaded!')
+        throw new Error('API not available - preload script failed to load')
+      }
+      if (!window.api.dashboard) {
+        console.error('[DASHBOARD] window.api.dashboard is undefined')
+        throw new Error('Dashboard API not available')
+      }
+      console.log('[DASHBOARD] Fetching dashboard overview...')
       const result = await window.api.dashboard.overview()
+      console.log('[DASHBOARD] Got result:', result ? 'data received' : 'null')
       setData(result)
       setError(null)
     } catch (err) {
+      console.error('[DASHBOARD] Error fetching data:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch dashboard'))
     } finally {
       setLoading(false)

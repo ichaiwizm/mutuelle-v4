@@ -54,7 +54,9 @@ export default defineConfig({
     resolve: { alias },
     optimizeDeps: { exclude: ['better-sqlite3'] },
     build: { rollupOptions: { input: 'src/renderer/index.html' } },
-    // Expose VITE_ env vars to renderer
-    envPrefix: ['VITE_'],
+    // Inject SENTRY_DSN for renderer (VITE_ prefix for Vite compatibility)
+    define: {
+      'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
+    },
   },
 })

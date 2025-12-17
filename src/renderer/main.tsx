@@ -8,6 +8,15 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { initSentryRenderer } from './services/sentry'
 import './styles.css'
 
+// Debug: Log renderer startup
+console.log('[RENDERER] Starting...')
+console.log('[RENDERER] window.api available:', !!window.api)
+if (window.api) {
+  console.log('[RENDERER] API methods:', Object.keys(window.api))
+} else {
+  console.error('[RENDERER] CRITICAL: window.api is undefined! Preload script failed to load.')
+}
+
 // Initialize Sentry for renderer process
 initSentryRenderer()
 

@@ -52,7 +52,14 @@ export function DashboardPage() {
     )
   }
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4">
+        <p className="text-[var(--color-text-muted)]">Aucune donnée disponible</p>
+        <Button onClick={refetch}>Recharger</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">

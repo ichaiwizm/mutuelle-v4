@@ -130,6 +130,8 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           # OpenRouter API key for LLM lead parsing
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Sentry DSN for error tracking (main + renderer)
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           # Token GitHub pour electron-builder
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -205,7 +207,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: release/*.dmg
-          draft: true  # Créé en brouillon pour que tu puisses vérifier avant de publier
+          draft: false  # Publié directement pour que l'auto-updater puisse le trouver
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
