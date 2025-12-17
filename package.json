@@ -1,6 +1,6 @@
 {
   "name": "mutuelle",
-  "version": "0.1.0-beta.9",
+  "version": "0.1.0-beta.10",
   "productName": "Mutuelle",
   "description": "Automatisation des adhésions mutuelle",
   "author": "France Épargne",
@@ -117,7 +117,11 @@
       "target": [
         "nsis"
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "extraResources": [
       {
