@@ -129,7 +129,11 @@
       "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.12)",
       "Bash(git -C /home/ichai/dev/mutuelle-v4 remote -v)",
       "Bash(git -C /home/ichai/dev/mutuelle-v4 log --oneline -10)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 add package.json src/main/ipc/channels.ts src/main/services/autoUpdater.ts src/preload/index.ts src/renderer/features/config/components/DataSection/DataSection.tsx src/shared/ipc/contracts.ts)",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 commit -m \"$(cat <<''EOF''\nAdd manual update check button in Config\n\n- Add update:check IPC channel for manual update verification\n- Add \"Vérifier\" button in Config page with version display\n- Show \"Vous êtes à jour\" feedback when no update available\n- Bump to 0.1.0-beta.13\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /home/ichai/dev/mutuelle-v4 tag v0.1.0-beta.13)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
