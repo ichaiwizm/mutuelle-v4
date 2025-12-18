@@ -200,15 +200,17 @@ jobs:
           path: release/*.dmg
           retention-days: 30  # Gardé 30 jours
 
-      # 10. Si c'est un tag, crée aussi une Release GitHub avec le .dmg attaché
+      # 10. Si c'est un tag, crée aussi une Release GitHub avec le .dmg et .zip attachés
       # Tes beta testeurs pourront télécharger depuis la page Releases
       # Note: On uploade aussi latest-mac.yml et .blockmap pour que l'auto-updater fonctionne
+      # Le .zip est REQUIS pour que l'auto-updater Mac fonctionne (electron-updater l'exige)
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
             release/*.dmg
+            release/*.zip
             release/*.yml
             release/*.blockmap
           draft: false  # Publié directement pour que l'auto-updater puisse le trouver

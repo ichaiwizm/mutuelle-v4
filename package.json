@@ -1,6 +1,6 @@
 {
   "name": "mutuelle",
-  "version": "0.1.0-beta.14",
+  "version": "0.1.0-beta.15",
   "productName": "Mutuelle",
   "description": "Automatisation des adhésions mutuelle",
   "author": "France Épargne",
@@ -103,7 +103,8 @@
     ],
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.business",
       "icon": "build/icon.icns",
