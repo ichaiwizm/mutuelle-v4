@@ -182,6 +182,9 @@ export type DashboardOverview = {
     activeCount: number;
     active: ProductConfiguration[];
   };
+  credentials: {
+    configuredCount: number;
+  };
 };
 
 // ========== IPC root contract ==========

@@ -4,6 +4,7 @@ import { AutomationService } from "./automation";
 import { FlowsService } from "./flowsService";
 import { ProductConfigQuery } from "./productConfig";
 import { flowStateService } from "../flows/state";
+import { CredentialsService } from "./credentials/credentialsService";
 import type { DashboardOverview } from "@/shared/ipc/contracts";
 
 /**
@@ -23,7 +24,7 @@ async function safeCall<T>(promise: Promise<T>, fallback: T): Promise<T> {
  * Individual service failures won't crash the entire dashboard.
  */
 export async function getDashboardOverview(): Promise<DashboardOverview> {
-  const [mailStatus, totalLeads, runsList, flows, pausedStates, activeProducts] =
+  const [mailStatus, totalLeads, runsList, flows, pausedStates, activeProducts, configuredPlatforms] =
     await Promise.all([
       safeCall(MailAuthService.status(), { ok: false }),
       safeCall(LeadsService.count(), 0),
@@ -31,6 +32,7 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
       safeCall(FlowsService.list(), []),
       safeCall(flowStateService.getPausedFlows(), []),
       safeCall(ProductConfigQuery.listActiveProducts(), []),
+      safeCall(CredentialsService.listPlatforms(), []),
     ]);
 
   return {
@@ -50,6 +52,9 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
     products: {
       activeCount: activeProducts.length,
       active: activeProducts,
+    },
+    credentials: {
+      configuredCount: configuredPlatforms.length,
     },
   };
 }

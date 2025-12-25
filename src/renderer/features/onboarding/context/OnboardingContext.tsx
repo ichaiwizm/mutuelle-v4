@@ -48,7 +48,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
 
     return {
-      credentialsConfigured: data.products.activeCount > 0,
+      credentialsConfigured: (data.credentials?.configuredCount ?? 0) > 0,
       firstLeadCreated: data.leads.total > 0,
       firstRunCompleted: data.automation.recentRuns.some((r) => r.status === 'done'),
     }
