@@ -1,4 +1,5 @@
-import { parseLeads } from '@/main/leads/parsing/parser';
+import { parseLead } from '@/main/leads/parsing/parser';
+import { splitEmailIntoLeadBlocks } from '@/main/leads/parsing/extractors';
 import type { Lead } from '@/shared/types/lead';
 
 /**
@@ -30,8 +31,8 @@ type LoadOptions = {
 };
 
 /**
- * Charge tous les leads depuis les fixtures emails en utilisant le parser existant
- * Utilise parseLeads() pour gérer les emails avec plusieurs fiches
+ * Charge tous les leads depuis les fixtures emails en utilisant le parser synchrone
+ * Utilise parseLead() (synchrone) au lieu de parseLeads() (async)
  */
 export function loadAllLeads(options: LoadOptions = {}): Lead[] {
   const { includeEmails = true, includeTexts = false } = options;
@@ -44,11 +45,24 @@ export function loadAllLeads(options: LoadOptions = {}): Lead[] {
 
       try {
         const email = require(`../../src/main/__tests__/fixtures/emails/${filename}`) as EmailFixture;
-        const parsedLeads = parseLeads(
-          { text: email.text, subject: email.subject },
-          { emailId: email.id, source: 'fixture' }
-        );
-        leads.push(...parsedLeads);
+        const metadata = { emailId: email.id, source: 'fixture' };
+
+        // Essayer de splitter en blocs multiples (AssurProspect)
+        const blocks = splitEmailIntoLeadBlocks(email.text);
+        if (blocks.length > 0) {
+          for (const block of blocks) {
+            const lead = parseLead(block, metadata);
+            if (lead) {
+              leads.push(lead);
+            }
+          }
+        } else {
+          // Sinon essayer comme lead unique
+          const lead = parseLead({ text: email.text, subject: email.subject }, metadata);
+          if (lead) {
+            leads.push(lead);
+          }
+        }
       } catch (error) {
         console.warn(`Could not load ${filename}:`, error);
       }
@@ -67,8 +81,10 @@ export function loadAllLeads(options: LoadOptions = {}): Lead[] {
     for (const filename of textFiles) {
       try {
         const fixture = require(`../../src/main/__tests__/fixtures/texts/${filename}.json`) as TextFixture;
-        const parsedLeads = parseLeads(fixture.text, { source: 'text-fixture' });
-        leads.push(...parsedLeads);
+        const lead = parseLead(fixture.text, { source: 'text-fixture' });
+        if (lead) {
+          leads.push(lead);
+        }
       } catch (error) {
         console.warn(`Could not load ${filename}:`, error);
       }

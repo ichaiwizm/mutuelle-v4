@@ -24,7 +24,10 @@
       "Bash(nvm use:*)",
       "Bash(timeout 15 pnpm dev:*)",
       "Bash(npx electron-rebuild:*)",
-      "Bash(timeout 20 pnpm dev:*)"
+      "Bash(timeout 20 pnpm dev:*)",
+      "Bash(LEAD_INDEX=0 npx playwright test:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
