@@ -17,6 +17,200 @@ Exemples :
 - `/flow-create alptis prevoyance-tns`
 - `/flow-create swisslifeone sante-famille`
 
+---
+
+## Journal de bord
+
+**IMPORTANT** : Tout au long du processus, maintenir un fichier journal qui documente chaque action.
+
+### Fichier journal
+```
+.claude/flow-logs/{platform}-{product}-create.md
+```
+
+### Format du journal
+
+```markdown
+# Journal de creation : {platform} {product}
+
+**Debut** : {date et heure}
+**Branche** : flow/{platform}-{product}
+**Status** : EN COURS | TERMINE | BLOQUE
+
+---
+
+## Phase 0 : Verification initiale
+**Debut** : {timestamp}
+
+- [x] Flow existe deja : NON
+- [x] Credentials trouves : ALPTIS_TEST_USERNAME, ALPTIS_TEST_PASSWORD
+- [x] Branche creee : flow/{platform}-{product}
+
+**Fin** : {timestamp}
+**Duree** : 2 min
+
+---
+
+## Phase 1 : Exploration
+**Debut** : {timestamp}
+
+### Actions
+- Creation du test d'exploration : `e2e/{platform}/{product}/.detailed/explore-selectors.spec.ts`
+- Lancement exploration headless...
+
+### Resultats exploration
+- Sections trouvees : 4
+- Champs totaux : 18
+- Selectors STABLE : 12
+- Selectors UNSTABLE : 6
+
+### Champs identifies
+| Section | Champ | Type | Selector | Stabilite |
+|---------|-------|------|----------|-----------|
+| 1 | date_effet | date | input[placeholder='...'] | MODERATE |
+| 2 | nom | text | #nom | STABLE |
+| ... | ... | ... | ... | ... |
+
+- Cartographie generee : `src/main/flows/cartography/{platform}/{platform}-{product}-exhaustive-mapping.json`
+
+**Fin** : {timestamp}
+**Duree** : 15 min
+**Commit** : feat({platform}/{product}): add form cartography
+
+---
+
+## Phase 2 : Scaffolding
+**Debut** : {timestamp}
+
+### Fichiers crees
+- `src/main/flows/config/products/{platform}-{product}.ts`
+- `src/main/flows/platforms/{platform}/products/{product}/transformers/types.ts`
+- `src/main/flows/platforms/{platform}/products/{product}/transformers/LeadTransformer.ts`
+- ... (liste complete)
+
+**Fin** : {timestamp}
+**Duree** : 10 min
+**Commit** : feat({platform}/{product}): scaffold flow structure
+
+---
+
+## Phase 3 : Implementation
+**Debut** : {timestamp}
+
+### Section 1 : Mise en place
+- Selectors implementes : 3/3
+- Operations utilisees : DateOperations, ToggleOperations
+- Test detaille : PASS
+- Commit : feat({platform}/{product}): implement section 1 - Mise en place
+
+### Section 2 : Adherent
+- Selectors implementes : 8/8
+- Operations utilisees : DateOperations, DropdownOperations, RadioOperations
+- Test detaille : PASS
+- Commit : feat({platform}/{product}): implement section 2 - Adherent
+
+### Section 3 : Conjoint (optionnel)
+- Selectors implementes : 4/4
+- Test detaille : PASS (avec lead conjoint)
+- Commit : feat({platform}/{product}): implement section 3 - Conjoint
+
+### Section 4 : Enfants (dynamique)
+- Selectors implementes : 2/2 par enfant
+- Logique dynamique : OK (jusqu'a 5 enfants)
+- Test detaille : PASS
+- Commit : feat({platform}/{product}): implement section 4 - Enfants
+
+**Fin** : {timestamp}
+**Duree** : 45 min
+
+---
+
+## Phase 4 : Integration
+**Debut** : {timestamp}
+
+- FormFillOrchestrator : OK
+- Enregistrement PRODUCT_CONFIGS : OK
+- Test single lead (LEAD_INDEX=0) : PASS
+
+**Fin** : {timestamp}
+**Duree** : 10 min
+**Commit** : feat({platform}/{product}): integrate flow with FlowEngine
+
+---
+
+## Phase 5 : Tests bulk
+**Debut** : {timestamp}
+
+### Premier run
+- Leads testes : 22
+- Resultats : 18 PASS, 4 FAIL
+- Problemes identifies :
+  - Lead #5 : profession non mappee "consultant senior"
+  - Lead #12 : date format invalide
+  - Lead #15, #18 : meme probleme profession
+
+### Corrections
+- Ajout mapping "consultant senior" -> PROFESSIONS_LIBERALES
+- Fix parsing date avec format alternatif
+
+### Second run
+- Leads testes : 22
+- Resultats : 22 PASS, 0 FAIL
+
+**Fin** : {timestamp}
+**Duree** : 20 min
+**Commit** : test({platform}/{product}): add test fixtures and bulk validation
+
+---
+
+## Phase 6 : Validation
+**Debut** : {timestamp}
+
+### Status final
+- Sections implementees : 4/4
+- Tests bulk : 22/22 PASS (100%)
+- Commits : 8
+
+### En attente
+- Review utilisateur
+- Merge de la branche
+
+**Fin** : {timestamp}
+
+---
+
+## Problemes rencontres
+
+### Probleme 1 : Dropdown ville ne se charge pas
+**Symptome** : Timeout sur selection ville
+**Cause** : Le dropdown attend que le code postal soit valide
+**Solution** : Ajouter waitForTimeout(2000) apres remplissage code postal
+
+### Probleme 2 : Profession non mappee
+**Symptome** : 4 leads en echec avec erreur "Unknown profession"
+**Cause** : Mapping manquant pour "consultant senior"
+**Solution** : Ajout dans profession-mapper.ts
+
+---
+
+## Resume
+- **Temps total** : 1h42
+- **Commits** : 8
+- **Tests** : 22/22 PASS
+- **Status** : PRET POUR REVIEW
+```
+
+### Regles du journal
+
+1. **Creer le fichier au debut** de la Phase 0
+2. **Mettre a jour en temps reel** a chaque action importante
+3. **Documenter les problemes** rencontres et leurs solutions
+4. **Inclure les timestamps** pour chaque phase
+5. **Lister tous les fichiers** crees/modifies
+6. **Noter les resultats de tests** (PASS/FAIL avec details)
+
+---
+
 ## Workflow complet
 
 ### Phase 0 : Verification initiale

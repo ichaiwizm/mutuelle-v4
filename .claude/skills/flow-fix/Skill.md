@@ -20,6 +20,140 @@ Exemples :
 
 ---
 
+## Journal de bord
+
+**IMPORTANT** : Tout au long du processus, maintenir un fichier journal qui documente chaque action.
+
+### Fichier journal
+```
+.claude/flow-logs/{platform}-{product}-fix-{slug}.md
+```
+
+### Format du journal
+
+```markdown
+# Journal de fix : {platform} {product}
+
+**Probleme** : {description originale}
+**Debut** : {date et heure}
+**Branche** : fix/{platform}-{product}-{slug}
+**Status** : EN COURS | TERMINE | BLOQUE
+
+---
+
+## Phase 1 : Diagnostic
+**Debut** : {timestamp}
+
+### Reproduction du probleme
+- Test LEAD_INDEX=0 : PASS
+- Test LEAD_INDEX=1 : FAIL
+- Test LEAD_INDEX=2 : PASS
+
+### Lead problematique identifie
+- Lead #1 : Jean DUPONT
+- Caracteristiques : TNS, profession "consultant senior"
+
+### Analyse des logs
+```
+Error: Unable to find element matching selector "#profession-select"
+  at Section2Fill.fillProfession (Section2Fill.ts:45)
+```
+
+### Cause identifiee
+**Type** : Selector casse
+**Fichier** : `selectors/section2.ts`
+**Ligne** : 23
+**Detail** : L'ID du dropdown profession a change de "#profession-select" vers "#categories-socio-professionnelles-adherent"
+
+**Fin** : {timestamp}
+**Duree** : 8 min
+
+---
+
+## Phase 2 : Correction
+**Debut** : {timestamp}
+
+### Fichiers modifies
+1. `src/main/flows/platforms/{platform}/products/{product}/steps/form-fill/selectors/section2.ts`
+   - Ligne 23 : Changement du selector profession
+   - Ajout d'un selector alternatif
+
+### Code modifie
+```typescript
+// AVANT
+profession: {
+  primary: '#profession-select',
+  stability: 'UNSTABLE',
+},
+
+// APRES
+profession: {
+  primary: '#categories-socio-professionnelles-adherent',
+  alternative: "select[name*='profession']",
+  stability: 'STABLE',
+},
+```
+
+**Fin** : {timestamp}
+**Duree** : 5 min
+**Commit** : fix(alptis/sante-select): update profession selector
+
+---
+
+## Phase 3 : Validation
+**Debut** : {timestamp}
+
+### Test cas specifique
+- LEAD_INDEX=1 : PASS
+
+### Bulk validation
+- Premier run : 22/22 PASS
+- Non-regression : OK
+
+**Fin** : {timestamp}
+**Duree** : 3 min
+**Commit** : test(alptis/sante-select): verify fix with bulk validation
+
+---
+
+## Phase 4 : Finalisation
+**Debut** : {timestamp}
+
+### Resume
+- **Probleme** : Selector profession casse
+- **Cause** : Changement d'ID sur le site Alptis
+- **Solution** : Mise a jour du selector avec alternative
+- **Impact** : Aucune regression
+
+### Tests finaux
+- Lead specifique : PASS
+- Bulk validation : 22/22 PASS
+- Non-regression : PASS
+
+**Fin** : {timestamp}
+**Status** : PRET POUR MERGE
+
+---
+
+## Resume
+- **Temps total** : 18 min
+- **Commits** : 2
+- **Fichiers modifies** : 1
+- **Tests** : 22/22 PASS
+- **Status** : TERMINE
+```
+
+### Regles du journal
+
+1. **Creer le fichier au debut** de la Phase 1
+2. **Mettre a jour en temps reel** a chaque action
+3. **Documenter la cause** du probleme en detail
+4. **Inclure le code modifie** (avant/apres)
+5. **Noter tous les resultats de tests**
+6. **Conserver le journal** meme apres merge (historique)
+
+---
+
 ## Workflow
 
 ### Phase 1 : Diagnostic
