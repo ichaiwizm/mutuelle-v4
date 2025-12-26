@@ -82,6 +82,34 @@ export class FormFillOrchestrator {
   }
 
   /**
+   * Save lead: Click "Enregistrer" button on the Garanties page
+   * This opens a confirmation modal
+   */
+  async saveGaranties(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.info('Clicking Enregistrer button on Garanties page');
+    const enregistrerBtn = page.locator('button:has-text("Enregistrer")').first();
+    await enregistrerBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await enregistrerBtn.click();
+    // Attendre que le modal apparaisse
+    await page.waitForTimeout(500);
+    logger?.info('Enregistrer clicked, modal should be visible');
+  }
+
+  /**
+   * Confirm save: Click "Enregistrer et continuer" in the confirmation modal
+   * This finalizes the lead registration
+   */
+  async confirmSave(page: Page, logger?: FlowLogger): Promise<void> {
+    logger?.info('Clicking "Enregistrer et continuer" in confirmation modal');
+    const continuerBtn = page.locator('button:has-text("Enregistrer et continuer")');
+    await continuerBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await continuerBtn.click();
+    // Attendre que le modal se ferme
+    await page.waitForTimeout(1000);
+    logger?.info('Lead saved successfully');
+  }
+
+  /**
    * Check for validation errors on the page
    * @returns Array of error messages (empty if no errors)
    */
