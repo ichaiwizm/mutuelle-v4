@@ -1,0 +1,456 @@
+{
+  "product": {
+    "name": "Pack Famille (Santé TNS)",
+    "platform": "entoria",
+    "url": "https://espacecourtier.entoria.fr/accueil",
+    "cartography_date": "2025-12-26",
+    "internal_name": "Santé TNS"
+  },
+  "metadata": {
+    "form_title": "tarification du projet",
+    "total_steps": 4,
+    "steps": [
+      "1 Informations Client",
+      "2 Coordonnées bancaires",
+      "3 Récapitulatif",
+      "4 Finalisation"
+    ],
+    "framework": "Angular",
+    "design_system": "Angular Material"
+  },
+  "form_structure": {
+    "sections": [
+      { "name": "Recherche entreprise", "fields_count": 1, "optional": true },
+      { "name": "Informations de l'adhérent", "fields_count": 12 },
+      { "name": "Adresse", "fields_count": 7 },
+      { "name": "Informations professionnelles", "fields_count": 4 },
+      { "name": "Conjoint", "fields_count": 6, "optional": true },
+      { "name": "Enfants", "fields_count": 6, "repeatable": true, "optional": true },
+      { "name": "Mandat de Résiliation", "fields_count": 1 }
+    ]
+  },
+  "fields": [
+    {
+      "field_id": "civilite_adherent",
+      "section": "Informations de l'adhérent",
+      "label": "Civilité",
+      "type": "radio",
+      "selector": {
+        "primary": "input[name='mat-radio-group-3']",
+        "madame": "#mat-radio-5-input",
+        "monsieur": "#mat-radio-6-input",
+        "stability": "MODERATE"
+      },
+      "validation": { "required": true },
+      "options": ["Madame", "Monsieur"]
+    },
+    {
+      "field_id": "nom_adherent",
+      "section": "Informations de l'adhérent",
+      "label": "Nom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-9",
+        "alternative": "input[placeholder='Nom']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "prenom_adherent",
+      "section": "Informations de l'adhérent",
+      "label": "Prénom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-10",
+        "alternative": "input[placeholder='Prénom']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "nom_naissance_different",
+      "section": "Informations de l'adhérent",
+      "label": "Nom de naissance différent du nom d'usage ?",
+      "type": "radio",
+      "selector": {
+        "primary": "input[name='mat-radio-group-6']",
+        "oui": "#mat-radio-8-input",
+        "non": "#mat-radio-9-input",
+        "stability": "MODERATE"
+      },
+      "validation": { "required": true },
+      "options": ["Oui", "Non"]
+    },
+    {
+      "field_id": "nom_naissance",
+      "section": "Informations de l'adhérent",
+      "label": "Nom de naissance",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-11",
+        "alternative": "input[placeholder='Nom de naissance']",
+        "stability": "UNSTABLE"
+      },
+      "conditional": "nom_naissance_different === 'Oui'"
+    },
+    {
+      "field_id": "departement_naissance",
+      "section": "Informations de l'adhérent",
+      "label": "Département de naissance",
+      "type": "select",
+      "selector": {
+        "primary": "mat-select[aria-label*='Département']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "ville_naissance",
+      "section": "Informations de l'adhérent",
+      "label": "Ville de naissance",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-12",
+        "alternative": "input[placeholder='Ville de naissance *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "numero_securite_sociale",
+      "section": "Informations de l'adhérent",
+      "label": "N° de sécurité sociale",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-13",
+        "alternative": "input[placeholder='N° de sécurité sociale *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true, "pattern": "^[12][0-9]{14}$" }
+    },
+    {
+      "field_id": "regime_obligatoire",
+      "section": "Informations de l'adhérent",
+      "label": "Régime Obligatoire",
+      "type": "select",
+      "selector": {
+        "primary": "mat-select[aria-label*='Régime']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "teletransmission_adherent",
+      "section": "Informations de l'adhérent",
+      "label": "Activer télétransmission",
+      "type": "radio",
+      "selector": {
+        "primary": "input[name='mat-radio-group-9']",
+        "oui": "#mat-radio-11-input",
+        "non": "#mat-radio-12-input",
+        "stability": "MODERATE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "numero_voie",
+      "section": "Adresse",
+      "label": "N° de voie",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-4",
+        "alternative": "input[placeholder='N° de voie *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "type_voie",
+      "section": "Adresse",
+      "label": "Type de voie",
+      "type": "select",
+      "selector": {
+        "primary": "mat-select[aria-label*='Type de voie']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "adresse",
+      "section": "Adresse",
+      "label": "Adresse",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-5",
+        "alternative": "input[placeholder='Adresse']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "complement_adresse",
+      "section": "Adresse",
+      "label": "Complément d'adresse",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-6",
+        "alternative": "input[placeholder='Complément d\\'adresse']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "code_postal",
+      "section": "Adresse",
+      "label": "Code postal",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-7",
+        "alternative": "input[placeholder='Code postal']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "ville",
+      "section": "Adresse",
+      "label": "Ville",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-8",
+        "alternative": "input[placeholder='Ville']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "pays",
+      "section": "Adresse",
+      "label": "Pays",
+      "type": "select",
+      "selector": {
+        "primary": "mat-select[aria-label*='Pays']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "date_cloture_fiscale",
+      "section": "Informations professionnelles",
+      "label": "Date de clôture fiscale",
+      "type": "date",
+      "selector": {
+        "primary": "#mat-input-3",
+        "alternative": "input[placeholder='Date de clôture fiscale *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "siren",
+      "section": "Informations professionnelles",
+      "label": "SIREN du TNS",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-14",
+        "alternative": "input[placeholder='SIREN du TNS *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true, "pattern": "^[0-9]{9}$" },
+      "note": "Peut être désactivé si 'SIREN en cours d'immatriculation' est coché"
+    },
+    {
+      "field_id": "siren_en_cours",
+      "section": "Informations professionnelles",
+      "label": "SIREN en cours d'immatriculation",
+      "type": "checkbox",
+      "selector": {
+        "primary": "#mat-checkbox-2-input",
+        "stability": "MODERATE"
+      }
+    },
+    {
+      "field_id": "mobile",
+      "section": "Informations professionnelles",
+      "label": "Mobile",
+      "type": "tel",
+      "selector": {
+        "primary": "#mat-input-15",
+        "alternative": "input[placeholder='Mobile *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "email",
+      "section": "Informations professionnelles",
+      "label": "Email",
+      "type": "email",
+      "selector": {
+        "primary": "#mat-input-16",
+        "alternative": "input[placeholder='Email *']",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "conjoint_civilite",
+      "section": "Conjoint",
+      "label": "Civilité",
+      "type": "select",
+      "selector": {
+        "primary": "mat-select[aria-label*='Civilité']",
+        "note": "Deuxième select civilité sur la page",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "conjoint_nom",
+      "section": "Conjoint",
+      "label": "Nom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-17",
+        "alternative": "input[placeholder='Nom']",
+        "note": "Dans la section CONJOINT",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "conjoint_prenom",
+      "section": "Conjoint",
+      "label": "Prénom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-18",
+        "alternative": "input[placeholder='Prénom']",
+        "note": "Dans la section CONJOINT",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "conjoint_date_naissance",
+      "section": "Conjoint",
+      "label": "Date de naissance",
+      "type": "date",
+      "selector": {
+        "primary": "#mat-input-19",
+        "alternative": "input[placeholder='Date de naissance *']",
+        "note": "Dans la section CONJOINT",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "conjoint_numero_ss",
+      "section": "Conjoint",
+      "label": "Numéro de sécurité sociale",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-20",
+        "alternative": "input[placeholder='Numéro de sécurité sociale']",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "conjoint_teletransmission",
+      "section": "Conjoint",
+      "label": "Activer télétransmission",
+      "type": "radio",
+      "selector": {
+        "primary": "input[name='mat-radio-group-12']",
+        "oui": "#mat-radio-14-input",
+        "non": "#mat-radio-15-input",
+        "stability": "MODERATE"
+      }
+    },
+    {
+      "field_id": "enfant_civilite",
+      "section": "Enfants",
+      "label": "Civilité",
+      "type": "select",
+      "selector": {
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "enfant_nom",
+      "section": "Enfants",
+      "label": "Nom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-21",
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "enfant_prenom",
+      "section": "Enfants",
+      "label": "Prénom",
+      "type": "text",
+      "selector": {
+        "primary": "#mat-input-22",
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      }
+    },
+    {
+      "field_id": "enfant_date_naissance",
+      "section": "Enfants",
+      "label": "Date de naissance",
+      "type": "date",
+      "selector": {
+        "primary": "#mat-input-23",
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "enfant_rang_naissance",
+      "section": "Enfants",
+      "label": "Rang de naissance",
+      "type": "select",
+      "selector": {
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "enfant_rattache_carte_vitale",
+      "section": "Enfants",
+      "label": "L'enfant est rattaché à la carte vitale de",
+      "type": "select",
+      "selector": {
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "UNSTABLE"
+      },
+      "validation": { "required": true }
+    },
+    {
+      "field_id": "enfant_teletransmission",
+      "section": "Enfants",
+      "label": "Activer télétransmission",
+      "type": "radio",
+      "selector": {
+        "note": "Dynamique selon le numéro d'enfant",
+        "stability": "MODERATE"
+      }
+    },
+    {
+      "field_id": "mandat_resiliation",
+      "section": "Mandat de Résiliation",
+      "label": "Client couvert par un contrat santé depuis plus d'un an",
+      "type": "radio",
+      "selector": {
+        "note": "Dernier groupe radio de la page",
+        "stability": "MODERATE"
+      },
+      "options": ["Oui", "Non"],
+      "validation": { "required": true }
+    }
+  ],
+  "navigation": {
+    "submit_button": "button:has-text('suivant')",
+    "back_button": "button:has-text('retour')",
+    "note": "Le bouton suivant est désactivé jusqu'à ce que tous les champs requis soient remplis"
+  }
+}

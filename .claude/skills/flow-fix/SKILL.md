@@ -1,6 +1,6 @@
 ---
 name: flow-fix
-description: Corriger un bug ou etendre un flow d'automatisation existant.
+description: Corriger un bug ou etendre un flow d'automatisation existant. (project)
 ---
 
 # flow-fix

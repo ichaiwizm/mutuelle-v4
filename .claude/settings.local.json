@@ -27,7 +27,10 @@
       "Bash(timeout 20 pnpm dev:*)",
       "Bash(LEAD_INDEX=0 npx playwright test:*)",
       "Bash(pnpm rebuild:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Skill(flow-create)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)"
     ],
     "deny": [],
     "ask": []

@@ -15,6 +15,7 @@ import type { ProductConfiguration, ProductCategory } from "../../../../shared/t
 import { ALPTIS_SANTE_SELECT } from "./alptis-sante-select";
 import { ALPTIS_SANTE_PRO_PLUS } from "./alptis-sante-pro-plus";
 import { SWISSLIFE_ONE_SLSIS } from "./swisslife-one-slsis";
+import { ENTORIA_PACK_FAMILLE } from "./entoria-pack-famille";
 
 /**
  * Central registry - maps flowKey to ProductConfiguration
@@ -23,6 +24,7 @@ export const PRODUCT_CONFIGS: Record<string, ProductConfiguration> = {
   [ALPTIS_SANTE_SELECT.flowKey]: ALPTIS_SANTE_SELECT,
   [ALPTIS_SANTE_PRO_PLUS.flowKey]: ALPTIS_SANTE_PRO_PLUS,
   [SWISSLIFE_ONE_SLSIS.flowKey]: SWISSLIFE_ONE_SLSIS,
+  [ENTORIA_PACK_FAMILLE.flowKey]: ENTORIA_PACK_FAMILLE,
 };
 
 /**
