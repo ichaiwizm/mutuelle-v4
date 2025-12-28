@@ -30,7 +30,12 @@
       "Bash(ls:*)",
       "Skill(flow-create)",
       "Bash(git checkout:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(xargs ls:*)",
+      "Bash(xargs dirname:*)",
+      "Bash(wc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": [],
     "ask": []

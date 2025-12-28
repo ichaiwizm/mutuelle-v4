@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableHeader,
@@ -11,7 +12,7 @@ import { Button } from "@/renderer/components/ui/Button";
 import { Card } from "@/renderer/components/ui/Card";
 import { EmptyState } from "@/renderer/components/ui/EmptyState";
 import { Skeleton } from "@/renderer/components/ui/Skeleton";
-import { Eye, Edit2, Trash2, Users, Baby, Check, Minus } from "lucide-react";
+import { Eye, Edit2, Trash2, Users, Baby, Check, Minus, FileText } from "lucide-react";
 import type { Lead } from "@/shared/types/lead";
 import { parseLeadRow, type LeadRow } from "../hooks/useLeads";
 
@@ -85,6 +86,8 @@ export function LeadList({
   onDelete,
   onCreate,
 }: LeadListProps) {
+  const navigate = useNavigate();
+
   // Parse all leads (using shared parseLeadRow with error handling)
   const parsedLeads = useMemo(() => {
     return leads.map((row) => ({
@@ -275,6 +278,14 @@ export function LeadList({
                     title="Modifier"
                   >
                     <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/devis?leadId=${row.id}`)}
+                    title="Voir devis"
+                  >
+                    <FileText className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"

@@ -143,6 +143,19 @@ const api: Ipc = {
   app: {
     getVersion: () => invokeIpc(IPC_CHANNEL.APP_GET_VERSION),
   },
+
+  devis: {
+    list: (options) => invokeIpc(IPC_CHANNEL.DEVIS_LIST, options),
+    listByLead: (leadId) => invokeIpc(IPC_CHANNEL.DEVIS_LIST_BY_LEAD, { leadId }),
+    get: (id) => invokeIpc(IPC_CHANNEL.DEVIS_GET, { id }),
+    create: (input) => invokeIpc(IPC_CHANNEL.DEVIS_CREATE, input),
+    update: (id, data) => invokeIpc(IPC_CHANNEL.DEVIS_UPDATE, { id, data }),
+    delete: (id) => invokeIpc(IPC_CHANNEL.DEVIS_DELETE, { id }),
+    exportPdf: (id) => invokeIpc(IPC_CHANNEL.DEVIS_EXPORT_PDF, { id }),
+    duplicate: (id) => invokeIpc(IPC_CHANNEL.DEVIS_DUPLICATE, { id }),
+    countByLead: (leadIds) => invokeIpc(IPC_CHANNEL.DEVIS_COUNT_BY_LEAD, { leadIds }),
+    stats: () => invokeIpc(IPC_CHANNEL.DEVIS_STATS),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

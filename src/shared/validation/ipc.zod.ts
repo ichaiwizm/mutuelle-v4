@@ -138,3 +138,66 @@ export const ProductUpdateStatusSchema = UpdateProductStatusSchema.extend({
 export const FlowStateIdSchema = z.object({
   id: z.string().uuid(),
 });
+
+// ========== Devis ==========
+
+export const DevisStatusSchema = z.enum(["pending", "completed", "failed", "expired"]);
+
+export const DevisFiltersSchema = z
+  .object({
+    status: DevisStatusSchema.optional(),
+    flowKey: z.string().optional(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+    search: z.string().optional(),
+  })
+  .optional();
+
+export const DevisListSchema = z
+  .object({
+    limit: z.number().int().positive().max(1000).optional(),
+    offset: z.number().int().min(0).optional(),
+    filters: DevisFiltersSchema,
+  })
+  .optional();
+
+export const DevisListByLeadSchema = z.object({
+  leadId: z.string().uuid(),
+});
+
+export const DevisGetSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const DevisCreateSchema = z.object({
+  leadId: z.string().uuid(),
+  flowKey: z.string().min(1),
+});
+
+export const DevisUpdateSchema = z.object({
+  id: z.string().uuid(),
+  data: z.object({
+    status: DevisStatusSchema.optional(),
+    data: z.record(z.string(), z.unknown()).nullable().optional(),
+    pdfPath: z.string().nullable().optional(),
+    errorMessage: z.string().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    expiresAt: z.string().nullable().optional(),
+  }),
+});
+
+export const DevisDeleteSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const DevisExportPdfSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const DevisDuplicateSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const DevisCountByLeadSchema = z.object({
+  leadIds: z.array(z.string().uuid()),
+});
