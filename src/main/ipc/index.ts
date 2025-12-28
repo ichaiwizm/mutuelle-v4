@@ -31,6 +31,7 @@ import {
   registerAutomationSettingsHandlers,
   registerDataHandlers,
   registerAppHandlers,
+  registerDevisHandlers,
 } from "./handlers";
 
 export function registerIpc() {
@@ -47,4 +48,5 @@ export function registerIpc() {
   registerAutomationSettingsHandlers();
   registerDataHandlers();
   registerAppHandlers();
+  registerDevisHandlers();
 }

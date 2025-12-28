@@ -5,6 +5,7 @@ import { FlowsService } from "./flowsService";
 import { ProductConfigQuery } from "./productConfig";
 import { flowStateService } from "../flows/state";
 import { CredentialsService } from "./credentials/credentialsService";
+import { DevisService } from "./devisService";
 import type { DashboardOverview } from "@/shared/ipc/contracts";
 
 /**
@@ -24,7 +25,7 @@ async function safeCall<T>(promise: Promise<T>, fallback: T): Promise<T> {
  * Individual service failures won't crash the entire dashboard.
  */
 export async function getDashboardOverview(): Promise<DashboardOverview> {
-  const [mailStatus, totalLeads, runsList, flows, pausedStates, activeProducts, configuredPlatforms] =
+  const [mailStatus, totalLeads, runsList, flows, pausedStates, activeProducts, configuredPlatforms, devisStats] =
     await Promise.all([
       safeCall(MailAuthService.status(), { ok: false }),
       safeCall(LeadsService.count(), 0),
@@ -33,6 +34,7 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
       safeCall(flowStateService.getPausedFlows(), []),
       safeCall(ProductConfigQuery.listActiveProducts(), []),
       safeCall(CredentialsService.listPlatforms(), []),
+      safeCall(DevisService.stats(), { total: 0, pending: 0, completed: 0, failed: 0, expired: 0, recent: [] }),
     ]);
 
   return {
@@ -55,6 +57,12 @@ export async function getDashboardOverview(): Promise<DashboardOverview> {
     },
     credentials: {
       configuredCount: configuredPlatforms.length,
+    },
+    devis: {
+      total: devisStats.total,
+      pending: devisStats.pending,
+      completed: devisStats.completed,
+      failed: devisStats.failed,
     },
   };
 }

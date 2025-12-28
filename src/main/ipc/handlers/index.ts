@@ -11,6 +11,7 @@ export { registerShellHandlers } from "./shellHandlers";
 export { registerAutomationSettingsHandlers } from "./automationSettingsHandlers";
 export { registerDataHandlers } from "./dataHandlers";
 export { registerAppHandlers } from "./appHandlers";
+export { registerDevisHandlers } from "./devisHandlers";
 
 // Re-export utilities for external use if needed
 export { handler, simpleHandler, validate } from "./utils";
