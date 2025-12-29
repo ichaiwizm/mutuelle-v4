@@ -17,6 +17,7 @@ interface UseDevisResult {
 
   // Loading states
   loading: boolean;
+  loadingStats: boolean;
   creating: boolean;
   updating: boolean;
   deleting: boolean;
@@ -41,6 +42,7 @@ interface UseDevisResult {
   // Utilities
   clearError: () => void;
   clearCurrentDevis: () => void;
+  clearDevisByLead: () => void;
 }
 
 /**
@@ -54,8 +56,9 @@ export function useDevis(): UseDevisResult {
   const [devisByLead, setDevisByLead] = useState<DevisWithLead[]>([]);
   const [stats, setStats] = useState<DevisStatsResult | null>(null);
 
-  // Loading states
-  const [loading, setLoading] = useState(false);
+  // Loading states - separated to avoid flicker
+  const [loadingDevis, setLoadingDevis] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(false);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -70,7 +73,7 @@ export function useDevis(): UseDevisResult {
    */
   const fetchDevis = useCallback(
     async (options?: { limit?: number; offset?: number; filters?: DevisFilters }) => {
-      setLoading(true);
+      setLoadingDevis(true);
       setError(null);
 
       try {
@@ -82,7 +85,7 @@ export function useDevis(): UseDevisResult {
         setError(error);
         throw error;
       } finally {
-        setLoading(false);
+        setLoadingDevis(false);
       }
     },
     []
@@ -92,18 +95,24 @@ export function useDevis(): UseDevisResult {
    * Fetch all devis for a specific lead
    */
   const fetchDevisByLead = useCallback(async (leadId: string) => {
-    setLoading(true);
+    console.log('[DEVIS] fetchDevisByLead START:', leadId);
     setError(null);
+
+    // Delayed loading to avoid skeleton flash for fast fetches
+    const loadingTimeout = setTimeout(() => setLoadingDevis(true), 150);
 
     try {
       const result = await window.api.devis.listByLead(leadId);
+      console.log('[DEVIS] fetchDevisByLead END:', result.devis.length, 'devis loaded');
       setDevisByLead(result.devis);
     } catch (err) {
+      console.log('[DEVIS] fetchDevisByLead ERROR:', err);
       const error = err instanceof Error ? err : new Error("Échec du chargement des devis du lead");
       setError(error);
       throw error;
     } finally {
-      setLoading(false);
+      clearTimeout(loadingTimeout);
+      setLoadingDevis(false);
     }
   }, []);
 
@@ -111,7 +120,7 @@ export function useDevis(): UseDevisResult {
    * Fetch a single devis by ID
    */
   const fetchSingleDevis = useCallback(async (id: string): Promise<Devis | null> => {
-    setLoading(true);
+    setLoadingDevis(true);
     setError(null);
 
     try {
@@ -123,7 +132,7 @@ export function useDevis(): UseDevisResult {
       setError(error);
       throw error;
     } finally {
-      setLoading(false);
+      setLoadingDevis(false);
     }
   }, []);
 
@@ -240,18 +249,21 @@ export function useDevis(): UseDevisResult {
    * Fetch devis statistics
    */
   const fetchStats = useCallback(async () => {
-    setLoading(true);
+    console.log('[DEVIS] fetchStats START');
+    setLoadingStats(true);
     setError(null);
 
     try {
       const result = await window.api.devis.stats();
+      console.log('[DEVIS] fetchStats END:', result);
       setStats(result);
     } catch (err) {
+      console.log('[DEVIS] fetchStats ERROR:', err);
       const error = err instanceof Error ? err : new Error("Échec du chargement des statistiques");
       setError(error);
       throw error;
     } finally {
-      setLoading(false);
+      setLoadingStats(false);
     }
   }, []);
 
@@ -269,13 +281,21 @@ export function useDevis(): UseDevisResult {
     setCurrentDevis(null);
   }, []);
 
+  /**
+   * Clear devis by lead data (used when going back)
+   */
+  const clearDevisByLead = useCallback(() => {
+    setDevisByLead([]);
+  }, []);
+
   return {
     devisList,
     total,
     currentDevis,
     devisByLead,
     stats,
-    loading,
+    loading: loadingDevis, // Main loading state for devis grid
+    loadingStats,
     creating,
     updating,
     deleting,
@@ -294,6 +314,7 @@ export function useDevis(): UseDevisResult {
     fetchStats,
     clearError,
     clearCurrentDevis,
+    clearDevisByLead,
   };
 }
 

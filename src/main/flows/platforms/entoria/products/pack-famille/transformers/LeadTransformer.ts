@@ -10,93 +10,9 @@ import type {
   TransformError,
   TransformWarning,
 } from './types';
-
-/**
- * Formate une date en DD/MM/YYYY
- */
-function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return '';
-
-  // Si déjà au format DD/MM/YYYY
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-    return dateStr;
-  }
-
-  // Si format ISO ou autre
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return '';
-
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-/**
- * Extrait le département du code postal
- */
-function getDepartementFromCodePostal(codePostal: string | undefined): string {
-  if (!codePostal) return '75'; // Paris par défaut
-
-  // DOM-TOM : 3 premiers chiffres
-  if (codePostal.startsWith('97') || codePostal.startsWith('98')) {
-    return codePostal.substring(0, 3);
-  }
-
-  // France métropolitaine : 2 premiers chiffres
-  return codePostal.substring(0, 2);
-}
-
-/**
- * Mappe la profession du lead vers une profession Entoria
- */
-function mapProfession(profession: string | undefined): string {
-  if (!profession) return 'Artisan';
-
-  const lower = profession.toLowerCase();
-
-  if (lower.includes('artisan')) return 'Artisan';
-  if (lower.includes('commerçant') || lower.includes('commercant')) return 'Commerçant';
-  if (lower.includes('libéral') || lower.includes('liberal')) return 'Profession libérale';
-  if (lower.includes('agriculteur')) return 'Agriculteur';
-  if (lower.includes('chef') || lower.includes('dirigeant')) return 'Chef d\'entreprise';
-
-  return 'Artisan'; // Défaut
-}
-
-/**
- * Calcule la date d'effet (1er du mois suivant)
- */
-function getDateEffet(): string {
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-  const day = nextMonth.getDate().toString().padStart(2, '0');
-  const month = (nextMonth.getMonth() + 1).toString().padStart(2, '0');
-  const year = nextMonth.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-/**
- * Vérifie si une date est valide pour Entoria (>= 1er du mois en cours)
- */
-function isValidDateEffet(dateStr: string): boolean {
-  // Parser DD/MM/YYYY
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return false;
-
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const year = parseInt(parts[2], 10);
-
-  const dateEffet = new Date(year, month, day);
-  const now = new Date();
-  const firstOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  return dateEffet >= firstOfCurrentMonth;
-}
+import { mapProfession } from './mappers/profession-mapper';
+import { formatDate, getDateEffet, isValidDateEffet } from './utils';
+import { getDepartementFromCodePostal } from './utils';
 
 export class LeadTransformer {
   /**

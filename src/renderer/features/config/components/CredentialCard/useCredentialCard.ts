@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import type { PlatformState, CredentialFormData } from "../../hooks/useCredentials";
+import type { Platform, PlatformState, CredentialFormData } from "../../hooks/useCredentials";
 
 interface UseCredentialCardOptions {
+  platform: Platform;
   state: PlatformState;
   onSave: (data: CredentialFormData) => Promise<boolean>;
   onDelete: () => Promise<boolean>;
@@ -10,6 +11,7 @@ interface UseCredentialCardOptions {
 }
 
 export function useCredentialCard({
+  platform,
   state,
   onSave,
   onDelete,
@@ -18,7 +20,7 @@ export function useCredentialCard({
 }: UseCredentialCardOptions) {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<CredentialFormData>({ login: "", password: "" });
+  const [formData, setFormData] = useState<CredentialFormData>({ login: "", password: "", courtierCode: "" });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isConfigured = !!state.info?.hasPassword;
@@ -27,7 +29,7 @@ export function useCredentialCard({
   // Reset form when exiting edit mode
   useEffect(() => {
     if (!isEditing) {
-      setFormData({ login: state.info?.login || "", password: "" });
+      setFormData({ login: state.info?.login || "", password: "", courtierCode: "" });
       setShowPassword(false);
     }
   }, [isEditing, state.info?.login]);
@@ -41,16 +43,18 @@ export function useCredentialCard({
 
   const handleSave = useCallback(async () => {
     if (!formData.login.trim() || !formData.password.trim()) return;
+    // For Entoria, courtierCode is required
+    if (platform === 'entoria' && !formData.courtierCode?.trim()) return;
     const success = await onSave(formData);
     if (success) {
       setIsEditing(false);
-      setFormData({ login: "", password: "" });
+      setFormData({ login: "", password: "", courtierCode: "" });
     }
-  }, [formData, onSave]);
+  }, [formData, onSave, platform]);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
-    setFormData({ login: state.info?.login || "", password: "" });
+    setFormData({ login: state.info?.login || "", password: "", courtierCode: "" });
     onResetTest();
   }, [state.info?.login, onResetTest]);
 

@@ -7,6 +7,9 @@ import { AlptisSanteProPlusFormFillStep } from "../platforms/alptis/steps/Alptis
 import { SwissLifeAuthStep } from "../platforms/swisslifeone/steps/SwissLifeAuthStep";
 import { SwissLifeNavigationStep } from "../platforms/swisslifeone/steps/SwissLifeNavigationStep";
 import { SwissLifeFormFillStep } from "../platforms/swisslifeone/steps/SwissLifeFormFillStep";
+import { EntoriaAuthStep } from "../platforms/entoria/steps/EntoriaAuthStep";
+import { EntoriaPackFamilleNavigationStep } from "../platforms/entoria/steps/EntoriaPackFamilleNavigationStep";
+import { EntoriaPackFamilleFormFillStep } from "../platforms/entoria/steps/EntoriaPackFamilleFormFillStep";
 
 /**
  * Registry for Step implementations
@@ -48,6 +51,11 @@ export class StepRegistry {
     this.register("SwissLifeAuthStep", new SwissLifeAuthStep());
     this.register("SwissLifeNavigationStep", new SwissLifeNavigationStep());
     this.register("SwissLifeFormFillStep", new SwissLifeFormFillStep());
+
+    // Entoria steps (Pack Famille)
+    this.register("EntoriaAuthStep", new EntoriaAuthStep());
+    this.register("EntoriaPackFamilleNavigationStep", new EntoriaPackFamilleNavigationStep());
+    this.register("EntoriaPackFamilleFormFillStep", new EntoriaPackFamilleFormFillStep());
   }
 
   /**

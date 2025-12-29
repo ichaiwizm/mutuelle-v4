@@ -283,11 +283,11 @@ export type Ipc = {
   };
 
   credentials: {
-    upsert: (p: { platform: "alptis" | "swisslife"; login: string; password: string }) => Promise<void>;
-    get: (platform: "alptis" | "swisslife") => Promise<{ platform: string; login: string; hasPassword: boolean } | null>;
+    upsert: (p: { platform: "alptis" | "swisslife" | "entoria"; login: string; password: string; courtierCode?: string }) => Promise<void>;
+    get: (platform: "alptis" | "swisslife" | "entoria") => Promise<{ platform: string; login: string; hasPassword: boolean; hasCourtierCode?: boolean } | null>;
     list: () => Promise<string[]>;
-    delete: (platform: "alptis" | "swisslife") => Promise<{ deleted: boolean }>;
-    test: (platform: "alptis" | "swisslife") => Promise<CredentialsTestFrontendResult>;
+    delete: (platform: "alptis" | "swisslife" | "entoria") => Promise<{ deleted: boolean }>;
+    test: (platform: "alptis" | "swisslife" | "entoria") => Promise<CredentialsTestFrontendResult>;
   };
 
   automation: {

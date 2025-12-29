@@ -54,6 +54,7 @@ export function LeadSelector({ onSelectLead }: LeadSelectorProps) {
   // Load leads and their devis counts
   useEffect(() => {
     async function loadLeads() {
+      console.log('[LEAD-SELECTOR] Loading leads...');
       setLoading(true);
       setError(null);
 
@@ -82,8 +83,10 @@ export function LeadSelector({ onSelectLead }: LeadSelectorProps) {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
 
+        console.log('[LEAD-SELECTOR] Loaded', leadsWithCounts.length, 'leads');
         setLeads(leadsWithCounts);
       } catch (err) {
+        console.log('[LEAD-SELECTOR] Error loading leads:', err);
         setError(err instanceof Error ? err : new Error("Échec du chargement"));
       } finally {
         setLoading(false);

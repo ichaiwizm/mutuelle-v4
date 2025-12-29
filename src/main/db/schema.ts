@@ -5,9 +5,10 @@ export const credentials = sqliteTable(
   "credentials",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    platform: text("platform").notNull(), // "alptis" | "swisslife"
+    platform: text("platform").notNull(), // "alptis" | "swisslife" | "entoria"
     login: text("login").notNull(),
     password: text("password").notNull(), // chiffré plus tard
+    courtierCode: text("courtier_code"), // nullable, only for entoria
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (t) => ({

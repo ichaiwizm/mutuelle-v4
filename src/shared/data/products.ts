@@ -18,7 +18,7 @@ export type StepInfo = {
 
 export type ProductInfo = {
   flowKey: string;
-  platform: "alptis" | "swisslife";
+  platform: "alptis" | "swisslife" | "entoria";
   product: string;
   displayName: string;
   description?: string;
@@ -271,12 +271,82 @@ export const PRODUCTS: ProductInfo[] = [
       tags: ["sante", "collectif", "famille"],
     },
   },
+  {
+    flowKey: "entoria_pack_famille",
+    platform: "entoria",
+    product: "pack_famille",
+    displayName: "Entoria Pack Famille",
+    description: "Tarification TNS Santé avec option famille",
+    category: "sante",
+    steps: [
+      {
+        id: "auth",
+        name: "Authentification",
+        description: "Connexion à la plateforme Entoria",
+        type: "auth",
+        required: true,
+        estimatedDuration: 5000,
+      },
+      {
+        id: "navigation",
+        name: "Navigation",
+        description: "Accès au formulaire TNS Santé",
+        type: "navigation",
+        required: true,
+        estimatedDuration: 3000,
+      },
+      {
+        id: "step1-profil",
+        name: "Profil",
+        description: "Étape 1 : Profil de l'entrepreneur",
+        type: "form-fill",
+        required: true,
+        estimatedDuration: 5000,
+      },
+      {
+        id: "step1-submit",
+        name: "Valider Profil",
+        description: "Cliquer sur CONTINUER",
+        type: "form-fill",
+        required: true,
+        estimatedDuration: 2000,
+      },
+      {
+        id: "step2-besoin",
+        name: "Besoin",
+        description: "Étape 2 : Recueil des besoins",
+        type: "form-fill",
+        required: true,
+        estimatedDuration: 2000,
+      },
+      {
+        id: "step2-submit",
+        name: "Valider Besoin",
+        description: "Cliquer sur suivant",
+        type: "form-fill",
+        required: true,
+        estimatedDuration: 2000,
+      },
+      {
+        id: "step3-garanties",
+        name: "Garanties",
+        description: "Étape 3 : Choix des garanties",
+        type: "form-fill",
+        required: true,
+        estimatedDuration: 5000,
+      },
+    ],
+    metadata: {
+      complexity: "simple",
+      tags: ["sante", "tns", "famille", "mutuelle", "entoria", "tarification"],
+    },
+  },
 ];
 
 export function getProductByFlowKey(flowKey: string): ProductInfo | undefined {
   return PRODUCTS.find((p) => p.flowKey === flowKey);
 }
 
-export function getProductsByPlatform(platform: "alptis" | "swisslife"): ProductInfo[] {
+export function getProductsByPlatform(platform: "alptis" | "swisslife" | "entoria"): ProductInfo[] {
   return PRODUCTS.filter((p) => p.platform === platform);
 }

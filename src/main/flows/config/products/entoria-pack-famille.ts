@@ -23,7 +23,7 @@ export const ENTORIA_PACK_FAMILLE: ProductConfiguration<PackFamilleFormData> = {
       required: true,
       method: 'login',
       stepClass: 'EntoriaAuthStep',
-      needsCredentials: true,
+      needsCredentials: false,
       needsLead: false,
       maxRetries: 2,
       estimatedDuration: 5000,

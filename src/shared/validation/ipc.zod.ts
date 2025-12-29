@@ -40,12 +40,13 @@ export const LeadsParseFromTextSchema = z.object({
 
 // ========== Credentials ==========
 
-const PlatformSchema = z.enum(["alptis", "swisslife"]);
+const PlatformSchema = z.enum(["alptis", "swisslife", "entoria"]);
 
 export const CredentialsUpsertSchema = z.object({
   platform: PlatformSchema,
   login: z.string().min(1, "Login is required"),
   password: z.string().min(1, "Password is required"),
+  courtierCode: z.string().optional(), // Only for Entoria
 });
 
 export const CredentialsGetSchema = z.object({

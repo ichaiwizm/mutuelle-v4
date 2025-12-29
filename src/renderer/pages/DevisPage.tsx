@@ -60,6 +60,8 @@ export function DevisPage() {
     handleUpdateNotes,
   } = useDevisPageState();
 
+  console.log('[DEVIS-PAGE] Render:', { selectedLeadId, loading, devisCount: devisByLead.length });
+
   // Get lead name for display
   const currentLeadName = devisByLead[0]?.leadName;
 
@@ -124,8 +126,10 @@ export function DevisPage() {
           </div>
         )}
 
-        {/* Lead not selected - show lead selector */}
-        {!selectedLeadId && <LeadSelector onSelectLead={setSelectedLeadId} />}
+        {/* Lead selector - kept mounted but hidden to avoid reload on "back" */}
+        <div className={selectedLeadId ? "hidden" : ""}>
+          <LeadSelector onSelectLead={setSelectedLeadId} />
+        </div>
 
         {/* Lead selected - show devis */}
         {selectedLeadId && (

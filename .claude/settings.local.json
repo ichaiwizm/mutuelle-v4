@@ -35,7 +35,13 @@
       "Bash(xargs dirname:*)",
       "Bash(wc:*)",
       "Bash(./node_modules/.bin/tsc:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(grep:*)",
+      "Bash(LEAD_INDEX=0 pnpm test:e2e:*)",
+      "WebFetch(domain:www.swisslifeone.fr)",
+      "WebFetch(domain:adfs.swisslife.fr)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

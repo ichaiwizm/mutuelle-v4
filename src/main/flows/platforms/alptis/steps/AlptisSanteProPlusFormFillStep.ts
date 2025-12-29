@@ -56,6 +56,14 @@ export class AlptisSanteProPlusFormFillStep extends BaseStep<SanteProPlusFormDat
         await formFiller.submit(page, context.logger);
         return; // Skip error check after submit (we're on a new page)
 
+      case "saveGaranties":
+        await formFiller.saveGaranties(page, context.logger);
+        break;
+
+      case "confirmSave":
+        await formFiller.confirmSave(page, context.logger);
+        break;
+
       default:
         throw new Error(`Unknown form fill method: ${method}`);
     }

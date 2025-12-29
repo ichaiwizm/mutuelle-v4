@@ -34,7 +34,7 @@ export function CredentialCard({
     handleDelete,
     handleTest,
     updateFormData,
-  } = useCredentialCard({ state, onSave, onDelete, onTest, onResetTest });
+  } = useCredentialCard({ platform, state, onSave, onDelete, onTest, onResetTest });
 
   if (loading) {
     return <LoadingState />;
@@ -107,6 +107,7 @@ export function CredentialCard({
         {/* Content */}
         {isEditing ? (
           <EditForm
+            platform={platform}
             formData={formData}
             updateFormData={updateFormData}
             saving={saving}

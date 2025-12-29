@@ -53,7 +53,7 @@ export class EntoriaAuth {
    */
   async waitForLoginFields(page: Page, logger?: FlowLogger): Promise<void> {
     logger?.debug('Waiting for login fields to be visible');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Attendre le formulaire de connexion avec le titre
     await page.getByRole('heading', { name: 'connectez-vous' }).waitFor({ state: 'visible', timeout: 10000 });
     logger?.debug('Login page loaded');
@@ -106,7 +106,7 @@ export class EntoriaAuth {
     );
 
     await submitBtn.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Attendre que la page soit bien redirigée après connexion
     await page.waitForTimeout(2000);

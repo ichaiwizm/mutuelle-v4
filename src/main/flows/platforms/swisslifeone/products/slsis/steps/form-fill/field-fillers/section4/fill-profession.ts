@@ -6,6 +6,7 @@ import type { AssurePrincipalData } from '../../../../transformers/types';
 
 /**
  * Fill "Profession" field for assure principal (Step 1, Section 4)
+ * Note: This field is optional and may not exist for certain regime social types
  */
 export async function fillProfession(
   frame: Frame,
@@ -18,7 +19,21 @@ export async function fillProfession(
 
   // Select by label (visible text) instead of by value
   const selectElement = frame.locator(SWISSLIFE_STEP1_SELECTORS.section4.profession_assure_principal.primary).first();
-  await selectElement.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Check if profession field exists in the DOM (not all regime types have this field)
+  const count = await selectElement.count();
+  if (count === 0) {
+    logger?.debug('Profession field not present in form - skipping (not required for this regime)');
+    return;
+  }
+
+  // Check if visible (may exist in DOM but be hidden)
+  const isVisible = await selectElement.isVisible().catch(() => false);
+  if (!isVisible) {
+    logger?.debug('Profession dropdown exists but not visible - skipping');
+    return;
+  }
+
   await selectElement.selectOption({ label });
   await frame.waitForTimeout(2000);
 

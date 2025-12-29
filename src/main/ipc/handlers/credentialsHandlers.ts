@@ -24,7 +24,12 @@ export function registerCredentialsHandlers() {
       const creds = await CredentialsService.getByPlatform(platform);
       // Don't return password to frontend - just confirm it exists
       if (!creds) return null;
-      return { platform: creds.platform, login: creds.login, hasPassword: true };
+      return {
+        platform: creds.platform,
+        login: creds.login,
+        hasPassword: true,
+        hasCourtierCode: !!creds.courtierCode,
+      };
     })
   );
 

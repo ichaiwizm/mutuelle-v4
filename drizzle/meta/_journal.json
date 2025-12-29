@@ -71,6 +71,13 @@
       "when": 1766954608118,
       "tag": "0009_daffy_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1766960985157,
+      "tag": "0010_friendly_nick_fury",
+      "breakpoints": true
     }
   ]
 }

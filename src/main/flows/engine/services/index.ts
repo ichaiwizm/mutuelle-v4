@@ -18,22 +18,27 @@ export { hasIframeSupport } from "./types";
 import { createAlptisServices, resetAlptisServices } from "./AlptisServiceFactory";
 import { createSanteProPlusServices, resetSanteProPlusServices } from "./SanteProPlusServiceFactory";
 import { createSwissLifeServices, resetSwissLifeServices } from "./SwissLifeServiceFactory";
+import { createEntoriaServices, resetEntoriaServices } from "./EntoriaServiceFactory";
 import { CredentialsService } from "../../../services/credentials";
 
 // Export pour les autres modules
 export { createAlptisServices, resetAlptisServices };
 export { createSanteProPlusServices, resetSanteProPlusServices };
 export { createSwissLifeServices, resetSwissLifeServices };
+export { createEntoriaServices, resetEntoriaServices };
 
 /**
  * Get platform name from flow key
  */
-function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" {
+function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" | "entoria" {
   if (flowKey.startsWith("alptis_")) {
     return "alptis";
   }
   if (flowKey.startsWith("swisslife_")) {
     return "swisslife";
+  }
+  if (flowKey.startsWith("entoria_")) {
+    return "entoria";
   }
   throw new Error(`Unknown platform for flow: ${flowKey}`);
 }
@@ -41,7 +46,7 @@ function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" {
 /**
  * Get credentials from environment variables (fallback for E2E tests)
  */
-function getCredentialsFromEnv(platform: "alptis" | "swisslife"): { login: string; password: string } | null {
+function getCredentialsFromEnv(platform: "alptis" | "swisslife" | "entoria"): { login: string; password: string; courtierCode?: string } | null {
   if (platform === "alptis") {
     // Try both ALPTIS_TEST_* (for tests) and ALPTIS_* (for production)
     const login = process.env.ALPTIS_TEST_USERNAME || process.env.ALPTIS_USERNAME;
@@ -54,6 +59,13 @@ function getCredentialsFromEnv(platform: "alptis" | "swisslife"): { login: strin
     const password = process.env.SWISSLIFE_TEST_PASSWORD || process.env.SWISSLIFE_PASSWORD;
     if (login && password) {
       return { login, password };
+    }
+  } else if (platform === "entoria") {
+    const login = process.env.ENTORIA_TEST_USERNAME || process.env.ENTORIA_USERNAME;
+    const password = process.env.ENTORIA_TEST_PASSWORD || process.env.ENTORIA_PASSWORD;
+    const courtierCode = process.env.ENTORIA_TEST_COURTIER_CODE || process.env.ENTORIA_COURTIER_CODE;
+    if (login && password && courtierCode) {
+      return { login, password, courtierCode };
     }
   }
   return null;
@@ -70,7 +82,7 @@ export async function getServicesForFlow(flowKey: string) {
   const platform = getPlatformFromFlowKey(flowKey);
   console.log(`[SERVICES] Platform detected: ${platform}`);
 
-  let credentials: { login: string; password: string } | null = null;
+  let credentials: { login: string; password: string; courtierCode?: string } | null = null;
 
   // Try database first
   console.log(`[SERVICES] Loading credentials from database...`);
@@ -124,6 +136,23 @@ export async function getServicesForFlow(flowKey: string) {
     return services;
   }
 
+  if (platform === "entoria") {
+    // Entoria requires courtierCode
+    if (!credentials.courtierCode) {
+      throw new Error(
+        `Entoria credentials require a courtier code. Please configure it in the app settings or set ENTORIA_COURTIER_CODE environment variable.`
+      );
+    }
+    console.log(`[SERVICES] Creating Entoria services...`);
+    const services = createEntoriaServices({
+      username: credentials.login,
+      password: credentials.password,
+      courtierCode: credentials.courtierCode,
+    });
+    console.log(`[SERVICES] Entoria services created in ${Date.now() - startTime}ms total`);
+    return services;
+  }
+
   // swisslifeone
   console.log(`[SERVICES] Creating SwissLife services...`);
   const services = createSwissLifeServices({
@@ -141,4 +170,5 @@ export function resetAllServices(): void {
   resetAlptisServices();
   resetSanteProPlusServices();
   resetSwissLifeServices();
+  resetEntoriaServices();
 }

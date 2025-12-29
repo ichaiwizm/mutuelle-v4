@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { DevisWithLead, DevisStatsResult } from "@/shared/ipc/contracts";
 import type { DevisFilters } from "@/shared/types/devis";
@@ -53,10 +53,11 @@ interface UseDevisPageStateResult {
  */
 export function useDevisPageState(): UseDevisPageStateResult {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialLeadId = searchParams.get("leadId");
 
-  // Lead selection
-  const [selectedLeadId, setSelectedLeadIdState] = useState<string | null>(initialLeadId);
+  // Lead selection - URL is the single source of truth (no state sync needed)
+  const selectedLeadId = searchParams.get("leadId");
+
+  console.log('[DEVIS-STATE] Render with leadId from URL:', selectedLeadId);
 
   // Filters
   const [filters, setFilters] = useState<DevisFilters>({});
@@ -84,40 +85,46 @@ export function useDevisPageState(): UseDevisPageStateResult {
     duplicateDevis,
     updateDevis,
     clearError,
+    clearDevisByLead,
   } = useDevis();
 
-  // Set lead ID and update URL
+  // Set lead ID by updating URL (URL is source of truth)
   const setSelectedLeadId = useCallback(
     (id: string | null) => {
-      setSelectedLeadIdState(id);
+      console.log('[DEVIS-STATE] setSelectedLeadId called:', id);
       if (id) {
         setSearchParams({ leadId: id });
       } else {
+        // Clear devis data when going back to avoid stale data flash
+        clearDevisByLead();
         setSearchParams({});
       }
     },
-    [setSearchParams]
+    [setSearchParams, clearDevisByLead]
   );
 
-  // Load devis when lead is selected
+  // Track last fetched lead to avoid duplicate fetches
+  const lastFetchedLeadRef = useRef<string | null>(null);
+
+  // Load devis when lead is selected (avoid duplicate fetches for same lead)
   useEffect(() => {
-    if (selectedLeadId) {
+    console.log('[DEVIS-STATE] useEffect[selectedLeadId]: changed to:', selectedLeadId, '| last fetched:', lastFetchedLeadRef.current);
+    if (selectedLeadId && selectedLeadId !== lastFetchedLeadRef.current) {
+      lastFetchedLeadRef.current = selectedLeadId;
       fetchDevisByLead(selectedLeadId).catch(console.error);
+    } else if (!selectedLeadId) {
+      lastFetchedLeadRef.current = null;
     }
   }, [selectedLeadId, fetchDevisByLead]);
 
-  // Load stats on mount
+  // Load stats on mount only (not on every navigation)
   useEffect(() => {
+    console.log('[DEVIS-STATE] useEffect[mount]: fetching stats...');
     fetchStats().catch(console.error);
-  }, [fetchStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Handle URL changes
-  useEffect(() => {
-    const leadId = searchParams.get("leadId");
-    if (leadId !== selectedLeadId) {
-      setSelectedLeadIdState(leadId);
-    }
-  }, [searchParams, selectedLeadId]);
+  // NOTE: No URL sync useEffect needed - URL is the single source of truth
 
   // Open detail SlideOver
   const openDetail = useCallback((devis: DevisWithLead) => {

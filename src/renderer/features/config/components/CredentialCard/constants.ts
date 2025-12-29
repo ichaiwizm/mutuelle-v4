@@ -18,4 +18,12 @@ export const PLATFORM_CONFIG: Record<Platform, PlatformConfig> = {
     accentBorder: "border-rose-500/30",
     icon: "🔴",
   },
+  entoria: {
+    name: "Entoria",
+    description: "Espace courtier Entoria",
+    accentColor: "text-blue-400",
+    accentBg: "bg-blue-500/10",
+    accentBorder: "border-blue-500/30",
+    icon: "🔷",
+  },
 };
