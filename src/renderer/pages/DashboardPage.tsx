@@ -9,6 +9,7 @@ import {
   RecentRunsCard,
   ActiveProductsCard,
   RunDetailsModal,
+  DevisWidget,
 } from '@/renderer/features/dashboard/components'
 import { RunConfirmDialog } from '@/renderer/features/automation/components'
 import { SetupChecklist } from '@/renderer/features/onboarding'
@@ -91,6 +92,13 @@ export function DashboardPage() {
           activeCount={data.products.activeCount}
         />
       </div>
+
+      <DevisWidget
+        total={data.devis.total}
+        pending={data.devis.pending}
+        completed={data.devis.completed}
+        failed={data.devis.failed}
+      />
 
       <RunDetailsModal runId={actions.viewingRunId} onClose={actions.handleCloseModal} />
 

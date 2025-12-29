@@ -86,4 +86,16 @@ export const IPC_CHANNEL = {
 
   // App
   APP_GET_VERSION: "app:getVersion",
+
+  // Devis (quotes)
+  DEVIS_LIST: "devis:list",
+  DEVIS_LIST_BY_LEAD: "devis:listByLead",
+  DEVIS_GET: "devis:get",
+  DEVIS_CREATE: "devis:create",
+  DEVIS_UPDATE: "devis:update",
+  DEVIS_DELETE: "devis:delete",
+  DEVIS_EXPORT_PDF: "devis:exportPdf",
+  DEVIS_DUPLICATE: "devis:duplicate",
+  DEVIS_COUNT_BY_LEAD: "devis:countByLead",
+  DEVIS_STATS: "devis:stats",
 } as const;

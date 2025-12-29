@@ -22,9 +22,11 @@ export class SwissLifeOneAuth {
   async navigateToLogin(page: Page, logger?: FlowLogger): Promise<void> {
     logger?.debug('Navigating to SwissLife One login page', { url: SwissLifeOneUrls.login });
     await page.goto(SwissLifeOneUrls.login, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: SwissLifeOneTimeouts.navigationIdle,
     });
+    // Wait for page to settle (SwissLife has heavy JS that may not reach networkidle)
+    await page.waitForTimeout(3000);
   }
 
   async clickSeConnecter(page: Page, logger?: FlowLogger): Promise<void> {
@@ -77,12 +79,15 @@ export class SwissLifeOneAuth {
       name: SwissLifeOneAuthSelectors.submitText,
     });
     await submitButton.click();
+    // Wait for navigation to start after ADFS form submission
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+    await page.waitForTimeout(2000); // Stabilization delay
   }
 
   async waitForDashboard(page: Page, logger?: FlowLogger): Promise<void> {
     logger?.debug('Waiting for dashboard to load');
     await page.waitForURL(/\/accueil/, {
-      timeout: SwissLifeOneTimeouts.dashboardLoad,
+      timeout: 30000, // Increased timeout for ADFS redirect chain
     });
     await page.waitForLoadState('networkidle', {
       timeout: SwissLifeOneTimeouts.navigationIdle,

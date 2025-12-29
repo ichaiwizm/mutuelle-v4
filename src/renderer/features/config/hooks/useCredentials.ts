@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CredentialsTestFrontendResult } from '@/shared/ipc/contracts'
 
-export type Platform = 'alptis' | 'swisslife'
+export type Platform = 'alptis' | 'swisslife' | 'entoria'
 
 export type CredentialInfo = {
   platform: Platform
   login: string
   hasPassword: boolean
+  hasCourtierCode?: boolean // Only for Entoria
 }
 
 export type CredentialFormData = {
   login: string
   password: string
+  courtierCode?: string // Only for Entoria
 }
 
 export type TestStatus = 'idle' | 'testing' | 'success' | 'error'
@@ -24,12 +26,13 @@ export type PlatformState = {
   testError?: string
 }
 
-const PLATFORMS: Platform[] = ['alptis', 'swisslife']
+const PLATFORMS: Platform[] = ['alptis', 'swisslife', 'entoria']
 
 export function useCredentials() {
   const [states, setStates] = useState<Record<Platform, PlatformState>>({
     alptis: { info: null, loading: true, saving: false, testStatus: 'idle' },
     swisslife: { info: null, loading: true, saving: false, testStatus: 'idle' },
+    entoria: { info: null, loading: true, saving: false, testStatus: 'idle' },
   })
 
   const updatePlatformState = useCallback(
@@ -75,6 +78,7 @@ export function useCredentials() {
           platform,
           login: data.login,
           password: data.password,
+          courtierCode: data.courtierCode, // Only for Entoria
         })
         await fetchCredential(platform)
         updatePlatformState(platform, { saving: false })

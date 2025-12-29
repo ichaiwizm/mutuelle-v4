@@ -41,8 +41,8 @@ export function getSwissLifeOneEnvironmentBehaviors(env?: Environment): Environm
 }
 
 export const SwissLifeOneTimeouts = {
-  redirections: 10000,
-  dashboardLoad: 15000,
+  redirections: 20000,
+  dashboardLoad: 30000,
   navigationIdle: 30000,
   iframeAppear: 60000,
   iframeLoad: 45000,

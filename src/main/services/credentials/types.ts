@@ -2,6 +2,7 @@ export type PlatformCredentials = {
   platform: string;
   login: string;
   password: string;
+  courtierCode?: string; // Only for Entoria
 };
 
 export type CredentialsTestResult =

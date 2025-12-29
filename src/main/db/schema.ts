@@ -5,9 +5,10 @@ export const credentials = sqliteTable(
   "credentials",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    platform: text("platform").notNull(), // "alptis" | "swisslife"
+    platform: text("platform").notNull(), // "alptis" | "swisslife" | "entoria"
     login: text("login").notNull(),
     password: text("password").notNull(), // chiffré plus tard
+    courtierCode: text("courtier_code"), // nullable, only for entoria
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (t) => ({
@@ -115,4 +116,27 @@ export const productAutomationSettings = sqliteTable(
     autoSubmit: integer("auto_submit", { mode: "boolean" }).notNull().default(true), // true = submit automatically, false = stop before submission
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   }
+);
+
+// Devis (quotes) - stores quote data retrieved per product for each lead
+export const devis = sqliteTable(
+  "devis",
+  {
+    id: text("id").primaryKey(),
+    leadId: text("lead_id").notNull().references(() => leads.id, { onDelete: "cascade" }),
+    flowKey: text("flow_key").notNull().references(() => flows.key, { onDelete: "restrict" }),
+    status: text("status").notNull(), // "pending" | "completed" | "failed" | "expired"
+    data: text("data"),               // JSON: DevisData (flexible per product)
+    pdfPath: text("pdf_path"),        // Path to PDF in userData/devis/
+    errorMessage: text("error_message"),
+    notes: text("notes"),             // User notes/comments
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+  },
+  (t) => ({
+    leadIdIdx: index("devis_lead_id_idx").on(t.leadId),
+    flowKeyIdx: index("devis_flow_key_idx").on(t.flowKey),
+    statusIdx: index("devis_status_idx").on(t.status),
+  })
 );

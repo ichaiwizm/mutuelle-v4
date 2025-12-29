@@ -9,6 +9,12 @@ import type {
 } from "@/shared/types/product";
 import type { AutomationProgressEvent } from "@/shared/types/step-progress";
 import type { AutomationSettings, AutomationSettingsInput } from "@/shared/types/automation";
+import type {
+  Devis,
+  DevisFilters,
+  CreateDevisInput,
+  UpdateDevisInput,
+} from "@/shared/types/devis";
 
 // ========== Mail ==========
 
@@ -162,6 +168,52 @@ export type UpdateStatus =
   | { state: "not-available" }
   | { state: "error"; message: string };
 
+// ========== Devis ==========
+
+export type DevisRow = {
+  id: string;
+  leadId: string;
+  flowKey: string;
+  status: string;
+  data: string | null;
+  pdfPath: string | null;
+  errorMessage: string | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  expiresAt: Date | null;
+};
+
+export type DevisWithLead = Devis & {
+  leadName?: string;
+  productName?: string;
+};
+
+export type DevisListResult = {
+  devis: DevisRow[];
+  total: number;
+};
+
+export type DevisListByLeadResult = {
+  devis: DevisWithLead[];
+};
+
+export type DevisExportPdfResult = {
+  success: boolean;
+  exportedPath?: string;
+};
+
+export type DevisCountByLeadResult = Record<string, number>;
+
+export type DevisStatsResult = {
+  total: number;
+  pending: number;
+  completed: number;
+  failed: number;
+  expired: number;
+  recent: DevisWithLead[];
+};
+
 // ========== Dashboard ==========
 
 export type DashboardOverview = {
@@ -184,6 +236,12 @@ export type DashboardOverview = {
   };
   credentials: {
     configuredCount: number;
+  };
+  devis: {
+    total: number;
+    pending: number;
+    completed: number;
+    failed: number;
   };
 };
 
@@ -225,11 +283,11 @@ export type Ipc = {
   };
 
   credentials: {
-    upsert: (p: { platform: "alptis" | "swisslife"; login: string; password: string }) => Promise<void>;
-    get: (platform: "alptis" | "swisslife") => Promise<{ platform: string; login: string; hasPassword: boolean } | null>;
+    upsert: (p: { platform: "alptis" | "swisslife" | "entoria"; login: string; password: string; courtierCode?: string }) => Promise<void>;
+    get: (platform: "alptis" | "swisslife" | "entoria") => Promise<{ platform: string; login: string; hasPassword: boolean; hasCourtierCode?: boolean } | null>;
     list: () => Promise<string[]>;
-    delete: (platform: "alptis" | "swisslife") => Promise<{ deleted: boolean }>;
-    test: (platform: "alptis" | "swisslife") => Promise<CredentialsTestFrontendResult>;
+    delete: (platform: "alptis" | "swisslife" | "entoria") => Promise<{ deleted: boolean }>;
+    test: (platform: "alptis" | "swisslife" | "entoria") => Promise<CredentialsTestFrontendResult>;
   };
 
   automation: {
@@ -296,5 +354,22 @@ export type Ipc = {
 
   app: {
     getVersion: () => Promise<AppVersionResult>;
+  };
+
+  devis: {
+    list: (options?: {
+      limit?: number;
+      offset?: number;
+      filters?: DevisFilters;
+    }) => Promise<DevisListResult>;
+    listByLead: (leadId: string) => Promise<DevisListByLeadResult>;
+    get: (id: string) => Promise<Devis | null>;
+    create: (input: CreateDevisInput) => Promise<{ id: string }>;
+    update: (id: string, data: UpdateDevisInput) => Promise<{ updated: boolean }>;
+    delete: (id: string) => Promise<{ deleted: boolean }>;
+    exportPdf: (id: string) => Promise<DevisExportPdfResult>;
+    duplicate: (id: string) => Promise<{ id: string }>;
+    countByLead: (leadIds: string[]) => Promise<DevisCountByLeadResult>;
+    stats: () => Promise<DevisStatsResult>;
   };
 };

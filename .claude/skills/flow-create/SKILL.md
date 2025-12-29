@@ -1,6 +1,6 @@
 ---
 name: flow-create
-description: Creer un nouveau flow d'automatisation de formulaire complet, incluant exploration du site web, implementation et tests.
+description: Creer un nouveau flow d'automatisation de formulaire complet, incluant exploration du site web, implementation et tests. (project)
 ---
 
 # flow-create

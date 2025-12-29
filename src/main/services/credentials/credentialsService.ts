@@ -1,7 +1,7 @@
 import { db, schema } from "@/main/db";
 import { eq } from "drizzle-orm";
 import { encryptValue, decryptValue, isEncrypted } from "./encryption";
-import { testAlptisCredentials, testSwissLifeOneCredentials } from "./testers";
+import { testAlptisCredentials, testSwissLifeOneCredentials, testEntoriaCredentials } from "./testers";
 import type { PlatformCredentials, CredentialsTestResult } from "./types";
 import { logger } from "@/main/services/logger";
 
@@ -10,10 +10,11 @@ export const CredentialsService = {
    * Insert or update credentials for a platform.
    * Credentials are automatically encrypted before storage.
    */
-  async upsert(p: { platform: string; login: string; password: string }) {
+  async upsert(p: { platform: string; login: string; password: string; courtierCode?: string }) {
     const now = new Date();
     const encryptedLogin = encryptValue(p.login);
     const encryptedPassword = encryptValue(p.password);
+    const encryptedCourtierCode = p.courtierCode ? encryptValue(p.courtierCode) : null;
 
     const existing = await db
       .select({ id: schema.credentials.id })
@@ -26,6 +27,7 @@ export const CredentialsService = {
         .set({
           login: encryptedLogin,
           password: encryptedPassword,
+          courtierCode: encryptedCourtierCode,
           updatedAt: now,
         })
         .where(eq(schema.credentials.id, existing[0].id));
@@ -34,6 +36,7 @@ export const CredentialsService = {
         platform: p.platform,
         login: encryptedLogin,
         password: encryptedPassword,
+        courtierCode: encryptedCourtierCode,
         updatedAt: now,
       });
     }
@@ -60,11 +63,15 @@ export const CredentialsService = {
 
     const row = rows[0];
     try {
-      const result = {
+      const result: PlatformCredentials = {
         platform: row.platform,
         login: decryptValue(row.login),
         password: decryptValue(row.password),
       };
+      // Decrypt courtierCode if present (only for Entoria)
+      if (row.courtierCode) {
+        result.courtierCode = decryptValue(row.courtierCode);
+      }
       return result;
     } catch (error) {
       logger.error("Failed to decrypt credentials - master key mismatch or corrupted data. Deleting credentials so user can re-enter them.", {
@@ -147,11 +154,13 @@ export const CredentialsService = {
       case "swisslifeone":
       case "swisslife":
         return testSwissLifeOneCredentials(creds);
+      case "entoria":
+        return testEntoriaCredentials(creds);
       default:
         return {
           ok: false as const,
           error: "UNKNOWN_PLATFORM" as const,
-          message: `Unknown platform: ${platform}. Supported: alptis, swisslifeone`,
+          message: `Unknown platform: ${platform}. Supported: alptis, swisslifeone, entoria`,
         };
     }
   },

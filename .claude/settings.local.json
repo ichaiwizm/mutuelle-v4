@@ -27,7 +27,21 @@
       "Bash(timeout 20 pnpm dev:*)",
       "Bash(LEAD_INDEX=0 npx playwright test:*)",
       "Bash(pnpm rebuild:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Skill(flow-create)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(xargs ls:*)",
+      "Bash(xargs dirname:*)",
+      "Bash(wc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(grep:*)",
+      "Bash(LEAD_INDEX=0 pnpm test:e2e:*)",
+      "WebFetch(domain:www.swisslifeone.fr)",
+      "WebFetch(domain:adfs.swisslife.fr)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

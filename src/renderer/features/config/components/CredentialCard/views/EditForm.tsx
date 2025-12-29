@@ -2,9 +2,10 @@ import { Eye, EyeOff, Loader2, Check, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/renderer/components/ui/Input";
 import { Button } from "@/renderer/components/ui/Button";
-import type { CredentialFormData } from "../../../hooks/useCredentials";
+import type { Platform, CredentialFormData } from "../../../hooks/useCredentials";
 
 interface EditFormProps {
+  platform: Platform;
   formData: CredentialFormData;
   updateFormData: (field: keyof CredentialFormData, value: string) => void;
   saving: boolean;
@@ -16,6 +17,7 @@ interface EditFormProps {
 }
 
 export function EditForm({
+  platform,
   formData,
   updateFormData,
   saving,
@@ -25,8 +27,32 @@ export function EditForm({
   handleSave,
   handleCancel,
 }: EditFormProps) {
+  const isEntoria = platform === "entoria";
+  const isSaveDisabled =
+    saving ||
+    !formData.login.trim() ||
+    !formData.password.trim() ||
+    (isEntoria && !formData.courtierCode?.trim());
+
   return (
     <div className="space-y-4">
+      {/* Code Courtier Field - Only for Entoria */}
+      {isEntoria && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-[var(--color-text-secondary)]">
+            Code Courtier
+          </label>
+          <Input
+            type="text"
+            placeholder="Votre code courtier"
+            value={formData.courtierCode || ""}
+            onChange={(e) => updateFormData("courtierCode", e.target.value)}
+            disabled={saving}
+            className="bg-[var(--color-surface)]"
+          />
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Login Field */}
         <div className="space-y-2">
@@ -88,7 +114,7 @@ export function EditForm({
             variant="primary"
             size="sm"
             onClick={handleSave}
-            disabled={saving || !formData.login.trim() || !formData.password.trim()}
+            disabled={isSaveDisabled}
           >
             {saving ? (
               <>

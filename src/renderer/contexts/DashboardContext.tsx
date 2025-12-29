@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import type { DashboardOverview } from '@/shared/ipc/contracts'
 
 interface DashboardContextValue {
@@ -14,36 +15,35 @@ export function DashboardProvider({ children, pollInterval = 30000 }: { children
   const [data, setData] = useState<DashboardOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const location = useLocation()
 
   const fetchData = useCallback(async () => {
     try {
-      // Debug: Check if preload API is available
       if (!window.api) {
-        console.error('[DASHBOARD] window.api is undefined - preload script not loaded!')
         throw new Error('API not available - preload script failed to load')
       }
       if (!window.api.dashboard) {
-        console.error('[DASHBOARD] window.api.dashboard is undefined')
         throw new Error('Dashboard API not available')
       }
-      console.log('[DASHBOARD] Fetching dashboard overview...')
       const result = await window.api.dashboard.overview()
-      console.log('[DASHBOARD] Got result:', result ? 'data received' : 'null')
       setData(result)
       setError(null)
     } catch (err) {
-      console.error('[DASHBOARD] Error fetching data:', err)
       setError(err instanceof Error ? err : new Error('Failed to fetch dashboard'))
     } finally {
       setLoading(false)
     }
   }, [])
 
+  // Only poll when on dashboard page
+  const isOnDashboard = location.pathname === '/'
+
   useEffect(() => {
     fetchData()
+    if (!isOnDashboard) return // Don't poll when not on dashboard
     const interval = setInterval(fetchData, pollInterval)
     return () => clearInterval(interval)
-  }, [fetchData, pollInterval])
+  }, [fetchData, pollInterval, isOnDashboard])
 
   return (
     <DashboardContext.Provider value={{ data, loading, error, refetch: fetchData }}>
