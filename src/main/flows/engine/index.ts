@@ -1,15 +1,15 @@
 /**
  * Flow Engine - Main exports
+ *
+ * This module provides the YAML-based flow execution engine.
+ * Old step-based flow engine (FlowEngine, StepRegistry, BaseStep) has been removed
+ * in favor of the YAML engine adapter.
  */
 
-export { FlowEngine } from "./FlowEngine";
-export { StepRegistry } from "./StepRegistry";
-export { BaseStep } from "./BaseStep";
 export { FlowLogger } from "./FlowLogger";
 
 // Types
 export type {
-  IStep,
   ExecutionContext,
   StepResult,
   FlowExecutionConfig,
@@ -24,8 +24,7 @@ export type {
 
 export type { LogLevel, LogEntry } from "./FlowLogger";
 
-// Core utilities
-export { executeStepWithRetry, evaluateConditional, captureScreenshot } from "./core";
+// Core utilities (moved to packages/engine)
 
 // Hooks
 export { HooksManager } from "./hooks";
@@ -42,3 +41,11 @@ export type {
   WorkerStatus,
   FlowPoolEvents,
 } from "./pool";
+
+// YAML Engine Adapter (loads flows from DB)
+export { YamlEngineAdapter, yamlEngineAdapter } from "./yaml-engine-adapter";
+export type { ExecuteOptions, LoadedFlow } from "./yaml-engine-adapter";
+export { FlowLoader, flowLoader } from "./flow-loader";
+export type { CachedFlow } from "./flow-loader";
+export { CredentialAdapter, credentialAdapter } from "./credential-adapter";
+export type { CredentialAdapterOptions } from "./credential-adapter";

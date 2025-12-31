@@ -1,0 +1,311 @@
+# Auto-generated flow definition
+# Generator: @mutuelle/fdk
+# Version: 1.0.0
+# Exported: 2025-12-31T02:17:13.715Z
+# Checksum: aa368457e71128747a90247a89ae355d029c6bb628eca4db2c164ba128445ae0
+# Flow: Alptis Sante Select v1.0.0
+metadata:
+  name: "Alptis Sante Select"
+  version: "1.0.0"
+  description: "Devis automatisation for Alptis Sante Select product"
+  platform: "alptis"
+  product: "sante_select"
+  formUrl: "https://pro.alptis.org/sante-select/informations-projet/"
+  stepOrder:
+    - "alptis-auth"
+    - "alptis-navigation"
+    - "alptis-mise-en-place"
+    - "alptis-adherent"
+    - "alptis-conjoint"
+    - "alptis-enfants"
+    - "alptis-submit"
+    - "alptis-save-garanties"
+    - "alptis-confirm-save"
+steps:
+  - id: "alptis-auth"
+    name: "Authentication Alptis"
+    type: "auth"
+    description: "Login to Alptis partner portal"
+    timeout: 60000
+    retry:
+      attempts: 3
+      delayMs: 1000
+    credentials:
+      username:
+        id: "username"
+        type: "text"
+        selector: "#username"
+        source: "{{credentials.username}}"
+        label: "Username"
+      password:
+        id: "password"
+        type: "password"
+        selector: "#password"
+        source: "{{credentials.password}}"
+        label: "Password"
+    submitSelector: "button[type=\"submit\"]"
+    successIndicator: ".dashboard-container"
+  - id: "alptis-navigation"
+    name: "Navigation to Form"
+    type: "navigation"
+    description: "Navigate to Alptis Sante Select form page"
+    timeout: 60000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "goto"
+        url: "https://pro.alptis.org/sante-select/informations-projet/"
+        timeout: 60000
+        waitUntil: "networkidle"
+      - type: "waitFor"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        timeout: 10000
+        state: "visible"
+  - id: "alptis-mise-en-place"
+    name: "Mise en place du contrat"
+    type: "form-fill"
+    description: "Section 1: Contract setup fields"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "remplacement_contrat"
+        type: "checkbox"
+        selector: "[class*='totem-toggle__input']"
+        source: "{{lead.mise_en_place.remplacement_contrat}}"
+        optional: true
+        label: "Remplacement contrat"
+      - id: "demande_resiliation"
+        type: "radio"
+        selector: "input[name*='form-radio']"
+        source: "{{lead.mise_en_place.demande_resiliation}}"
+        optional: true
+        label: "Demande resiliation"
+      - id: "date_effet"
+        type: "date"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        source: "{{lead.mise_en_place.date_effet}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation:
+          - type: "required"
+            message: "Date effet requise"
+          - type: "date"
+            message: "Format invalide"
+        waitFor: true
+        label: "Date effet"
+    beforeFill:
+      - type: "waitFor"
+        selector: "[class*='totem-toggle__input']"
+        timeout: 10000
+        state: "visible"
+  - id: "alptis-adherent"
+    name: "Informations Adherent"
+    type: "form-fill"
+    description: "Section 2: Subscriber information fields (8 fields)"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "civilite"
+        type: "radio"
+        selector: "input[name*='form-radio']"
+        source: "{{lead.adherent.civilite}}"
+        label: "Civilite"
+      - id: "nom"
+        type: "text"
+        selector: "#nom"
+        source: "{{lead.adherent.nom}}"
+        validation:
+          - type: "required"
+            message: "Nom requis"
+        label: "Nom"
+      - id: "prenom"
+        type: "text"
+        selector: "#prenom"
+        source: "{{lead.adherent.prenom}}"
+        validation:
+          - type: "required"
+            message: "Prenom requis"
+        label: "Prenom"
+      - id: "date_naissance"
+        type: "date"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        source: "{{lead.adherent.date_naissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation: &a1
+          - type: "required"
+            message: "Date de naissance requise"
+          - type: "date"
+            message: "Format invalide"
+        waitFor: true
+        label: "Date de naissance"
+      - id: "categorie_socioprofessionnelle"
+        type: "select"
+        selector: "#categories-socio-professionnelles-adherent"
+        source: "{{lead.adherent.categorie_socioprofessionnelle}}"
+        label: "Categorie socioprofessionnelle"
+      - id: "cadre_exercice"
+        type: "radio"
+        selector: "input[name*='form-radio']"
+        source: "{{lead.adherent.cadre_exercice}}"
+        optional: true
+        label: "Cadre exercice"
+      - id: "regime_obligatoire"
+        type: "select"
+        selector: "#regime-obligatoire-adherent"
+        source: "{{lead.adherent.regime_obligatoire}}"
+        label: "Regime obligatoire"
+      - id: "code_postal"
+        type: "text"
+        selector: "input#codePostal"
+        source: "{{lead.adherent.code_postal}}"
+        validation:
+          - type: "required"
+            message: "Code postal requis"
+          - type: "pattern"
+            value: "^[0-9]{5}$"
+            message: "Code postal invalide"
+        label: "Code postal"
+  - id: "alptis-conjoint"
+    name: "Informations Conjoint"
+    type: "form-fill"
+    description: "Section 3: Spouse information fields (conditional)"
+    condition:
+      expression: "{{lead.conjoint}} !== undefined"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "date_naissance"
+        type: "date"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        source: "{{lead.conjoint.date_naissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation: *a1
+        waitFor: true
+        label: "Date de naissance conjoint"
+      - id: "categorie_socioprofessionnelle"
+        type: "select"
+        selector: "#categories-socio-professionnelles-conjoint"
+        source: "{{lead.conjoint.categorie_socioprofessionnelle}}"
+        label: "Categorie socioprofessionnelle conjoint"
+      - id: "cadre_exercice"
+        type: "select"
+        selector: "#cadre-exercice-conjoint"
+        source: "{{lead.conjoint.cadre_exercice}}"
+        optional: true
+        label: "Cadre exercice conjoint"
+      - id: "regime_obligatoire"
+        type: "select"
+        selector: "#regime-obligatoire-conjoint"
+        source: "{{lead.conjoint.regime_obligatoire}}"
+        label: "Regime obligatoire conjoint"
+    beforeFill:
+      - type: "click"
+        selector: "[class*='totem-toggle__input']"
+        waitBefore: 500
+      - type: "waitFor"
+        selector: "#categories-socio-professionnelles-conjoint"
+        timeout: 5000
+        state: "visible"
+  - id: "alptis-enfants"
+    name: "Informations Enfants"
+    type: "form-fill"
+    description: "Section 4: Children information fields (repeat)"
+    condition:
+      expression: "{{lead.enfants.length}} > 0"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "date_naissance"
+        type: "date"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        source: "{{item.date_naissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation: *a1
+        waitFor: true
+        label: "Date de naissance enfant"
+      - id: "regime_obligatoire"
+        type: "select"
+        selector: "#regime-obligatoire-enfant"
+        source: "{{item.regime_obligatoire}}"
+        label: "Regime obligatoire enfant"
+    beforeFill:
+      - type: "click"
+        selector: "[class*='totem-toggle__input']"
+        waitBefore: 500
+      - type: "waitFor"
+        selector: "input[placeholder='Ex : 01/01/2020']"
+        timeout: 5000
+        state: "visible"
+  - id: "alptis-submit"
+    name: "Submit Form"
+    type: "navigation"
+    description: "Click Garanties button to proceed to step 2"
+    timeout: 45000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "click"
+        selector: "Garanties"
+        timeout: 10000
+        waitBefore: 500
+      - type: "waitForNavigation"
+        timeout: 60000
+        waitUntil: "networkidle"
+  - id: "alptis-save-garanties"
+    name: "Save Garanties"
+    type: "navigation"
+    description: "Click Enregistrer on Garanties page"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "click"
+        selector: "Enregistrer"
+        timeout: 10000
+        waitBefore: 1000
+      - type: "waitFor"
+        selector: "Enregistrer et continuer"
+        timeout: 5000
+        state: "visible"
+  - id: "alptis-confirm-save"
+    name: "Confirm Save"
+    type: "navigation"
+    description: "Click Enregistrer et continuer in confirmation modal"
+    timeout: 45000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "click"
+        selector: "Enregistrer et continuer"
+        timeout: 10000
+        waitBefore: 500
+      - type: "waitForNavigation"
+        timeout: 45000
+        waitUntil: "networkidle"

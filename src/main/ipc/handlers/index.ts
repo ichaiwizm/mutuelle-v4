@@ -9,7 +9,7 @@ export { registerFlowsHandlers } from "./flowsHandlers";
 export { registerFixturesHandlers } from "./fixturesHandlers";
 export { registerShellHandlers } from "./shellHandlers";
 export { registerAutomationSettingsHandlers } from "./automationSettingsHandlers";
-export { registerDataHandlers } from "./dataHandlers";
+export { registerDataHandlers } from "./dataHandlers/index";
 export { registerAppHandlers } from "./appHandlers";
 export { registerDevisHandlers } from "./devisHandlers";
 

@@ -1,4 +1,4 @@
-import type { Browser, BrowserContext, LaunchOptions } from "playwright-extra";
+import type { Browser, BrowserContext, LaunchOptions } from "playwright";
 
 /** Options for creating a browser context */
 export type CreateContextOptions = {

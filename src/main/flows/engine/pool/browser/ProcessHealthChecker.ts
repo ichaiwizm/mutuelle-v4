@@ -1,4 +1,4 @@
-import type { Browser, BrowserContext } from "playwright-extra";
+import type { Browser, BrowserContext } from "playwright";
 import { HEALTH_CHECK_TIMEOUT_MS, CLOSE_TIMEOUT_MS } from "./types";
 
 /**
@@ -57,7 +57,8 @@ export class ProcessHealthChecker {
     } catch {
       console.warn(`[BROWSER_MANAGER] Normal close failed, killing ${label} browser process...`);
       try {
-        const proc = browser.process();
+        // @ts-expect-error - process() exists on Playwright Browser but may not be in type definitions
+        const proc = browser.process?.();
         if (proc) {
           proc.kill("SIGKILL");
           console.log(`[BROWSER_MANAGER] ${label} browser process killed`);
@@ -75,7 +76,8 @@ export class ProcessHealthChecker {
    */
   logBrowserPid(browser: Browser, label: string): void {
     try {
-      const proc = browser.process?.();
+      // @ts-expect-error - process() exists on Playwright Browser but may not be in type definitions
+      const proc = browser.process?.() as { pid?: number } | undefined;
       if (proc?.pid) {
         console.log(`[BROWSER_MANAGER] ${label} browser PID: ${proc.pid}`);
       } else {

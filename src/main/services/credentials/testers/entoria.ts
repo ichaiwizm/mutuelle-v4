@@ -1,133 +1,66 @@
-import { chromium } from "playwright-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { EntoriaUrls, ENTORIA_LOGIN_SELECTORS } from "@/main/flows/platforms/entoria/lib/EntoriaAuth";
-import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
+import type { Page } from "playwright";
 import type { PlatformCredentials, CredentialsTestResult } from "../types";
+import { TEST_TIMEOUT, createTestBrowser, handleTestError } from "./helpers";
 
-// Apply stealth plugin to avoid headless detection
-chromium.use(StealthPlugin());
+const EntoriaUrls = { login: 'https://espace-partenaires.entoria.fr/login' } as const;
 
-const TEST_TIMEOUT = 30000; // 30 seconds
+const SELECTORS = {
+  courtierCodeLabel: 'Code courtier',
+  usernameLabel: 'Identifiant',
+  passwordLabel: 'Mot de passe',
+} as const;
+
+async function fillEntoriaForm(page: Page, creds: PlatformCredentials): Promise<void> {
+  await page.goto(EntoriaUrls.login, { timeout: TEST_TIMEOUT });
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("heading", { name: "connectez-vous" }).waitFor({ state: "visible", timeout: TEST_TIMEOUT });
+
+  await page.getByRole("textbox", { name: SELECTORS.courtierCodeLabel }).fill(creds.courtierCode!);
+  await page.getByRole("textbox", { name: SELECTORS.usernameLabel }).fill(creds.login);
+  await page.getByRole("textbox", { name: SELECTORS.passwordLabel }).fill(creds.password);
+  await page.waitForTimeout(500);
+}
+
+async function submitAndWaitResult(page: Page): Promise<{ success: boolean; errorText?: string }> {
+  const submitBtn = page.getByRole("button", { name: "Se connecter" });
+  await submitBtn.waitFor({ state: "visible", timeout: 5000 });
+  await page.waitForFunction(() => {
+    const btn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+    return btn && !btn.disabled;
+  }, { timeout: TEST_TIMEOUT });
+
+  await submitBtn.click();
+  await page.waitForLoadState("networkidle");
+
+  return Promise.race([
+    page.waitForURL((url) => !url.href.includes("/login"), { timeout: TEST_TIMEOUT })
+      .then(() => ({ success: true })),
+    page.waitForSelector("snack-bar-container, .mat-mdc-snack-bar-container, .error-message, mat-error", { state: "visible", timeout: TEST_TIMEOUT })
+      .then(async (el) => ({ success: false, errorText: (await el.textContent())?.trim() || "Login failed" })),
+  ]);
+}
 
 /**
  * Test Entoria credentials with headless browser
- * Entoria requires: courtierCode + username + password
  */
-export async function testEntoriaCredentials(
-  creds: PlatformCredentials
-): Promise<CredentialsTestResult> {
-  // Entoria requires courtierCode
+export async function testEntoriaCredentials(creds: PlatformCredentials): Promise<CredentialsTestResult> {
   if (!creds.courtierCode) {
-    return {
-      ok: false,
-      error: "NO_CREDENTIALS",
-      message: "Entoria requires a courtier code (Code Courtier)",
-    };
+    return { ok: false, error: "NO_CREDENTIALS", message: "Entoria requires a courtier code (Code Courtier)" };
   }
 
   let browser;
   try {
-    browser = await chromium.launch({
-      headless: true,
-      executablePath: getBundledChromiumPath(),
-    });
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 },
-      ignoreHTTPSErrors: true,
-    });
-    const page = await context.newPage();
+    const ctx = await createTestBrowser();
+    browser = ctx.browser;
 
-    // Navigate to login page
-    await page.goto(EntoriaUrls.login, { timeout: TEST_TIMEOUT });
+    await fillEntoriaForm(ctx.page, creds);
+    const result = await submitAndWaitResult(ctx.page);
 
-    // Wait for login page to load (Angular app)
-    await page.waitForLoadState("networkidle");
-    await page.getByRole("heading", { name: "connectez-vous" }).waitFor({
-      state: "visible",
-      timeout: TEST_TIMEOUT,
-    });
-
-    // Fill credentials using role-based selectors (Angular Material)
-    // 1. Code courtier
-    const courtierInput = page.getByRole("textbox", { name: ENTORIA_LOGIN_SELECTORS.courtierCodeLabel });
-    await courtierInput.fill(creds.courtierCode);
-
-    // 2. Identifiant
-    const usernameInput = page.getByRole("textbox", { name: ENTORIA_LOGIN_SELECTORS.usernameLabel });
-    await usernameInput.fill(creds.login);
-
-    // 3. Mot de passe
-    const passwordInput = page.getByRole("textbox", { name: ENTORIA_LOGIN_SELECTORS.passwordLabel });
-    await passwordInput.fill(creds.password);
-
-    // Wait for Angular validation
-    await page.waitForTimeout(500);
-
-    // Submit
-    const submitBtn = page.getByRole("button", { name: "Se connecter" });
-    await submitBtn.waitFor({ state: "visible", timeout: 5000 });
-
-    // Wait for button to be enabled
-    await page.waitForFunction(
-      () => {
-        const btn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-        return btn && !btn.disabled;
-      },
-      { timeout: TEST_TIMEOUT }
-    );
-
-    await submitBtn.click();
-    await page.waitForLoadState("networkidle");
-
-    // Wait for either success (redirect to home) or error
-    const result = await Promise.race([
-      // Success: Redirected away from login page
-      page
-        .waitForURL((url) => !url.href.includes("/login"), {
-          timeout: TEST_TIMEOUT,
-        })
-        .then(() => ({ success: true as const })),
-
-      // Failure: Error message appears (snackbar or inline error)
-      page
-        .waitForSelector("snack-bar-container, .mat-mdc-snack-bar-container, .error-message, mat-error", {
-          state: "visible",
-          timeout: TEST_TIMEOUT,
-        })
-        .then(async (el) => {
-          const text = await el.textContent();
-          return { success: false as const, errorText: text?.trim() || "Login failed" };
-        }),
-    ]);
-
-    if (result.success) {
-      return { ok: true };
-    } else {
-      return {
-        ok: false,
-        error: "LOGIN_FAILED",
-        message: result.errorText,
-      };
-    }
+    if (result.success) return { ok: true };
+    return { ok: false, error: "LOGIN_FAILED", message: result.errorText };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-
-    if (message.includes("Timeout")) {
-      return {
-        ok: false,
-        error: "TIMEOUT",
-        message: "Login test timed out",
-      };
-    }
-
-    return {
-      ok: false,
-      error: "BROWSER_ERROR",
-      message,
-    };
+    return handleTestError(err);
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
   }
 }

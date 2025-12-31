@@ -5,84 +5,48 @@ import { BrowserManager } from "./BrowserManager";
 import { FlowWorker } from "./FlowWorker";
 import { QueueProcessor } from "./QueueProcessor";
 
-const DEFAULT_MAX_CONCURRENT = 3;
-
-/**
- * Manages parallel execution of multiple flows.
- *
- * @example
- * ```typescript
- * const pool = new FlowPool({ maxConcurrent: 3 });
- * pool.on('task:complete', (taskId, result) => console.log(taskId, result.success));
- * pool.enqueue([{ id: '1', flowKey: 'alptis', leadId: 'l1', lead }]);
- * const result = await pool.start();
- * ```
- */
+/** Manages parallel execution of multiple flows using YamlFlowEngine via FlowWorker */
 export class FlowPool extends EventEmitter {
   private queue: QueuedTask[] = [];
-  private activeWorkers: Map<string, FlowWorker> = new Map();
-  private maxConcurrent: number;
+  private activeWorkers = new Map<string, FlowWorker>();
   private browserManager: BrowserManager;
-  private config: FlowPoolConfig;
   private processor: QueueProcessor;
   private isRunning = false;
   private abortController: AbortController | null = null;
 
-  constructor(config?: FlowPoolConfig) {
+  constructor(config: FlowPoolConfig = {}) {
     super();
-    this.config = config ?? {};
-    this.maxConcurrent = config?.maxConcurrent ?? DEFAULT_MAX_CONCURRENT;
-    this.browserManager = new BrowserManager(config?.browserOptions);
+    this.browserManager = new BrowserManager(config.browserOptions);
     this.processor = new QueueProcessor(
-      {
-        browserManager: this.browserManager,
-        config: this.config,
-        emitter: this,
-        activeWorkers: this.activeWorkers,
-      },
-      this.maxConcurrent
+      { browserManager: this.browserManager, config, emitter: this, activeWorkers: this.activeWorkers },
+      config.maxConcurrent ?? 3
     );
   }
 
-  /** Add tasks to the execution queue. Sorted by priority (higher first). */
   enqueue(tasks: FlowTask[]): void {
-    const queuedTasks: QueuedTask[] = tasks.map((task) => ({
-      ...task,
-      queuedAt: Date.now(),
-      status: "queued" as const,
-    }));
-
-    this.queue.push(...queuedTasks);
+    const queued: QueuedTask[] = tasks.map(t => ({ ...t, queuedAt: Date.now(), status: "queued" as const }));
+    this.queue.push(...queued);
     this.queue.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
-
-    for (const task of queuedTasks) {
-      this.emit("task:queued", task.id);
-    }
+    queued.forEach(t => this.emit("task:queued", t.id));
   }
 
-  /** Start processing the queue. Returns when all tasks are completed. */
   async start(): Promise<FlowPoolResult> {
     if (this.isRunning) throw new Error("Pool is already running");
-    if (this.queue.length === 0) return this.emptyResult();
-
+    if (!this.queue.length) return { total: 0, successful: 0, failed: 0, duration: 0, results: new Map() };
     this.isRunning = true;
     this.abortController = new AbortController();
     this.processor.setAbortSignal(this.abortController.signal);
     this.processor.resume();
-    const startTime = Date.now();
-    const results = new Map<string, FlowExecutionResult>();
-
+    const start = Date.now(), results = new Map<string, FlowExecutionResult>();
     try {
       await this.browserManager.launch();
       this.emit("pool:start");
-
       await this.processor.process(this.queue, results);
-
-      const poolResult = this.buildResult(results, startTime);
-      this.emit("pool:complete", poolResult);
-      return poolResult;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const res = this.buildResult(results, start);
+      this.emit("pool:complete", res);
+      return res;
+    } catch (e) {
+      const err = e instanceof Error ? e : new Error(String(e));
       this.emit("pool:error", err);
       throw err;
     } finally {
@@ -92,45 +56,21 @@ export class FlowPool extends EventEmitter {
     }
   }
 
-  /** Request pause for all active workers. */
-  pauseAll(): void {
-    this.processor.pause();
-    for (const worker of this.activeWorkers.values()) {
-      worker.requestPause();
-    }
-  }
+  pauseAll(): void { this.processor.pause(); this.activeWorkers.forEach(w => w.requestPause()); }
+  resume(): void { this.processor.resume(); }
 
-  /** Resume processing after a pause. */
-  resume(): void {
-    this.processor.resume();
-  }
-
-  /** Shutdown the pool and cleanup resources. */
   async shutdown(): Promise<void> {
     this.processor.pause();
-    for (const worker of this.activeWorkers.values()) {
-      worker.requestPause();
-      await worker.cleanup();
-    }
+    await Promise.all([...this.activeWorkers.values()].map(async w => { w.requestPause(); await w.cleanup(); }));
     this.activeWorkers.clear();
     await this.browserManager.close();
     this.isRunning = false;
     this.queue = [];
   }
 
-  /** Abort all running flows and cleanup resources immediately. */
   async abort(): Promise<void> {
-    // Signal abort to all components
     this.abortController?.abort();
-
-    // Abort all active workers
-    const abortPromises = Array.from(this.activeWorkers.values()).map((worker) =>
-      worker.abort().catch(() => {
-        /* ignore cleanup errors */
-      })
-    );
-    await Promise.all(abortPromises);
-
+    await Promise.all([...this.activeWorkers.values()].map(w => w.abort().catch(() => {})));
     this.activeWorkers.clear();
     await this.browserManager.close();
     this.isRunning = false;
@@ -138,27 +78,12 @@ export class FlowPool extends EventEmitter {
     this.abortController = null;
   }
 
-  get queueLength(): number {
-    return this.queue.filter((t) => t.status === "queued").length;
-  }
+  get queueLength(): number { return this.queue.filter(t => t.status === "queued").length; }
+  get activeCount(): number { return this.activeWorkers.size; }
 
-  get activeCount(): number {
-    return this.activeWorkers.size;
-  }
-
-  private emptyResult(): FlowPoolResult {
-    return { total: 0, successful: 0, failed: 0, duration: 0, results: new Map() };
-  }
-
-  private buildResult(results: Map<string, FlowExecutionResult>, startTime: number): FlowPoolResult {
-    let successful = 0;
-    let failed = 0;
-    for (const r of results.values()) {
-      r.success ? successful++ : failed++;
-    }
-
-    console.log(`[POOL_SUMMARY] Total: ${results.size} | Successful: ${successful} | Failed: ${failed}`);
-
-    return { total: results.size, successful, failed, duration: Date.now() - startTime, results };
+  private buildResult(results: Map<string, FlowExecutionResult>, start: number): FlowPoolResult {
+    let successful = 0, failed = 0;
+    results.forEach(r => r.success ? successful++ : failed++);
+    return { total: results.size, successful, failed, duration: Date.now() - start, results };
   }
 }

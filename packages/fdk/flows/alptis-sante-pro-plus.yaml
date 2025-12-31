@@ -1,0 +1,350 @@
+# Auto-generated flow definition
+# Generator: @mutuelle/fdk
+# Version: 1.0.0
+# Exported: 2025-12-31T02:17:15.759Z
+# Checksum: d76648eb9817cc61c2fae6e1293e444bc4ed86edf8a4bec91206a3cc611417e4
+# Flow: Alptis Sante Pro Plus v1.0.0
+metadata:
+  name: "Alptis Sante Pro Plus"
+  version: "1.0.0"
+  description: "Devis automatisation for Alptis Sante Pro Plus (TNS only)"
+  platform: "alptis"
+  product: "sante_pro_plus"
+  formUrl: "https://extranet.alptis.fr/devis/sante-pro-plus"
+  stepOrder:
+    - "alptis-auth"
+    - "alptis-navigation"
+    - "alptis-mise-en-place"
+    - "alptis-adherent"
+    - "alptis-conjoint"
+    - "alptis-enfants"
+    - "alptis-submit"
+steps:
+  - id: "alptis-auth"
+    name: "Authentication Alptis"
+    type: "auth"
+    description: "Login to Alptis extranet portal"
+    timeout: 60000
+    retry:
+      attempts: 3
+      delayMs: 1000
+    credentials:
+      username:
+        id: "username"
+        type: "text"
+        selector: "#username"
+        source: "{{credentials.username}}"
+        label: "Username"
+      password:
+        id: "password"
+        type: "password"
+        selector: "#password"
+        source: "{{credentials.password}}"
+        label: "Password"
+    submitSelector: "button[type=\"submit\"]"
+    successIndicator: ".dashboard"
+  - id: "alptis-navigation"
+    name: "Navigate to Sante Pro Plus form"
+    type: "navigation"
+    description: "Navigate to the Sante Pro Plus devis form"
+    timeout: 60000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "goto"
+        url: "https://extranet.alptis.fr/devis/sante-pro-plus"
+        timeout: 60000
+        waitUntil: "networkidle"
+      - type: "waitFor"
+        selector: "#btn-new-devis"
+        timeout: 30000
+        state: "visible"
+      - type: "click"
+        selector: "#btn-new-devis"
+        waitAfter: 500
+      - type: "waitFor"
+        selector: "[data-product=\"sante-pro-plus\"]"
+        timeout: 30000
+        state: "visible"
+      - type: "click"
+        selector: "[data-product=\"sante-pro-plus\"]"
+        waitAfter: 1000
+  - id: "alptis-mise-en-place"
+    name: "Mise en place"
+    type: "form-fill"
+    description: "Fill Section 1 - Date effet and formule"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "dateEffet"
+        type: "date"
+        selector: "#date-effet"
+        source: "{{lead.dateEffet}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        waitFor: true
+        label: "Date effet"
+      - id: "formule"
+        type: "select"
+        selector: "#formule"
+        source: "{{lead.formule}}"
+        optional: false
+        label: "Formule"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#date-effet"
+        timeout: 10000
+        state: "visible"
+    afterFill:
+      - type: "click"
+        selector: ".btn-next"
+        waitAfter: 500
+      - type: "waitForNavigation"
+        timeout: 60000
+  - id: "alptis-adherent"
+    name: "Adherent"
+    type: "form-fill"
+    description: "Fill Section 2 - Adherent information with TNS fields"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "civilite"
+        type: "select"
+        selector: "#civilite"
+        source: "{{lead.adherent.civilite}}"
+        label: "Civilite"
+      - id: "nom"
+        type: "text"
+        selector: "#nom"
+        source: "{{lead.adherent.nom}}"
+        label: "Nom"
+      - id: "prenom"
+        type: "text"
+        selector: "#prenom"
+        source: "{{lead.adherent.prenom}}"
+        label: "Prenom"
+      - id: "dateNaissance"
+        type: "date"
+        selector: "#date-naissance"
+        source: "{{lead.adherent.dateNaissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation:
+          - type: "required"
+            message: "Date de naissance requise"
+          - type: "date"
+            message: "Format de date invalide"
+        waitFor: true
+        label: "Date de naissance"
+      - id: "email"
+        type: "email"
+        selector: "#email"
+        source: "{{lead.adherent.email}}"
+        validation:
+          - type: "required"
+            message: "Email requis"
+          - type: "email"
+            message: "Format email invalide"
+        label: "Email"
+      - id: "telephone"
+        type: "text"
+        selector: "#telephone"
+        source: "{{lead.adherent.telephone}}"
+        validation:
+          - type: "required"
+            message: "Telephone requis"
+          - type: "phone"
+            message: "Format telephone invalide"
+        label: "Telephone"
+      - id: "adresseRue"
+        type: "text"
+        selector: "#adresse-rue"
+        source: "{{lead.adherent.adresse.rue}}"
+        label: "Adresse"
+      - id: "codePostal"
+        type: "text"
+        selector: "#code-postal"
+        source: "{{lead.adherent.adresse.codePostal}}"
+        validation:
+          - type: "required"
+            message: "Code postal requis"
+          - type: "pattern"
+            value: "^[0-9]{5}$"
+            message: "Code postal invalide"
+        label: "Code postal"
+      - id: "ville"
+        type: "text"
+        selector: "#ville"
+        source: "{{lead.adherent.adresse.ville}}"
+        validation:
+          - type: "required"
+            message: "Ville requise"
+        label: "Ville"
+      - id: "profession"
+        type: "select"
+        selector: "#profession"
+        source: "{{lead.adherent.profession}}"
+        label: "Profession"
+      - id: "regime"
+        type: "select"
+        selector: "#regime"
+        source: "{{lead.adherent.regime}}"
+        validation:
+          - type: "required"
+            message: "Regime requis"
+          - type: "enum"
+            value:
+              - "TNS"
+            message: "Seul le regime TNS est accepte"
+        label: "Regime"
+      - id: "statutProfessionnel"
+        type: "select"
+        selector: "#statut-professionnel"
+        source: "{{lead.adherent.statut_professionnel}}"
+        label: "Statut professionnel"
+      - id: "microEntrepreneur"
+        type: "checkbox"
+        selector: "#micro-entrepreneur"
+        source: "{{lead.adherent.micro_entrepreneur}}"
+        optional: true
+        label: "Micro-entrepreneur"
+    afterFill:
+      - type: "click"
+        selector: ".btn-next"
+        waitAfter: 500
+      - type: "waitForNavigation"
+        timeout: 60000
+  - id: "alptis-conjoint"
+    name: "Conjoint"
+    type: "form-fill"
+    description: "Fill conjoint information (simplified)"
+    condition:
+      expression: "{{lead.conjoint}}"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "hasConjoint"
+        type: "checkbox"
+        selector: "#has-conjoint"
+        source: "{{lead.conjoint ? true : false}}"
+        label: "Inclure conjoint"
+      - id: "civilite"
+        type: "select"
+        selector: "#conjoint-civilite"
+        source: "{{lead.conjoint.civilite}}"
+        optional: true
+        label: "Civilite conjoint"
+      - id: "nom"
+        type: "text"
+        selector: "#conjoint-nom"
+        source: "{{lead.conjoint.nom}}"
+        optional: true
+        label: "Nom conjoint"
+      - id: "prenom"
+        type: "text"
+        selector: "#conjoint-prenom"
+        source: "{{lead.conjoint.prenom}}"
+        optional: true
+        label: "Prenom conjoint"
+      - id: "dateNaissance"
+        type: "date"
+        selector: "#conjoint-date-naissance"
+        source: "{{lead.conjoint.dateNaissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        optional: true
+        label: "Date de naissance conjoint"
+      - id: "regime"
+        type: "select"
+        selector: "#conjoint-regime"
+        source: "{{lead.conjoint.regime}}"
+        optional: true
+        label: "Regime conjoint"
+    afterFill:
+      - type: "click"
+        selector: ".btn-next"
+        waitAfter: 500
+      - type: "waitForNavigation"
+        timeout: 60000
+  - id: "alptis-enfants"
+    name: "Enfants"
+    type: "form-fill"
+    description: "Fill children information"
+    condition:
+      expression: "{{lead.enfants.length > 0}}"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "nom"
+        type: "text"
+        selector: ".enfant-nom"
+        source: "{{item.nom}}"
+        label: "Nom enfant"
+      - id: "prenom"
+        type: "text"
+        selector: ".enfant-prenom"
+        source: "{{item.prenom}}"
+        label: "Prenom enfant"
+      - id: "dateNaissance"
+        type: "date"
+        selector: ".enfant-date-naissance"
+        source: "{{item.dateNaissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        label: "Date de naissance enfant"
+    beforeFill:
+      - type: "click"
+        selector: "#add-enfant"
+        waitAfter: 500
+    afterFill:
+      - type: "click"
+        selector: ".btn-next"
+        waitAfter: 500
+      - type: "waitForNavigation"
+        timeout: 60000
+  - id: "alptis-submit"
+    name: "Submit Devis"
+    type: "navigation"
+    description: "Calculate and validate the devis"
+    timeout: 45000
+    retry:
+      attempts: 3
+      delayMs: 1000
+    actions:
+      - type: "click"
+        selector: "#btn-calculer"
+        waitAfter: 1000
+      - type: "waitFor"
+        selector: ".loading-spinner"
+        timeout: 5000
+        state: "hidden"
+      - type: "waitFor"
+        selector: ".result-price"
+        timeout: 45000
+        state: "visible"
+      - type: "click"
+        selector: "#btn-valider"
+        waitAfter: 500
+      - type: "waitForNavigation"
+        timeout: 60000

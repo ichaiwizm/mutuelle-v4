@@ -1,42 +1,52 @@
 /**
- * Lead Transformer Registry
+ * Lead Transformers
  *
- * Central registry that maps flow keys to their Lead transformers.
- * Each transformer converts a Lead (from database) to platform-specific form data.
+ * This module provides lead transformation for different flows.
+ * Transformers convert Lead data to the format required by each platform.
+ *
+ * NOTE: The actual transformer implementations are now in packages/fdk.
+ * This file provides stubs for backward compatibility.
  */
 
-import { LeadTransformer as AlptisTransformer } from "../platforms/alptis/products/sante-select/transformers/LeadTransformer";
-import { LeadTransformer as SanteProPlusTransformer } from "../platforms/alptis/products/sante-pro-plus/transformers/LeadTransformer";
-import { SwissLifeOneLeadTransformer as SwissLifeTransformer } from "../platforms/swisslifeone/products/slsis/transformers/LeadTransformer";
-import { LeadTransformer as EntoriaTransformer } from "../platforms/entoria/products/pack-famille/transformers/LeadTransformer";
 import type { Lead } from "@/shared/types/lead";
 
+// Transformer registry - maps flow keys to transformer functions
 type TransformerFn = (lead: Lead) => unknown;
 
-/**
- * Registry of transformers by flow key
- */
-const TRANSFORMERS: Record<string, TransformerFn> = {
-  alptis_sante_select: (lead) => AlptisTransformer.transform(lead),
-  alptis_sante_pro_plus: (lead) => SanteProPlusTransformer.transform(lead),
-  swisslife_one_slsis: (lead) => SwissLifeTransformer.transform(lead),
-  entoria_pack_famille: (lead) => EntoriaTransformer.transform(lead),
-};
+const transformerRegistry: Map<string, TransformerFn> = new Map();
 
 /**
- * Get transformer function for a flow key
- * Supports exact match and prefix match (e.g., "alptis_sante_select_v2" → "alptis_sante_select")
+ * Check if a transformer exists for a flow
  */
-export function getTransformerForFlow(flowKey: string): TransformerFn | undefined {
-  // Exact match
-  if (TRANSFORMERS[flowKey]) {
-    return TRANSFORMERS[flowKey];
+export function hasTransformerForFlow(flowKey: string): boolean {
+  // Check exact match first
+  if (transformerRegistry.has(flowKey)) {
+    return true;
   }
 
-  // Prefix match (for versioned flow keys)
-  for (const key of Object.keys(TRANSFORMERS)) {
+  // Check prefix match (for versioned flows like alptis_sante_select_v2)
+  for (const key of transformerRegistry.keys()) {
     if (flowKey.startsWith(key)) {
-      return TRANSFORMERS[key];
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Get transformer for a flow
+ */
+export function getTransformerForFlow(flowKey: string): TransformerFn | undefined {
+  // Exact match first
+  if (transformerRegistry.has(flowKey)) {
+    return transformerRegistry.get(flowKey);
+  }
+
+  // Prefix match
+  for (const [key, transformer] of transformerRegistry.entries()) {
+    if (flowKey.startsWith(key)) {
+      return transformer;
     }
   }
 
@@ -44,8 +54,7 @@ export function getTransformerForFlow(flowKey: string): TransformerFn | undefine
 }
 
 /**
- * Transform a lead for a specific flow
- * @throws Error if no transformer is found for the flow key
+ * Transform lead data for a specific flow
  */
 export function transformLeadForFlow(flowKey: string, lead: Lead): unknown {
   const transformer = getTransformerForFlow(flowKey);
@@ -53,11 +62,4 @@ export function transformLeadForFlow(flowKey: string, lead: Lead): unknown {
     throw new Error(`No transformer found for flow: ${flowKey}`);
   }
   return transformer(lead);
-}
-
-/**
- * Check if a transformer exists for a flow key
- */
-export function hasTransformerForFlow(flowKey: string): boolean {
-  return getTransformerForFlow(flowKey) !== undefined;
 }

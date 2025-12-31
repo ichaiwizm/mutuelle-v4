@@ -118,9 +118,9 @@ describe('parseLead - Detailed tests', () => {
 });
 
 describe('parseLeads - Multi-lead support', () => {
-  it('parses multi-lead email correctly (email-001 with 11 leads)', () => {
+  it('parses multi-lead email correctly (email-001 with 11 leads)', async () => {
     const email = email001 as MailMsg;
-    const leads = parseLeads(
+    const leads = await parseLeads(
       { text: email.text, subject: email.subject },
       { emailId: email.id, source: 'email' }
     );
@@ -229,7 +229,7 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
   }
 
   for (const filename of fixtureFiles) {
-    it(`Parse et vérifie ${filename}`, () => {
+    it(`Parse et vérifie ${filename}`, async () => {
       const filepath = join(FIXTURES_DIR, filename);
       const email = require(filepath) as MailMsg;
 
@@ -237,7 +237,7 @@ describe('TEST EXHAUSTIF: Tous les 16 fixtures', () => {
       const expectedCount = countExpectedLeads(email);
 
       // Parse
-      const leads = parseLeads(
+      const leads = await parseLeads(
         { text: email.text, subject: email.subject },
         { emailId: email.id, source: 'email' }
       );

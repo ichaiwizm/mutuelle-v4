@@ -9,13 +9,17 @@
       "baseUrl": ".",
       "paths": {
         "@/*": ["src/*"],
+        "@mutuelle/engine": ["packages/engine/src/index.ts"],
+        "@mutuelle/engine/*": ["packages/engine/src/*"],
         "components/*": ["src/renderer/components/*"],
         "ui/*": ["src/renderer/components/ui/*"],
         "lib/*": ["src/renderer/lib/*"],
         "hooks/*": ["src/renderer/hooks/*"],
         "utils/*": ["src/renderer/lib/utils/*"]
       },
-      "types": ["node", "vitest/globals"]
-    }
+      "types": ["node", "vitest/globals", "vite/client"]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist", "packages"]
   }
   

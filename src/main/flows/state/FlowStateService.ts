@@ -8,7 +8,7 @@ import { logger } from "@/main/services/logger";
  */
 export class FlowStateService {
   async createState(flowKey: string, leadId?: string): Promise<FlowState> {
-    const ctx = { service: "FLOW_STATE", flowKey, leadId: leadId ? Number(leadId) : undefined };
+    const ctx = { service: "FLOW_STATE", flowKey, leadId };
     logger.debug("Creating flow state", ctx);
     const startTime = Date.now();
 
@@ -24,7 +24,7 @@ export class FlowStateService {
     };
 
     await flowStateRepository.insert(state);
-    logger.debug(`Flow state created in ${Date.now() - startTime}ms`, { ...ctx, stateId: state.id });
+    logger.debug(`Flow state created in ${Date.now() - startTime}ms`, { service: ctx.service, flowKey: ctx.flowKey, leadId: ctx.leadId, stateId: state.id });
     return state;
   }
 

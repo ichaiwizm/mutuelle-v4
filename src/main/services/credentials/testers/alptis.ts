@@ -1,8 +1,6 @@
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { AlptisUrls } from "@/main/flows/config/alptis.config";
-import { ALPTIS_LOGIN_SELECTORS } from "@/main/flows/platforms/alptis/lib/AlptisAuth";
-import { setupAxeptioInterception } from "@/main/flows/platforms/alptis/lib/cookie-interceptor";
 import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
 import type { PlatformCredentials, CredentialsTestResult } from "../types";
 
@@ -10,6 +8,13 @@ import type { PlatformCredentials, CredentialsTestResult } from "../types";
 chromium.use(StealthPlugin());
 
 const TEST_TIMEOUT = 30000; // 30 seconds
+
+// Alptis login page selectors
+const ALPTIS_LOGIN_SELECTORS = {
+  username: '#username',
+  password: '#password',
+  submitButton: 'input[type="submit"], button[type="submit"]',
+} as const;
 
 /**
  * Test Alptis credentials with headless browser
@@ -28,9 +33,6 @@ export async function testAlptisCredentials(
       ignoreHTTPSErrors: true,
     });
     const page = await context.newPage();
-
-    // Setup cookie interception
-    await setupAxeptioInterception(page, { debug: false });
 
     // Navigate to login page
     await page.goto(AlptisUrls.login, { timeout: TEST_TIMEOUT });

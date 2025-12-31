@@ -5,42 +5,6 @@
  * pour éviter les magic numbers et strings hardcodés dans le code.
  */
 
-import type { Environment, EnvironmentBehaviors } from './common.config';
-import { getEnvironment } from './common.config';
-
-// Re-export common types and functions for backward compatibility
-export type { Environment, EnvironmentBehaviors } from './common.config';
-export { getEnvironment } from './common.config';
-
-/**
- * Environment-specific behaviors for each environment
- */
-export const AlptisEnvironmentBehaviors: Record<Environment, EnvironmentBehaviors> = {
-  development: {
-    verbose: true,
-    screenshotOnError: true,
-    screenshotOnSuccess: true,
-  },
-  staging: {
-    verbose: true,
-    screenshotOnError: true,
-    screenshotOnSuccess: false,
-  },
-  production: {
-    verbose: false,
-    screenshotOnError: false,
-    screenshotOnSuccess: false,
-  },
-};
-
-/**
- * Get environment behaviors for current environment
- */
-export function getAlptisEnvironmentBehaviors(env?: Environment): EnvironmentBehaviors {
-  const currentEnv = env ?? getEnvironment();
-  return AlptisEnvironmentBehaviors[currentEnv];
-}
-
 /**
  * Timeouts identifiés dans le code Alptis
  *

@@ -1,16 +1,14 @@
 /**
  * FlowEngine Unit Tests
  *
- * Tests have been refactored into separate files for better maintainability.
- * See flowEngine/ directory for individual test files:
- *   - buildFlowResult.spec.ts
- *   - HooksManager.spec.ts
- *   - PauseResumeManager.spec.ts
- *   - FlowEngine.spec.ts
- *   - StepRegistry.spec.ts
- *   - executeStepWithRetry.spec.ts
- *
- * This file re-imports all tests to maintain backwards compatibility.
+ * The old step-based FlowEngine has been replaced with the YAML-based engine.
+ * See packages/engine for the new engine implementation and its tests.
  */
 
-import './flowEngine/index.spec';
+import { describe, it, expect } from "vitest";
+
+describe("FlowEngine (YAML-based)", () => {
+  it("placeholder test - engine tests moved to packages/engine", () => {
+    expect(true).toBe(true);
+  });
+});

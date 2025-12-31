@@ -24,6 +24,7 @@ export default defineConfig({
           'playwright-core',
           'chromium-bidi',
         ],
+        exclude: ['@mutuelle/engine'],
       }),
     ],
     resolve: { alias },

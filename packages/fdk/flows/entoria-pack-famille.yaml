@@ -1,0 +1,28 @@
+# Auto-generated flow definition
+# Generator: @mutuelle/fdk
+# Version: 1.0.0
+# Exported: 2025-12-31T02:17:19.742Z
+# Checksum: da0c19ae24894e5c9320b9c67b00a97a10ebdb415a04f9bdcc293638de76ccad
+# Flow: Entoria Pack Famille v1.0.0
+metadata:
+  name: "Entoria Pack Famille"
+  version: "1.0.0"
+steps:
+  - id: "entoria-auth"
+    name: "Authentication"
+    type: "auth"
+  - id: "entoria-navigation"
+    name: "Navigate to Form"
+    type: "navigation"
+  - id: "entoria-profil"
+    name: "Fill Profil (Step 1)"
+    type: "form-fill"
+  - id: "entoria-besoin"
+    name: "Fill Besoin (Step 2)"
+    type: "form-fill"
+  - id: "entoria-garanties"
+    name: "Fill Garanties (Step 3)"
+    type: "form-fill"
+  - id: "entoria-submit"
+    name: "Submit Form"
+    type: "custom"

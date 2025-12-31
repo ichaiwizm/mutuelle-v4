@@ -92,8 +92,8 @@ describe('Text Input - Metadata Handling', () => {
     expect(lead?.project?.source).toBe('imported');
   });
 
-  it('generates unique UUIDs for each lead', () => {
-    const leads = parseLeads(text002.text);
+  it('generates unique UUIDs for each lead', async () => {
+    const leads = await parseLeads(text002.text);
 
     expect(leads).toHaveLength(1);
     expect(leads[0].id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
@@ -211,7 +211,7 @@ describe('Email vs Text Parsing - Compatibility', () => {
     expect(fromText?.project?.source).toBe('manual');
   });
 
-  it('Compatibility across all email fixtures', () => {
+  it('Compatibility across all email fixtures', async () => {
     const FIXTURES_DIR = join(__dirname, 'fixtures/emails');
     const fixtureFiles = readdirSync(FIXTURES_DIR)
       .filter(f => f.endsWith('.json'))
@@ -223,12 +223,12 @@ describe('Email vs Text Parsing - Compatibility', () => {
       const email = require(filepath);
 
       // Parse both ways
-      const fromEmail = parseLeads(
+      const fromEmail = await parseLeads(
         { text: email.text, subject: email.subject },
         { emailId: email.id, source: 'email' }
       );
 
-      const fromText = parseLeads(email.text);
+      const fromText = await parseLeads(email.text);
 
       // Should produce same number of leads
       expect(fromText.length).toBe(fromEmail.length);
@@ -261,15 +261,15 @@ describe('Text Input - parseAssurProspect Direct', () => {
 });
 
 describe('Text Input - Multi-Lead Support', () => {
-  it('handles single lead in text', () => {
-    const leads = parseLeads(text001.text);
+  it('handles single lead in text', async () => {
+    const leads = await parseLeads(text001.text);
 
     expect(leads).toHaveLength(1);
   });
 
-  it('handles multi-lead text if properly formatted', () => {
+  it('handles multi-lead text if properly formatted', async () => {
     const multiText = text001.text + '\n\n' + text001.text.replace('Dupont', 'Smith');
-    const leads = parseLeads(multiText);
+    const leads = await parseLeads(multiText);
 
     expect(leads.length).toBeGreaterThanOrEqual(1);
   });

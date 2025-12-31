@@ -31,6 +31,47 @@ export const flows = sqliteTable("flows", {
   title: text("title").notNull(),
 });
 
+// Flow definitions (YAML-based flow management)
+export const flowDefinitions = sqliteTable(
+  "flow_definitions",
+  {
+    id: text("id").primaryKey(),                           // uuid
+    flowKey: text("flow_key").notNull(),                   // "swisslife_one_slsis"
+    platform: text("platform").notNull(),                  // "alptis" | "swisslife" | "entoria"
+    product: text("product").notNull(),                    // "sante_select" | "slsis"
+    version: text("version").notNull(),                    // "1.0.0"
+    yamlContent: text("yaml_content").notNull(),           // Full YAML content
+    checksum: text("checksum").notNull(),                  // SHA-256 hash of yamlContent
+    status: text("status").notNull().default("draft"),     // "draft" | "active" | "deprecated"
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({
+    flowKeyIdx: index("flow_definitions_flow_key_idx").on(t.flowKey),
+    platformIdx: index("flow_definitions_platform_idx").on(t.platform),
+    statusIdx: index("flow_definitions_status_idx").on(t.status),
+    flowKeyVersionUnique: uniqueIndex("flow_definitions_flow_key_version_unique").on(t.flowKey, t.version),
+  })
+);
+
+// Flow versions (version history for flow definitions)
+export const flowVersions = sqliteTable(
+  "flow_versions",
+  {
+    id: text("id").primaryKey(),                           // uuid
+    flowId: text("flow_id").notNull().references(() => flowDefinitions.id, { onDelete: "cascade" }),
+    version: text("version").notNull(),                    // "1.0.0"
+    yamlContent: text("yaml_content").notNull(),           // Full YAML content at this version
+    checksum: text("checksum").notNull(),                  // SHA-256 hash of yamlContent
+    publishedBy: text("published_by"),                     // User who published (optional until user management)
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (t) => ({
+    flowIdIdx: index("flow_versions_flow_id_idx").on(t.flowId),
+    flowIdVersionUnique: uniqueIndex("flow_versions_flow_id_version_unique").on(t.flowId, t.version),
+  })
+);
+
 // Runs & items (artefacts par step)
 export const runs = sqliteTable("runs", {
   id: text("id").primaryKey(),                   // uuid

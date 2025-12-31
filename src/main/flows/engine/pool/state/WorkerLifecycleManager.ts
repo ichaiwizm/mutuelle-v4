@@ -2,6 +2,9 @@ import type { BrowserContext } from "playwright";
 import type { BrowserManager } from "../browser";
 import { FlowWorker } from "../workers";
 import type { WaitingWorkerEntry } from "./types";
+import { engineLogger } from "../EngineLogger";
+
+const log = engineLogger.for("WorkerLifecycle");
 
 /**
  * WorkerLifecycleManager - Manages worker creation and cleanup.
@@ -18,16 +21,16 @@ export class WorkerLifecycleManager {
     isVisibleMode: boolean
   ): Promise<{ worker: FlowWorker; context: BrowserContext }> {
     const taskShortId = taskId.substring(0, 8);
-    console.log(`[WORKER_LIFECYCLE] Creating browser context for task ${taskShortId}...`);
-    console.log(`[WORKER_LIFECYCLE] Visible mode: ${isVisibleMode}`);
+    log.debug(`Creating browser context for task ${taskShortId}...`);
+    log.debug(`Visible mode: ${isVisibleMode}`);
 
     const contextStart = Date.now();
     const context = await this.browserManager.createContext({ visible: isVisibleMode });
-    console.log(`[WORKER_LIFECYCLE] Browser context created in ${Date.now() - contextStart}ms`);
+    log.debug(`Browser context created in ${Date.now() - contextStart}ms`);
 
-    console.log(`[WORKER_LIFECYCLE] Creating FlowWorker instance...`);
+    log.debug(`Creating FlowWorker instance...`);
     const worker = new FlowWorker(taskId, context);
-    console.log(`[WORKER_LIFECYCLE] FlowWorker created`);
+    log.debug(`FlowWorker created`);
 
     return { worker, context };
   }
@@ -36,13 +39,13 @@ export class WorkerLifecycleManager {
    * Clean up a worker and its context.
    */
   async cleanupWorker(worker: FlowWorker, context: BrowserContext): Promise<void> {
-    console.log(`[WORKER_LIFECYCLE] Cleaning up worker...`);
+    log.debug(`Cleaning up worker...`);
 
     await worker.cleanup();
-    console.log(`[WORKER_LIFECYCLE] worker.cleanup() done`);
+    log.debug(`worker.cleanup() done`);
 
     await this.browserManager.closeContext(context);
-    console.log(`[WORKER_LIFECYCLE] closeContext() done`);
+    log.debug(`closeContext() done`);
   }
 
   /**

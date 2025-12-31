@@ -1,91 +1,54 @@
-import { chromium, type Page } from "playwright-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { SwissLifeOneAuth } from "@/main/flows/platforms/swisslifeone/lib/SwissLifeOneAuth";
-import { setupCookieInterception as setupSwissLifeCookieInterception } from "@/main/flows/platforms/swisslifeone/lib/cookie-interceptor";
-import { getBundledChromiumPath } from "@/main/flows/engine/pool/browser/chromiumPath";
+import type { Page, ElementHandle } from "playwright";
+import { SwissLifeOneUrls } from "@/main/flows/config/swisslifeone.config";
 import type { PlatformCredentials, CredentialsTestResult } from "../types";
+import { TEST_TIMEOUT, createTestBrowser, handleTestError } from "./helpers";
 
-// Apply stealth plugin to avoid headless detection
-chromium.use(StealthPlugin());
+async function navigateAndClickLogin(page: Page): Promise<void> {
+  await page.goto(SwissLifeOneUrls.login, { timeout: TEST_TIMEOUT, waitUntil: 'networkidle' });
+  const seConnecterBtn = page.getByRole('button', { name: /se connecter/i })
+    .or(page.getByRole('link', { name: /se connecter/i }));
+  await seConnecterBtn.first().click();
+  await page.waitForURL(/adfs\.swisslife\.fr|login/, { timeout: TEST_TIMEOUT });
+  await page.waitForLoadState('networkidle');
+}
 
-const TEST_TIMEOUT = 30000; // 30 seconds
+async function fillCredentialsAndSubmit(page: Page, creds: PlatformCredentials): Promise<void> {
+  await page.getByRole('textbox', { name: /identifiant|username|email/i }).fill(creds.login);
+  await page.getByRole('textbox', { name: /password|mot de passe/i }).fill(creds.password);
+  await page.getByRole('button', { name: /m'identifie|connexion|submit|login/i }).click();
+  await page.waitForLoadState('networkidle');
+}
+
+async function waitForResult(page: Page): Promise<{ success: boolean; errorText?: string }> {
+  return Promise.race([
+    page.waitForURL(/\/accueil/, { timeout: TEST_TIMEOUT })
+      .then(() => ({ success: true })),
+    page.waitForSelector("#errorText, .error-message, .adfs-error", { state: "visible", timeout: TEST_TIMEOUT })
+      .then(async (el: ElementHandle | null) => ({
+        success: false,
+        errorText: (await el?.textContent())?.trim() || "Login failed"
+      })),
+  ]);
+}
 
 /**
  * Test SwissLife One credentials with headless browser
  */
-export async function testSwissLifeOneCredentials(
-  creds: PlatformCredentials
-): Promise<CredentialsTestResult> {
+export async function testSwissLifeOneCredentials(creds: PlatformCredentials): Promise<CredentialsTestResult> {
   let browser;
-  let page: Page | undefined;
   try {
-    browser = await chromium.launch({
-      headless: true,
-      executablePath: getBundledChromiumPath(),
-    });
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 },
-      ignoreHTTPSErrors: true,
-    });
-    page = await context.newPage();
+    const ctx = await createTestBrowser();
+    browser = ctx.browser;
 
-    await setupSwissLifeCookieInterception(page, { debug: false });
+    await navigateAndClickLogin(ctx.page);
+    await fillCredentialsAndSubmit(ctx.page, creds);
+    const result = await waitForResult(ctx.page);
 
-    const auth = new SwissLifeOneAuth({
-      username: creds.login,
-      password: creds.password,
-    });
-
-    await auth.navigateToLogin(page);
-    await auth.clickSeConnecter(page);
-    await auth.waitForAdfsPage(page);
-    await auth.fillCredentials(page);
-    await auth.submitLogin(page);
-
-    // Wait for either dashboard (success) or error
-    const result = await Promise.race([
-      page
-        .waitForURL(/\/accueil/, { timeout: TEST_TIMEOUT })
-        .then(() => ({ success: true as const })),
-      page
-        .waitForSelector("#errorText, .error-message, .adfs-error", {
-          state: "visible",
-          timeout: TEST_TIMEOUT,
-        })
-        .then(async (el) => {
-          const text = await el.textContent();
-          return { success: false as const, errorText: text?.trim() || "Login failed" };
-        }),
-    ]);
-
-    if (result.success) {
-      return { ok: true };
-    } else {
-      return {
-        ok: false,
-        error: "LOGIN_FAILED",
-        message: result.errorText,
-      };
-    }
+    if (result.success) return { ok: true };
+    return { ok: false, error: "LOGIN_FAILED", message: result.errorText };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-
-    if (message.includes("Timeout")) {
-      return {
-        ok: false,
-        error: "TIMEOUT",
-        message: "Login test timed out",
-      };
-    }
-
-    return {
-      ok: false,
-      error: "BROWSER_ERROR",
-      message,
-    };
+    return handleTestError(err);
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
   }
 }

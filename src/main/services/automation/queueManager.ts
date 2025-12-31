@@ -13,9 +13,10 @@ import { ConfigMissingError } from "@/shared/errors";
 /**
  * Get platform name from flow key
  */
-function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" | null {
+function getPlatformFromFlowKey(flowKey: string): "alptis" | "swisslife" | "entoria" | null {
   if (flowKey.startsWith("alptis_")) return "alptis";
   if (flowKey.startsWith("swisslife_")) return "swisslife";
+  if (flowKey.startsWith("entoria_")) return "entoria";
   return null;
 }
 
@@ -40,9 +41,14 @@ async function validateCredentials(items: EnqueueItem[]): Promise<void> {
   }
 
   if (missingPlatforms.length > 0) {
-    const platformNames = missingPlatforms.map(p =>
-      p === "alptis" ? "Alptis" : "SwissLife"
-    ).join(", ");
+    const platformNames = missingPlatforms.map(p => {
+      switch (p) {
+        case "alptis": return "Alptis";
+        case "swisslife": return "SwissLife";
+        case "entoria": return "Entoria";
+        default: return p;
+      }
+    }).join(", ");
 
     throw new ConfigMissingError(
       "credentials",
@@ -105,8 +111,8 @@ export async function enqueueRun(
         extra: { runId, taskCount: tasks.length },
       });
       // Mark run as failed so UI knows
-      await db.update(schema.runs).set({ status: "failed", completedAt: new Date() }).where(eq(schema.runs.id, runId));
-      AutomationBroadcaster.runCompleted(runId, "failed");
+      await db.update(schema.runs).set({ status: "failed" }).where(eq(schema.runs.id, runId));
+      AutomationBroadcaster.runCompleted(runId, false);
     });
 
   // Return immediately so the UI can navigate to the live view

@@ -11,7 +11,7 @@ describe('CredentialsService', () => {
   afterAll(() => { cleanup?.(); });
 
   it('upsert inserts then updates without duplicates', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     // Insert first credential
@@ -40,7 +40,7 @@ describe('CredentialsService', () => {
   });
 
   it('stores credentials encrypted in database', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     await CredentialsService.upsert({ platform: 'test', login: 'mylogin', password: 'secret123' });
@@ -57,13 +57,13 @@ describe('CredentialsService', () => {
   });
 
   it('getByPlatform returns null for non-existent platform', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     const creds = await CredentialsService.getByPlatform('nonexistent');
     expect(creds).toBeNull();
   });
 
   it('listPlatforms returns all platforms', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     await CredentialsService.upsert({ platform: 'alptis', login: 'a', password: '1' });
@@ -76,7 +76,7 @@ describe('CredentialsService', () => {
   });
 
   it('delete removes credentials for platform', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     await CredentialsService.upsert({ platform: 'todelete', login: 'a', password: '1' });
@@ -87,7 +87,7 @@ describe('CredentialsService', () => {
   });
 
   it('test() returns NO_CREDENTIALS when no credentials exist', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     const res = await CredentialsService.test('alptis');
@@ -98,7 +98,7 @@ describe('CredentialsService', () => {
   });
 
   it('test() returns UNKNOWN_PLATFORM for unsupported platforms', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     // Add credentials for unknown platform
@@ -112,7 +112,7 @@ describe('CredentialsService', () => {
   });
 
   it('migrateUnencrypted encrypts legacy plaintext credentials', async () => {
-    const { CredentialsService } = await import('@/main/services/credentialsService');
+    const { CredentialsService } = await import('@/main/services/credentials/credentialsService');
     await (db as any).delete((schema as any).credentials);
 
     // Insert plaintext directly (simulating legacy data)

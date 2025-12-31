@@ -1,4 +1,4 @@
-import type { BrowserContext, LaunchOptions } from "playwright-extra";
+import type { BrowserContext, LaunchOptions } from "playwright";
 import { BrowserInstancePool } from "./BrowserInstancePool";
 import { ContextFactory } from "./ContextFactory";
 import type { CreateContextOptions } from "./types";

@@ -1,4 +1,7 @@
 import type { BrowserContext, Page } from "playwright";
+import { engineLogger } from "../EngineLogger";
+
+const log = engineLogger.for("PageLifecycle");
 
 /**
  * PageLifecycleManager - Manages page creation and cleanup.
@@ -14,10 +17,10 @@ export class PageLifecycleManager {
    * Create a new page from the browser context.
    */
   async createPage(workerId: string): Promise<Page> {
-    console.log(`[PAGE_LIFECYCLE] Creating new page from context...`);
+    log.debug(`Creating new page from context...`);
     const pageStart = Date.now();
     this.page = await this.context.newPage();
-    console.log(`[PAGE_LIFECYCLE] Page created in ${Date.now() - pageStart}ms`);
+    log.debug(`Page created in ${Date.now() - pageStart}ms`);
     return this.page;
   }
 
@@ -51,17 +54,17 @@ export class PageLifecycleManager {
   async closePage(workerId: string): Promise<void> {
     if (this.page) {
       try {
-        console.log(`[PAGE_LIFECYCLE] Closing page for worker ${workerId.substring(0, 8)}...`);
+        log.debug(`Closing page for worker ${workerId.substring(0, 8)}...`);
         await this.page.close();
-        console.log(`[PAGE_LIFECYCLE] Page closed`);
+        log.debug(`Page closed`);
       } catch (error) {
-        console.warn(`[PAGE_LIFECYCLE] Error closing page:`, error);
+        log.warn(`Error closing page: ${error}`);
         // Ignore errors during cleanup
       }
       this.page = null;
       this.pageCloseHandler = null;
     } else {
-      console.log(`[PAGE_LIFECYCLE] No page to close`);
+      log.debug(`No page to close`);
     }
   }
 

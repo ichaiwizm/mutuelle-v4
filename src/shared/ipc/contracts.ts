@@ -265,7 +265,7 @@ export type Ipc = {
   leads: {
     list: (options?: { limit?: number; offset?: number; search?: string }) => Promise<LeadsListResult>;
     get: (id: string) => Promise<Lead | null>;
-    create: (lead: unknown) => Promise<{ id: string }>;
+    create: (lead: unknown) => Promise<{ id: string; duplicate?: boolean }>;
     update: (
       id: string,
       data: {

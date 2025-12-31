@@ -1,0 +1,332 @@
+# Auto-generated flow definition
+# Generator: @mutuelle/fdk
+# Version: 1.0.0
+# Exported: 2025-12-31T02:17:17.795Z
+# Checksum: 774090278191415c9de3d2682b695159be08cbefaf89c26653f5e238e4c183d3
+# Flow: SwissLife One SLSIS v1.0.0
+metadata:
+  name: "SwissLife One SLSIS"
+  version: "1.0.0"
+  description: "Devis automation for SwissLife One SLSIS product"
+  platform: "swisslife"
+  product: "slsis"
+  formUrl: "https://swisslife-one.fr/slsis"
+  stepOrder:
+    - "swisslife-auth"
+    - "swisslife-navigation"
+    - "swisslife-projet"
+    - "swisslife-besoins"
+    - "swisslife-type-simulation"
+    - "swisslife-assure-principal"
+    - "swisslife-conjoint"
+    - "swisslife-enfants"
+    - "swisslife-gammes-options"
+    - "swisslife-submit"
+steps:
+  - id: "swisslife-auth"
+    name: "Authentication SwissLife ADFS/SAML"
+    type: "auth"
+    description: "Login to SwissLife One portal via ADFS/SAML"
+    timeout: 60000
+    retry:
+      attempts: 3
+      delayMs: 1000
+    credentials:
+      username:
+        id: "username"
+        type: "text"
+        selector: "#username"
+        source: "{{credentials.username}}"
+        label: "Username"
+      password:
+        id: "password"
+        type: "password"
+        selector: "#password"
+        source: "{{credentials.password}}"
+        label: "Password"
+    submitSelector: "button[type=\"submit\"]"
+    successIndicator: ".dashboard-container"
+  - id: "swisslife-navigation"
+    name: "Navigate to SLSIS Form"
+    type: "navigation"
+    description: "Load form page and switch to iframe context"
+    timeout: 60000
+    retry:
+      attempts: 2
+      delayMs: 2000
+    actions:
+      - type: "goto"
+        url: "https://swisslife-one.fr/slsis"
+        timeout: 60000
+        waitUntil: "networkidle"
+      - type: "waitFor"
+        selector: "#slsis-iframe"
+        timeout: 45000
+        state: "attached"
+      - type: "switchToIframe"
+        selector: "#slsis-iframe"
+        timeout: 45000
+  - id: "swisslife-projet"
+    name: "Section 1: Projet"
+    type: "form-fill"
+    description: "Fill project name for SLSIS simulation"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "nomProjet"
+        type: "text"
+        selector: "#nom-projet"
+        source: "{{formData.nomProjet}}"
+        waitFor: true
+        label: "Nom du projet"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#nom-projet"
+        timeout: 10000
+  - id: "swisslife-besoins"
+    name: "Section 2: Besoins"
+    type: "form-fill"
+    description: "Fill coverage needs for SLSIS simulation"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "couvertureSoins"
+        type: "radio"
+        selector: "#couverture-soins"
+        source: "{{formData.couvertureSoins}}"
+        waitFor: true
+        label: "Couverture soins"
+      - id: "indemniteHospitalisation"
+        type: "radio"
+        selector: "#indemnite-hospitalisation"
+        source: "{{formData.indemniteHospitalisation}}"
+        label: "Indemnite hospitalisation"
+      - id: "indemniteMaladieGrave"
+        type: "radio"
+        selector: "#indemnite-maladie-grave"
+        source: "{{formData.indemniteMaladieGrave}}"
+        label: "Indemnite maladie grave"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#couverture-soins"
+        timeout: 10000
+  - id: "swisslife-type-simulation"
+    name: "Section 3: Type Simulation"
+    type: "form-fill"
+    description: "Select simulation type based on family structure"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "typeSimulation"
+        type: "select"
+        selector: "#type-simulation"
+        source: "{{formData.typeSimulation}}"
+        waitFor: true
+        label: "Type de simulation"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#type-simulation"
+        timeout: 10000
+  - id: "swisslife-assure-principal"
+    name: "Section 4: Assure Principal"
+    type: "form-fill"
+    description: "Fill main insured person details"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "dateNaissance"
+        type: "date"
+        selector: "#date-naissance-assure-principal"
+        source: "{{formData.assurePrincipal.dateNaissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation: &a1
+          - type: "required"
+            message: "Date de naissance requise"
+          - type: "date"
+            message: "Format de date invalide"
+        waitFor: true
+        label: "Date de naissance"
+      - id: "profession"
+        type: "select"
+        selector: "#profession-assure-principal"
+        source: "{{formData.assurePrincipal.profession}}"
+        label: "Profession"
+      - id: "regime"
+        type: "select"
+        selector: "#regime-assure-principal"
+        source: "{{formData.assurePrincipal.regime}}"
+        label: "Regime"
+      - id: "statut"
+        type: "select"
+        selector: "#statut-assure-principal"
+        source: "{{formData.assurePrincipal.statut}}"
+        optional: true
+        label: "Statut professionnel"
+      - id: "codePostal"
+        type: "text"
+        selector: "#code-postal-assure-principal"
+        source: "{{formData.assurePrincipal.codePostal}}"
+        validation:
+          - type: "required"
+            message: "Code postal requis"
+          - type: "pattern"
+            value: "^[0-9]{5}$"
+            message: "Code postal invalide"
+        label: "Code postal"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#date-naissance-assure-principal"
+        timeout: 10000
+  - id: "swisslife-conjoint"
+    name: "Section 5: Conjoint"
+    type: "form-fill"
+    description: "Fill spouse details (conditional)"
+    condition:
+      expression: "{{formData.conjoint}}"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "dateNaissance"
+        type: "date"
+        selector: "#date-naissance-assure-conjoint"
+        source: "{{formData.conjoint.dateNaissance}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation: *a1
+        waitFor: true
+        label: "Date de naissance conjoint"
+      - id: "profession"
+        type: "select"
+        selector: "#profession-assure-conjoint"
+        source: "{{formData.conjoint.profession}}"
+        label: "Profession conjoint"
+      - id: "regime"
+        type: "select"
+        selector: "#regime-assure-conjoint"
+        source: "{{formData.conjoint.regime}}"
+        label: "Regime conjoint"
+      - id: "statut"
+        type: "select"
+        selector: "#statut-assure-conjoint"
+        source: "{{formData.conjoint.statut}}"
+        optional: true
+        label: "Statut professionnel conjoint"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#date-naissance-assure-conjoint"
+        timeout: 10000
+  - id: "swisslife-enfants"
+    name: "Section 6: Enfants"
+    type: "navigation"
+    description: "Fill children details (conditional, dynamic)"
+    condition:
+      expression: "{{formData.enfants.length > 0}}"
+      type: "if"
+    optional: true
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    actions:
+      - type: "waitFor"
+        selector: ".enfants-container"
+        timeout: 10000
+      - type: "click"
+        selector: "#btn-ajouter-enfant"
+        waitAfter: 500
+      - type: "waitFor"
+        selector: "#date-naissance-enfant-0"
+        timeout: 5000
+      - type: "fill"
+        selector: "#date-naissance-enfant-0"
+        value: "{{formData.enfants[0].dateNaissance}}"
+      - type: "selectOption"
+        selector: "#regime-enfant-0"
+        value: "{{formData.enfants[0].regime}}"
+  - id: "swisslife-gammes-options"
+    name: "Section 7: Gammes et Options"
+    type: "form-fill"
+    description: "Fill gamme selection and options"
+    timeout: 30000
+    retry:
+      attempts: 2
+      delayMs: 500
+    fields:
+      - id: "gamme"
+        type: "select"
+        selector: "#gamme"
+        source: "{{formData.gamme}}"
+        waitFor: true
+        label: "Gamme"
+      - id: "madelin"
+        type: "checkbox"
+        selector: "#madelin"
+        source: "{{formData.madelin}}"
+        optional: true
+        label: "Loi Madelin"
+      - id: "repriseContrat"
+        type: "checkbox"
+        selector: "#reprise-contrat"
+        source: "{{formData.repriseContrat}}"
+        optional: true
+        label: "Reprise de contrat"
+      - id: "resiliation"
+        type: "checkbox"
+        selector: "#resiliation"
+        source: "{{formData.resiliation}}"
+        optional: true
+        label: "Resiliation"
+      - id: "dateEffet"
+        type: "date"
+        selector: "#date-effet"
+        source: "{{formData.dateEffet}}"
+        transform:
+          - name: "toDate"
+            args:
+              format: "DD/MM/YYYY"
+        validation:
+          - type: "required"
+            message: "Date effet requise"
+          - type: "date"
+            message: "Format de date invalide"
+        label: "Date effet"
+    beforeFill:
+      - type: "waitFor"
+        selector: "#gamme"
+        timeout: 10000
+  - id: "swisslife-submit"
+    name: "Submit Form"
+    type: "navigation"
+    description: "Click Suivant button to submit SLSIS form"
+    timeout: 45000
+    retry:
+      attempts: 2
+      delayMs: 1000
+    actions:
+      - type: "waitFor"
+        selector: "#btn-suivant"
+        timeout: 10000
+        state: "visible"
+      - type: "click"
+        selector: "#btn-suivant"
+        waitBefore: 500
+      - type: "waitForNavigation"
+        timeout: 45000
+        waitUntil: "networkidle"

@@ -4,42 +4,6 @@
  * Produit: SLSIS (Santé Individuelle et Confort Hospitalisation)
  */
 
-import type { Environment, EnvironmentBehaviors } from './common.config';
-import { getEnvironment } from './common.config';
-
-// Re-export common types and functions for backward compatibility
-export type { Environment, EnvironmentBehaviors } from './common.config';
-export { getEnvironment } from './common.config';
-
-/**
- * Environment-specific behaviors for each environment
- */
-export const SwissLifeOneEnvironmentBehaviors: Record<Environment, EnvironmentBehaviors> = {
-  development: {
-    verbose: true,
-    screenshotOnError: true,
-    screenshotOnSuccess: true,
-  },
-  staging: {
-    verbose: true,
-    screenshotOnError: true,
-    screenshotOnSuccess: false,
-  },
-  production: {
-    verbose: false,
-    screenshotOnError: false,
-    screenshotOnSuccess: false,
-  },
-};
-
-/**
- * Get environment behaviors for current environment
- */
-export function getSwissLifeOneEnvironmentBehaviors(env?: Environment): EnvironmentBehaviors {
-  const currentEnv = env ?? getEnvironment();
-  return SwissLifeOneEnvironmentBehaviors[currentEnv];
-}
-
 export const SwissLifeOneTimeouts = {
   redirections: 20000,
   dashboardLoad: 30000,

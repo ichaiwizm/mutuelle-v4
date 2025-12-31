@@ -1,0 +1,190 @@
+# Example Flow Definition
+# This file demonstrates the structure of a YAML flow for the FDK
+
+metadata:
+  name: Example Flow
+  version: "1.0"
+  description: A demonstration flow showing the YAML structure for form automation
+  author: FDK Team
+  tags:
+    - example
+    - demo
+
+config:
+  baseUrl: https://example.com
+  browser:
+    headless: false
+    viewportWidth: 1280
+    viewportHeight: 720
+    timeout: 30000
+  defaultTimeout: 10000
+  maxRetries: 3
+  retryDelay: 1000
+  stopOnError: true
+  screenshotOnError: true
+
+# Input mapper transforms lead data before execution
+inputMapper:
+  mappings:
+    fullName:
+      source: "subscriber.firstName"
+      transform:
+        - type: concat
+          params:
+            values:
+              - "{{ subscriber.firstName }}"
+              - " "
+              - "{{ subscriber.lastName }}"
+    formattedDate:
+      source: "subscriber.birthDate"
+      transform:
+        - type: dateFormat
+          params:
+            format: "DD/MM/YYYY"
+
+steps:
+  # Step 1: Authentication
+  - id: auth
+    type: auth
+    name: Login
+    description: Authenticate to the platform
+    credentials:
+      username:
+        id: username
+        type: text
+        selector:
+          css: "#username"
+        source: "credentials.username"
+      password:
+        id: password
+        type: password
+        selector:
+          css: "#password"
+        source: "credentials.password"
+    submitSelector:
+      css: "button[type='submit']"
+    successIndicator:
+      css: ".dashboard"
+    timeout: 15000
+
+  # Step 2: Navigation to form
+  - id: navigate-to-form
+    type: navigation
+    name: Navigate to Quote Form
+    description: Navigate to the quote creation form
+    actions:
+      - type: click
+        selector:
+          css: ".menu-quotes"
+      - type: waitForSelector
+        selector:
+          css: ".quote-form"
+        timeout: 5000
+      - type: click
+        selector:
+          css: "button.new-quote"
+
+  # Step 3: Fill the form
+  - id: fill-form
+    type: form-fill
+    name: Fill Quote Form
+    description: Fill in the quote form with lead data
+    beforeFill:
+      - type: waitForSelector
+        selector:
+          css: "#quote-form"
+        timeout: 10000
+    fields:
+      - id: civilite
+        type: select
+        selector:
+          css: "#civilite"
+        source: "subscriber.civilite"
+        label: Civilite
+
+      - id: nom
+        type: text
+        selector:
+          css: "#lastName"
+        source: "subscriber.lastName"
+        label: Nom
+
+      - id: prenom
+        type: text
+        selector:
+          css: "#firstName"
+        source: "subscriber.firstName"
+        label: Prenom
+
+      - id: email
+        type: email
+        selector:
+          css: "#email"
+        source: "subscriber.email"
+        label: Email
+        validation:
+          - type: email
+            message: "Email invalide"
+
+      - id: dateNaissance
+        type: date
+        selector:
+          css: "#birthDate"
+        source: "subscriber.birthDate"
+        transform:
+          - type: dateFormat
+            params:
+              format: "DD/MM/YYYY"
+        label: Date de naissance
+
+      - id: codePostal
+        type: text
+        selector:
+          css: "#postalCode"
+        source: "subscriber.postalCode"
+        validation:
+          - type: regex
+            params:
+              pattern: "^[0-9]{5}$"
+            message: "Code postal invalide"
+        label: Code postal
+
+    afterFill:
+      - type: screenshot
+        name: form-filled
+    submitSelector:
+      css: "button#submit-quote"
+
+  # Step 4: Extract result
+  - id: extract-result
+    type: extraction
+    name: Extract Quote Result
+    description: Extract the generated quote information
+    condition:
+      type: if
+      expression: "{{ previousStep.success }}"
+    extractions:
+      - selector:
+          css: ".quote-number"
+        into: "quoteNumber"
+      - selector:
+          css: ".quote-price"
+        into: "monthlyPrice"
+        transform:
+          - type: regex
+            params:
+              pattern: "([0-9]+[.,][0-9]{2})"
+              group: 1
+          - type: replace
+            params:
+              search: ","
+              replace: "."
+          - type: toNumber
+
+# Output mapper transforms extracted data for final result
+outputMapper:
+  mappings:
+    result:
+      source: "quoteNumber"
+    pricing:
+      source: "monthlyPrice"
