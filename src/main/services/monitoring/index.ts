@@ -8,5 +8,6 @@ export {
   trackFlowStep,
   trackFlowComplete,
   captureUserFeedback,
+  captureSupportRequest,
   flushSentry,
 } from "./sentry";

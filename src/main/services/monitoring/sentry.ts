@@ -213,3 +213,56 @@ export async function flushSentry(): Promise<void> {
     // Ignore flush errors
   }
 }
+
+/**
+ * Send a support request with attachments to Sentry.
+ * Uses scope.addAttachment() for file data (screenshots, logs).
+ */
+export function captureSupportRequest(
+  message: string,
+  data: {
+    runData: Record<string, unknown>;
+    systemInfo: Record<string, unknown>;
+    userMessage?: string;
+  },
+  attachments: Array<{
+    filename: string;
+    data: Buffer;
+    contentType?: string;
+  }>
+): string | undefined {
+  if (!SENTRY_DSN) {
+    console.log("[SENTRY] Would capture support request:", message);
+    return undefined;
+  }
+
+  let eventId: string | undefined;
+
+  Sentry.withScope((scope) => {
+    // Set tags for filtering in Sentry dashboard
+    scope.setTag("type", "support_request");
+    scope.setTag("run_status", data.runData.status as string);
+
+    // Add structured data as extras
+    scope.setExtra("runData", data.runData);
+    scope.setExtra("systemInfo", data.systemInfo);
+    if (data.userMessage) {
+      scope.setExtra("userMessage", data.userMessage);
+    }
+
+    // Add attachments (screenshots, logs)
+    for (const attachment of attachments) {
+      scope.addAttachment({
+        filename: attachment.filename,
+        data: attachment.data,
+        contentType: attachment.contentType || "application/octet-stream",
+      });
+    }
+
+    // Capture as a message event (not an error)
+    eventId = Sentry.captureMessage(message, "info");
+  });
+
+  console.log("[SENTRY] Captured support request, eventId:", eventId);
+  return eventId;
+}

@@ -32,6 +32,7 @@ import {
   registerDataHandlers,
   registerAppHandlers,
   registerDevisHandlers,
+  registerSupportHandlers,
 } from "./handlers";
 
 export function registerIpc() {
@@ -49,4 +50,5 @@ export function registerIpc() {
   registerDataHandlers();
   registerAppHandlers();
   registerDevisHandlers();
+  registerSupportHandlers();
 }

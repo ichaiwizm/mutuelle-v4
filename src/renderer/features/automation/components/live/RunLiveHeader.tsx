@@ -9,7 +9,9 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
+  Bug,
 } from "lucide-react";
+import { useSendLogs } from "../../hooks/useSendLogs";
 import type { Run } from "@/shared/types/run";
 
 type RunLiveHeaderProps = {
@@ -86,6 +88,10 @@ export function RunLiveHeader({
   onBack,
   onRefresh,
 }: RunLiveHeaderProps) {
+  const { sendLogs, sending } = useSendLogs();
+
+  // Highlight support button if run has failures
+  const hasFailed = stats.failed > 0 || status === "failed";
   const overallProgress = useMemo(() => {
     if (stats.total === 0) return 0;
     return Math.round(
@@ -147,6 +153,21 @@ export function RunLiveHeader({
               Annuler
             </Button>
           )}
+
+          <Button
+            variant={hasFailed ? "danger" : "secondary"}
+            size="sm"
+            onClick={() => sendLogs({ runId })}
+            disabled={sending}
+            title="Envoyer les logs au support"
+          >
+            {sending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Bug className="h-4 w-4" />
+            )}
+            Support
+          </Button>
         </div>
       </div>
 

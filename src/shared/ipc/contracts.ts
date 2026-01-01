@@ -15,6 +15,7 @@ import type {
   CreateDevisInput,
   UpdateDevisInput,
 } from "@/shared/types/devis";
+import type { SupportLogPayload, SupportLogResult } from "@/shared/types/support";
 
 // ========== Mail ==========
 
@@ -371,5 +372,9 @@ export type Ipc = {
     duplicate: (id: string) => Promise<{ id: string }>;
     countByLead: (leadIds: string[]) => Promise<DevisCountByLeadResult>;
     stats: () => Promise<DevisStatsResult>;
+  };
+
+  support: {
+    sendLogs: (payload: SupportLogPayload) => Promise<SupportLogResult>;
   };
 };

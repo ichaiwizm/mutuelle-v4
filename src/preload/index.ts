@@ -156,6 +156,10 @@ const api: Ipc = {
     countByLead: (leadIds) => invokeIpc(IPC_CHANNEL.DEVIS_COUNT_BY_LEAD, { leadIds }),
     stats: () => invokeIpc(IPC_CHANNEL.DEVIS_STATS),
   },
+
+  support: {
+    sendLogs: (payload) => invokeIpc(IPC_CHANNEL.SUPPORT_SEND_LOGS, payload),
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

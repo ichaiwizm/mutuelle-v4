@@ -78,6 +78,9 @@ export const IPC_CHANNEL = {
   // Feedback
   FEEDBACK_SEND: "feedback:send",
 
+  // Support (debug logs)
+  SUPPORT_SEND_LOGS: "support:sendLogs",
+
   // Auto-Update
   UPDATE_STATUS: "update:status",      // Push channel (main -> renderer)
   UPDATE_CHECK: "update:check",        // Action: check for updates

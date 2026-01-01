@@ -4,7 +4,8 @@ import { toast } from 'sonner'
 import { SlideOver } from '@/renderer/components/ui/SlideOver'
 import { Button } from '@/renderer/components/ui/Button'
 import { Skeleton } from '@/renderer/components/ui/Skeleton'
-import { Folder, XCircle, RefreshCw, Loader2 } from 'lucide-react'
+import { Folder, XCircle, RefreshCw, Loader2, Bug } from 'lucide-react'
+import { useSendLogs } from '../../hooks/useSendLogs'
 import { Timeline, TimelineItem } from '../shared/Timeline'
 import { StatusIndicator } from '../shared/StatusIndicator'
 import type { Run, RunItem } from '@/shared/types/run'
@@ -56,6 +57,11 @@ export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlid
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [retryingItem, setRetryingItem] = useState<string | null>(null)
+  const { sendLogs, sending } = useSendLogs()
+
+  // Highlight support button if run has failures
+  const hasFailed = details?.status === 'failed' ||
+    details?.items.some(i => i.status === 'failed')
 
   const handleRetryItem = useCallback(async (itemId: string) => {
     setRetryingItem(itemId)
@@ -158,17 +164,32 @@ export function RunDetailsSlideOver({ runId, onClose, onCancel }: RunDetailsSlid
                 Created: {formatDate(details.createdAt)}
               </p>
             </div>
-            {canCancel && onCancel && (
+            <div className="flex items-center gap-2">
+              {canCancel && onCancel && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onCancel(details.id)}
+                  className="text-[var(--color-error)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
               <Button
-                variant="ghost"
+                variant={hasFailed ? "danger" : "ghost"}
                 size="sm"
-                onClick={() => onCancel(details.id)}
-                className="text-[var(--color-error)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10"
+                onClick={() => sendLogs({ runId: details.id })}
+                disabled={sending}
+                title="Envoyer les logs au support"
               >
-                <XCircle className="h-4 w-4" />
-                Cancel
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Bug className="h-4 w-4" />
+                )}
               </Button>
-            )}
+            </div>
           </div>
 
           {/* Items Timeline */}
