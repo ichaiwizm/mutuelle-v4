@@ -41,7 +41,11 @@
       "WebFetch(domain:www.swisslifeone.fr)",
       "WebFetch(domain:adfs.swisslife.fr)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(ssh:*)",
+      "Bash(git remote set-url:*)",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": [],
     "ask": []
