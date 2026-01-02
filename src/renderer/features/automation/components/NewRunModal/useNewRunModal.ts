@@ -5,6 +5,7 @@ import type { ProductConfiguration } from "@/shared/types/product";
 import type { Lead } from "@/shared/types/lead";
 import type { UseNewRunModalOptions } from "./types";
 import type { ErrorCode } from "@/shared/errors";
+import { getMissingPlatforms } from "@/renderer/lib/credentials";
 
 export function useNewRunModal({
   isOpen,
@@ -19,6 +20,9 @@ export function useNewRunModal({
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingLeads, setLoadingLeads] = useState(true);
+
+  // Credentials state - platforms that have credentials configured
+  const [configuredPlatforms, setConfiguredPlatforms] = useState<Set<string>>(new Set());
 
   // Selection state
   const [selectedFlows, setSelectedFlows] = useState<Set<string>>(new Set());
@@ -52,6 +56,16 @@ export function useNewRunModal({
         toast.error("Erreur lors du chargement des produits");
       })
       .finally(() => setLoadingProducts(false));
+
+    // Fetch configured platforms (credentials)
+    window.api.credentials
+      .list()
+      .then((platforms) => {
+        setConfiguredPlatforms(new Set(platforms));
+      })
+      .catch((error) => {
+        console.error("Failed to fetch credentials:", error);
+      });
   }, [isOpen, preSelectedLeadIds]);
 
   // Fetch leads with server-side search (debounced)
@@ -138,7 +152,18 @@ export function useNewRunModal({
 
   // Calculate total tasks
   const totalTasks = selectedFlows.size * selectedLeads.size;
-  const canSubmit = selectedFlows.size > 0 && selectedLeads.size > 0 && !submitting;
+
+  // Calculate missing platforms for selected flows
+  const missingPlatforms = useMemo(
+    () => getMissingPlatforms(selectedFlows, configuredPlatforms),
+    [selectedFlows, configuredPlatforms]
+  );
+
+  const canSubmit =
+    selectedFlows.size > 0 &&
+    selectedLeads.size > 0 &&
+    missingPlatforms.size === 0 &&
+    !submitting;
 
   // Calculate estimated duration
   const estimatedDuration = useMemo(() => {
@@ -243,6 +268,9 @@ export function useNewRunModal({
     canSubmit,
     estimatedDuration,
     quickSelectOptions,
+    // Credentials
+    configuredPlatforms,
+    missingPlatforms,
     // Submit
     submitting,
     handleSubmit,

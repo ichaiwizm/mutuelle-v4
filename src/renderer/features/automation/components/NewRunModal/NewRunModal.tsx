@@ -34,6 +34,8 @@ export function NewRunModal({
     canSubmit,
     estimatedDuration,
     quickSelectOptions,
+    configuredPlatforms,
+    missingPlatforms,
     submitting,
     handleSubmit,
   } = useNewRunModal({ isOpen, preSelectedLeadIds, onSuccess, onClose });
@@ -50,6 +52,7 @@ export function NewRunModal({
           selectedFlows={selectedFlows}
           toggleFlow={toggleFlow}
           toggleAllFlows={toggleAllFlows}
+          configuredPlatforms={configuredPlatforms}
         />
 
         {/* Leads Section */}
@@ -79,7 +82,15 @@ export function NewRunModal({
         <Button variant="secondary" onClick={onClose} disabled={submitting}>
           Annuler
         </Button>
-        <Button onClick={handleSubmit} disabled={!canSubmit}>
+        <Button
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          title={
+            missingPlatforms.size > 0
+              ? `Identifiants manquants pour: ${[...missingPlatforms].join(", ")}`
+              : undefined
+          }
+        >
           {submitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
