@@ -10,6 +10,8 @@ export type DevisData = {
   coverageLevel?: string;
   formuleName?: string;
   effectiveDate?: string;
+  devisUrl?: string;           // Direct URL to open the devis on the platform
+  quoteReference?: string;     // Platform-specific quote/project ID
   [key: string]: unknown;
 };
 

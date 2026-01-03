@@ -109,6 +109,7 @@ const api: Ipc = {
 
   shell: {
     openPath: (path: string) => invokeIpc(IPC_CHANNEL.SHELL_OPEN_PATH, { path }),
+    openExternal: (url: string) => invokeIpc(IPC_CHANNEL.SHELL_OPEN_EXTERNAL, { url }),
   },
 
   automationSettings: {

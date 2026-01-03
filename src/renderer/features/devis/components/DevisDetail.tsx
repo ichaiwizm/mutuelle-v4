@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Loader2,
   Save,
+  ExternalLink,
 } from "lucide-react";
 import { SlideOver } from "@/renderer/components/ui/SlideOver/SlideOver";
 import { Button } from "@/renderer/components/ui/Button";
@@ -197,10 +198,31 @@ export function DevisDetail({
         )}
       </Section>
 
+      {/* Lien vers la plateforme */}
+      {devis.data?.devisUrl && (
+        <Section title="Plateforme">
+          <div className="space-y-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => window.api.shell.openExternal(devis.data!.devisUrl as string)}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Ouvrir sur la plateforme
+            </Button>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              Modifier les garanties directement sur la plateforme
+            </p>
+          </div>
+        </Section>
+      )}
+
       {/* Données du devis */}
       {formattedData.length > 0 && (
         <Section title="Données du devis">
-          {formattedData.map(({ key, label, value }) => (
+          {formattedData
+            .filter(({ key }) => key !== "devisUrl" && key !== "quoteReference")
+            .map(({ key, label, value }) => (
             <DataRow key={key} label={label} value={value} />
           ))}
         </Section>

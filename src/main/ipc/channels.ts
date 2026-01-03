@@ -64,6 +64,7 @@ export const IPC_CHANNEL = {
 
   // Shell (system utilities)
   SHELL_OPEN_PATH: "shell:openPath",
+  SHELL_OPEN_EXTERNAL: "shell:openExternal",
 
   // Automation Settings
   AUTO_SETTINGS_GET: "automationSettings:get",

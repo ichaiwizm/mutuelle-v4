@@ -12,7 +12,7 @@ export type ProductStatus = {
 export type ProductCategory = "sante" | "prevoyance" | "retraite" | "vie";
 
 // Step types in a flow
-export type StepType = "auth" | "navigation" | "form-fill" | "validation" | "submission";
+export type StepType = "auth" | "navigation" | "form-fill" | "validation" | "submission" | "devis-capture";
 
 // Definition of a single step in a flow
 export type StepDefinition = {

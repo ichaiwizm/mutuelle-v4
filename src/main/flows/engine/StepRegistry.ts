@@ -2,6 +2,7 @@ import type { IStep } from "./types";
 import { AlptisAuthStep } from "../platforms/alptis/steps/AlptisAuthStep";
 import { AlptisNavigationStep } from "../platforms/alptis/steps/AlptisNavigationStep";
 import { AlptisFormFillStep } from "../platforms/alptis/steps/AlptisFormFillStep";
+import { AlptisDevisCaptureStep } from "../platforms/alptis/steps/AlptisDevisCaptureStep";
 import { AlptisSanteProPlusNavigationStep } from "../platforms/alptis/steps/AlptisSanteProPlusNavigationStep";
 import { AlptisSanteProPlusFormFillStep } from "../platforms/alptis/steps/AlptisSanteProPlusFormFillStep";
 import { SwissLifeAuthStep } from "../platforms/swisslifeone/steps/SwissLifeAuthStep";
@@ -42,6 +43,7 @@ export class StepRegistry {
     this.register("AlptisAuthStep", new AlptisAuthStep());
     this.register("AlptisNavigationStep", new AlptisNavigationStep());
     this.register("AlptisFormFillStep", new AlptisFormFillStep());
+    this.register("AlptisDevisCaptureStep", new AlptisDevisCaptureStep());
 
     // Alptis steps (Santé Pro Plus)
     this.register("AlptisSanteProPlusNavigationStep", new AlptisSanteProPlusNavigationStep());

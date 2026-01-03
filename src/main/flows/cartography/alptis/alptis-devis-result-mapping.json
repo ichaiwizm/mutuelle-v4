@@ -1,0 +1,100 @@
+{
+  "product": "Alptis Santé Select",
+  "platform": "alptis",
+  "resultPageUrl": "https://pro.alptis.org/sante-select/projets/{projectId}",
+  "explorationDate": "2026-01-01",
+  "screenshotPath": "e2e/test-results/alptis-devis-result-page.png",
+
+  "pageStructure": {
+    "description": "Page liste des projets du client, affiche un tableau avec tous les devis",
+    "urlPattern": "/sante-select/projets/{projectId}",
+    "confirmationBanner": {
+      "description": "Bandeau vert qui apparaît après enregistrement",
+      "text": "Projet n°{projectId} enregistré !",
+      "autoCloses": true
+    }
+  },
+
+  "selectors": {
+    "projectId": {
+      "description": "Numéro du projet/devis",
+      "primary": "tr.selected td:first-child a",
+      "alternative": "[class*='tarif']",
+      "stability": "high",
+      "extractMethod": "text",
+      "exampleValue": "1799309"
+    },
+    "tarif": {
+      "description": "Prix mensuel du devis",
+      "primary": "[class*='tarif']",
+      "alternative": "tr.selected td:nth-last-child(2)",
+      "stability": "high",
+      "extractMethod": "text",
+      "format": "XXX,XX €",
+      "exampleValue": "277,44 €"
+    },
+    "statut": {
+      "description": "Statut du devis",
+      "primary": "tr.selected td:last-child",
+      "stability": "medium",
+      "extractMethod": "text",
+      "possibleValues": ["Proposition", "Souscrit", "Annulé"],
+      "exampleValue": "Proposition"
+    },
+    "devisUrl": {
+      "description": "URL directe vers le devis",
+      "primary": "window.location.href",
+      "stability": "high",
+      "extractMethod": "url",
+      "pattern": "https://pro.alptis.org/sante-select/projets/{projectId}",
+      "exampleValue": "https://pro.alptis.org/sante-select/projets/793342"
+    },
+    "garantiesLevels": {
+      "description": "Niveaux de garanties (colonnes du tableau)",
+      "columns": [
+        "Séjour",
+        "Honoraires (Hospitalisation)",
+        "Honoraires (Soins courants)",
+        "Autres",
+        "Optique",
+        "Dentaire",
+        "Aides audit.",
+        "Médecine c.",
+        "Surcompléé."
+      ],
+      "stability": "low",
+      "note": "Structure complexe, extraction optionnelle"
+    }
+  },
+
+  "actions": {
+    "modifier": {
+      "selector": "button:has-text('Modifier')",
+      "description": "Modifier le projet"
+    },
+    "dupliquer": {
+      "selector": "button:has-text('Dupliquer')",
+      "description": "Dupliquer le projet"
+    },
+    "supprimer": {
+      "selector": "button:has-text('Supprimer')",
+      "description": "Supprimer le projet"
+    },
+    "etudePersonnalisee": {
+      "selector": "button:has-text('Etude personnalisée')",
+      "description": "Générer une étude personnalisée (possible PDF)"
+    },
+    "souscription": {
+      "selector": "button:has-text('Souscription')",
+      "description": "Démarrer la souscription"
+    }
+  },
+
+  "notes": [
+    "Pas de bouton téléchargement PDF direct visible",
+    "L'action 'Etude personnalisée' pourrait générer un PDF",
+    "Le numéro de projet est extractible depuis l'URL ou le tableau",
+    "Le prix est affiché dans la colonne 'Tarif' avec format 'XXX,XX €'",
+    "La ligne du projet nouvellement créé est sélectionnée (tr.selected)"
+  ]
+}

@@ -328,6 +328,7 @@ export type Ipc = {
 
   shell: {
     openPath: (path: string) => Promise<{ success: boolean }>;
+    openExternal: (url: string) => Promise<{ success: boolean }>;
   };
 
   automationSettings: {

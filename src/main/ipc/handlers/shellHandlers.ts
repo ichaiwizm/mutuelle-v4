@@ -19,4 +19,16 @@ export function registerShellHandlers() {
       return { success: true };
     })
   );
+
+  ipcMain.handle(
+    IPC_CHANNEL.SHELL_OPEN_EXTERNAL,
+    handler(null, async (input: { url: string }) => {
+      const { url } = input as { url: string };
+      if (!url || typeof url !== "string") {
+        throw new ValidationError("URL is required");
+      }
+      await shell.openExternal(url);
+      return { success: true };
+    })
+  );
 }

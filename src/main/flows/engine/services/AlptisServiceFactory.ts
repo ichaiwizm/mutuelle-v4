@@ -8,6 +8,7 @@ import type { PlatformServices } from "./types";
 import { AlptisAuth, type AlptisAuthConfig } from "../../platforms/alptis/lib/AlptisAuth";
 import { NavigationStep } from "../../platforms/alptis/products/sante-select/steps/navigation";
 import { FormFillOrchestrator } from "../../platforms/alptis/products/sante-select/steps/form-fill/FormFillOrchestrator";
+import { AlptisDevisExtractor } from "../../platforms/alptis/extractors/AlptisDevisExtractor";
 
 // Singleton cache with credentials hash to detect changes
 let cachedServices: PlatformServices | null = null;
@@ -33,6 +34,7 @@ export function createAlptisServices(credentials: AlptisAuthConfig): PlatformSer
     auth: new AlptisAuth(credentials),
     navigation: new NavigationStep(),
     formFill: new FormFillOrchestrator(),
+    devisExtractor: new AlptisDevisExtractor(),
   };
   cachedCredentialsHash = hash;
 
