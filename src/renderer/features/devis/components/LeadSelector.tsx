@@ -96,8 +96,9 @@ export function LeadSelector({ onSelectLead }: LeadSelectorProps) {
     loadLeads();
   }, []);
 
-  // Filter leads by search
+  // Filter leads by search and exclude leads without devis
   const filteredLeads = leads.filter((item) => {
+    if (item.devisCount === 0) return false;
     if (!search) return true;
     const name = getLeadName(item.lead).toLowerCase();
     return name.includes(search.toLowerCase());
