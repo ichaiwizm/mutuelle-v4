@@ -132,6 +132,41 @@ export class ConfigMissingError extends AppError {
 }
 
 /**
+ * LLM Parsing error types for precise Sentry tracking
+ */
+export type LLMParsingErrorType =
+  | 'API_KEY_MISSING'
+  | 'API_KEY_INVALID'
+  | 'RATE_LIMIT'
+  | 'MODEL_NOT_FOUND'
+  | 'SERVER_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT'
+  | 'EMPTY_RESPONSE'
+  | 'JSON_PARSE_ERROR'
+  | 'MISSING_FIELDS'
+  | 'UNKNOWN';
+
+/**
+ * LLM Parsing error - thrown when LLM-based lead parsing fails
+ */
+export class LLMParsingError extends AppError {
+  readonly errorType: LLMParsingErrorType;
+  readonly httpStatus?: number;
+
+  constructor(
+    errorType: LLMParsingErrorType,
+    message: string,
+    details?: Record<string, unknown> & { httpStatus?: number }
+  ) {
+    super('PLATFORM', message, { ...details, errorType });
+    this.name = 'LLMParsingError';
+    this.errorType = errorType;
+    this.httpStatus = details?.httpStatus;
+  }
+}
+
+/**
  * Result type for IPC handlers - discriminated union for success/error
  */
 export type IpcResult<T> =

@@ -6,12 +6,13 @@
  */
 
 import { logger } from "@/main/services/logger";
+import { captureException, addBreadcrumb } from "@/main/services/monitoring";
+import { LLMParsingError, type LLMParsingErrorType } from "@/shared/errors";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "openai/gpt-5-mini-2025-08-07";
-
-// API key injected at build time
 const API_KEY = process.env.OPENROUTER_API_KEY || "";
+const REQUEST_TIMEOUT_MS = 30000;
 
 export interface ParsedLeadData {
   civilite?: string;
@@ -77,78 +78,193 @@ Structure JSON attendue:
   ]
 }`;
 
+/**
+ * Capture une erreur LLM vers Sentry avec contexte détaillé
+ */
+function captureLLMError(
+  errorType: LLMParsingErrorType,
+  message: string,
+  details: {
+    httpStatus?: number;
+    textLength?: number;
+    responseContent?: string;
+    missingFields?: string[];
+    error?: unknown;
+  }
+): void {
+  const error = new LLMParsingError(errorType, message, {
+    httpStatus: details.httpStatus,
+    textLength: details.textLength,
+    missingFields: details.missingFields,
+  });
+
+  logger.error(message, {
+    service: "LLM",
+    errorType,
+    httpStatus: details.httpStatus,
+    textLength: details.textLength,
+  }, details.error);
+
+  captureException(error, {
+    tags: {
+      service: "llm-parsing",
+      error_type: errorType,
+      model: MODEL,
+      ...(details.httpStatus && { http_status: String(details.httpStatus) }),
+    },
+    extra: {
+      textLength: details.textLength,
+      model: MODEL,
+      apiUrl: OPENROUTER_API_URL,
+      timeoutMs: REQUEST_TIMEOUT_MS,
+      ...(details.responseContent && {
+        responseContent: details.responseContent.slice(0, 500),
+      }),
+      ...(details.missingFields && { missingFields: details.missingFields }),
+    },
+  });
+}
+
+/**
+ * Mappe un code HTTP vers un type d'erreur LLM
+ */
+function httpStatusToErrorType(status: number): LLMParsingErrorType {
+  if (status === 401) return "API_KEY_INVALID";
+  if (status === 429) return "RATE_LIMIT";
+  if (status === 404) return "MODEL_NOT_FOUND";
+  if (status >= 500) return "SERVER_ERROR";
+  return "UNKNOWN";
+}
+
 export async function parseLeadWithLLM(text: string): Promise<ParsedLeadData | null> {
+  const textLength = text.length;
+
   if (!API_KEY) {
-    logger.warn("OpenRouter API key not configured", { service: "LLM" });
+    captureLLMError("API_KEY_MISSING", "OpenRouter API key not configured - LLM parsing disabled", {
+      textLength,
+    });
     return null;
   }
 
+  addBreadcrumb("llm-parsing", "Starting LLM parsing", { textLength, model: MODEL }, "info");
+
   try {
-    logger.info("Calling OpenRouter API for lead parsing", {
-      service: "LLM",
-      textLength: text.length,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-        "HTTP-Referer": "https://mutuelle.france-epargne.fr",
-        "X-Title": "Mutuelle App",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: `Extrais les informations du lead suivant:\n\n${text}`,
-          },
-        ],
-        temperature: 0.1, // Low temperature for consistent parsing
-        max_tokens: 1000,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(OPENROUTER_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+          "HTTP-Referer": "https://mutuelle.france-epargne.fr",
+          "X-Title": "Mutuelle App",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: `Extrais les informations du lead suivant:\n\n${text}`,
+            },
+          ],
+          temperature: 0.1,
+          max_tokens: 1000,
+        }),
+        signal: controller.signal,
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      logger.error("OpenRouter API error", {
-        service: "LLM",
-        status: response.status,
-        error: errorText,
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        captureLLMError("TIMEOUT", `OpenRouter request timed out after ${REQUEST_TIMEOUT_MS}ms`, {
+          textLength,
+          error: fetchError,
+        });
+        return null;
+      }
+
+      captureLLMError("NETWORK_ERROR", "OpenRouter request failed - network error", {
+        textLength,
+        error: fetchError,
       });
       return null;
     }
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unable to read error response");
+      const errorType = httpStatusToErrorType(response.status);
+
+      captureLLMError(errorType, `OpenRouter API error: ${response.status} ${response.statusText}`, {
+        httpStatus: response.status,
+        textLength,
+        responseContent: errorText,
+      });
+      return null;
+    }
+
+    addBreadcrumb("llm-parsing", "API response received", { status: response.status }, "info");
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
-      logger.warn("Empty response from OpenRouter", { service: "LLM" });
+      captureLLMError("EMPTY_RESPONSE", "Empty response from OpenRouter - no content in choices", {
+        textLength,
+        responseContent: JSON.stringify(data).slice(0, 500),
+      });
       return null;
     }
 
-    // Extract JSON from response (in case there's extra text)
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      logger.warn("No JSON found in OpenRouter response", {
-        service: "LLM",
-        content,
+      captureLLMError("JSON_PARSE_ERROR", "No JSON found in OpenRouter response", {
+        textLength,
+        responseContent: content.slice(0, 500),
       });
       return null;
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as ParsedLeadData;
-
-    // Validate required fields
-    if (!parsed.nom && !parsed.prenom && !parsed.email && !parsed.telephone) {
-      logger.warn("LLM parsed data missing required fields", {
-        service: "LLM",
-        parsed,
+    let parsed: ParsedLeadData;
+    try {
+      parsed = JSON.parse(jsonMatch[0]) as ParsedLeadData;
+    } catch (parseError) {
+      captureLLMError("JSON_PARSE_ERROR", "Failed to parse JSON from OpenRouter response", {
+        textLength,
+        responseContent: jsonMatch[0].slice(0, 500),
+        error: parseError,
       });
       return null;
     }
+
+    const missingFields: string[] = [];
+    if (!parsed.nom) missingFields.push("nom");
+    if (!parsed.prenom) missingFields.push("prenom");
+    if (!parsed.email) missingFields.push("email");
+    if (!parsed.telephone) missingFields.push("telephone");
+
+    if (missingFields.length === 4) {
+      captureLLMError("MISSING_FIELDS", "LLM parsed data missing all required fields", {
+        textLength,
+        missingFields,
+      });
+      return null;
+    }
+
+    addBreadcrumb(
+      "llm-parsing",
+      "Successfully parsed lead",
+      {
+        hasConjoint: !!parsed.conjoint,
+        childCount: parsed.enfants?.length || 0,
+      },
+      "info"
+    );
 
     logger.info("Successfully parsed lead with LLM", {
       service: "LLM",
@@ -158,7 +274,10 @@ export async function parseLeadWithLLM(text: string): Promise<ParsedLeadData | n
 
     return parsed;
   } catch (error) {
-    logger.error("Failed to parse lead with LLM", { service: "LLM" }, error);
+    captureLLMError("UNKNOWN", "Unexpected error during LLM parsing", {
+      textLength,
+      error,
+    });
     return null;
   }
 }
