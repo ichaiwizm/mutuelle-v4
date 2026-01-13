@@ -135,6 +135,19 @@ export const ALPTIS_SANTE_PRO_PLUS: ProductConfiguration<SanteProPlusFormData> =
       estimatedDuration: 2000,
       isSubmit: true,
     },
+    {
+      id: "devis-capture",
+      name: "Capture Devis",
+      description: "Extraire les données du devis depuis la page résultat",
+      type: "devis-capture",
+      required: true,
+      method: "captureDevis",
+      stepClass: "AlptisDevisCaptureStep",
+      needsLead: true,
+      needsCredentials: false,
+      maxRetries: 2,
+      estimatedDuration: 5000,
+    },
   ],
 
   // Conditional rules to evaluate step conditions

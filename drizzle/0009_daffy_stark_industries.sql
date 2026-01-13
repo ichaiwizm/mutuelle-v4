@@ -16,5 +16,4 @@ CREATE TABLE `devis` (
 --> statement-breakpoint
 CREATE INDEX `devis_lead_id_idx` ON `devis` (`lead_id`);--> statement-breakpoint
 CREATE INDEX `devis_flow_key_idx` ON `devis` (`flow_key`);--> statement-breakpoint
-CREATE INDEX `devis_status_idx` ON `devis` (`status`);--> statement-breakpoint
-ALTER TABLE `product_automation_settings` DROP COLUMN `stop_at_step`;
+CREATE INDEX `devis_status_idx` ON `devis` (`status`);

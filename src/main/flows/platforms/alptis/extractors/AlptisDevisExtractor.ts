@@ -2,15 +2,35 @@
  * Alptis Devis Extractor
  *
  * Extracts quote data from the Alptis result page after form submission.
- * The result page is a projects list page at /sante-select/projets/{projectId}
+ * Supports multiple Alptis products (Santé Select, Santé Pro Plus).
  */
 import type { Page, Frame } from "playwright";
 import type { FlowLogger } from "../../../engine/FlowLogger";
 import type { IDevisExtractor, ExtractedDevisData } from "../../../engine/services/types";
 
 /**
+ * Supported Alptis products
+ */
+export type AlptisProduct = "sante_select" | "sante_pro_plus";
+
+/**
+ * Configuration for AlptisDevisExtractor
+ */
+export interface AlptisDevisExtractorConfig {
+  product: AlptisProduct;
+}
+
+/**
+ * URL patterns per product
+ */
+const URL_PATTERNS: Record<AlptisProduct, RegExp> = {
+  sante_select: /\/sante-select\/projets\/(\d+)/,
+  sante_pro_plus: /\/sante-pro-plus\/projets\/(\d+)/,
+};
+
+/**
  * CSS Selectors for Alptis result page
- * Based on exploration of /sante-select/projets/{projectId}
+ * Common to all Alptis products
  */
 const ALPTIS_RESULT_SELECTORS = {
   // Price/tarif in the projects table
@@ -24,19 +44,22 @@ const ALPTIS_RESULT_SELECTORS = {
   // Status column
   status: "tr.selected td:last-child",
 
-  // URL pattern for result page
-  urlPattern: /\/sante-select\/projets\/(\d+)/,
-
   // Confirmation banner (appears after save)
   confirmationBanner: ".totem-flash--success, [class*='success']",
 };
 
 export class AlptisDevisExtractor implements IDevisExtractor {
+  private config: AlptisDevisExtractorConfig;
+
+  constructor(config: AlptisDevisExtractorConfig = { product: "sante_select" }) {
+    this.config = config;
+  }
+
   getResultPageSelectors() {
     return {
       priceSelector: ALPTIS_RESULT_SELECTORS.tarif,
       formulaSelector: undefined, // No specific formula name on Alptis result page
-      urlPattern: ALPTIS_RESULT_SELECTORS.urlPattern.source,
+      urlPattern: URL_PATTERNS[this.config.product].source,
     };
   }
 
@@ -52,7 +75,8 @@ export class AlptisDevisExtractor implements IDevisExtractor {
       const currentUrl = page.url();
 
       // Extract project ID from URL
-      const urlMatch = currentUrl.match(ALPTIS_RESULT_SELECTORS.urlPattern);
+      const urlPattern = URL_PATTERNS[this.config.product];
+      const urlMatch = currentUrl.match(urlPattern);
       const projectId = urlMatch ? urlMatch[1] : undefined;
 
       logger?.info("Current URL", { url: currentUrl, projectId });
@@ -86,7 +110,7 @@ export class AlptisDevisExtractor implements IDevisExtractor {
         platformSpecific: {
           status,
           platform: "alptis",
-          product: "sante_select",
+          product: this.config.product,
         },
       };
 
